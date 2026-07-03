@@ -1,75 +1,97 @@
 ---
 name: commit-and-close
-description: Commit current worktree changes for the active Linear issue, push the branch, create or reuse a GitHub PR, and move the Linear issue to In Review. Use when the user says /commit-and-close, commit and close, finish this worktree, open a PR for this ticket, commit current changes, or move the ticket to review. Despite the name, never close/complete the Linear issue; merged PRs close work, this skill only marks In Review after a PR exists.
-allowed-tools: Bash(git:*), Bash(linear:*), Bash(gh:*), Bash(pwd:*), Bash(basename:*), Bash(mktemp:*), Bash(cat:*), Bash(rm:*), Bash(jq:*), Bash(perl:*), Bash(sed:*), Bash(grep:*), Bash(tr:*)
 disable-model-invocation: true
+description: Commit the current Linear worktree, open/reuse a PR, and move the issue to In Review.
+allowed-tools: Bash(git:*), Bash(linear:*), Bash(gh:*), Bash(pwd:*), Bash(basename:*), Bash(mktemp:*), Bash(cat:*), Bash(rm:*), Bash(jq:*), Bash(perl:*), Bash(sed:*), Bash(grep:*), Bash(tr:*), Bash(printf:*)
 ---
 
 # Commit and Close
 
-Finish the current Linear worktree by committing local changes, opening a GitHub PR, and moving the ticket to **In Review**. The skill name is historical: do not close, complete, resolve, or mark the issue Done.
+`commit-and-close` is a review handoff. “Close” means close the local loop: commit, push, PR, and Linear **In Review**. Never close, complete, resolve, archive, or mark the Linear issue Done.
 
-## Workflow
+## Handoff steps
 
-1. Work from the current git root.
+1. Anchor the handoff in the current git root and one Linear issue.
    ```bash
    ROOT="$(git rev-parse --show-toplevel)"
    cd "$ROOT"
-   ```
-
-2. Resolve the Linear issue id. Prefer an explicit id in the user's prompt, then `linear issue id`, then ids found in the current branch, git root path, or worktree directory name. Ask if no id or multiple plausible ids are found.
-   ```bash
    BRANCH="$(git branch --show-current)"
    WORKTREE_NAME="$(basename "$ROOT")"
    ISSUE_ID="$(linear issue id 2>/dev/null || true)"
    ```
+   Prefer an explicit issue id from the user's prompt, then `linear issue id`, then ids found in the branch, git root path, or worktree directory name. Ask if there is no id or more than one plausible id.
 
-3. Get Linear title + URL.
+   Completion criterion: `ROOT`, `BRANCH`, and exactly one `ISSUE_ID` are known.
+
+2. Load the Linear title and URL.
    ```bash
    TITLE="$(linear issue title "$ISSUE_ID" | tr -d '\r')"
    URL="$(linear issue url "$ISSUE_ID" | tr -d '\r')"
    ```
 
-4. Inspect changes before staging. Stop if there are no working-tree changes and no unpushed commits that need a PR. Pause and ask before committing suspicious files such as secrets, huge generated artifacts, or unrelated changes.
+   Completion criterion: title and URL are loaded for the same issue id.
+
+3. Inspect the change set before staging.
    ```bash
    git status --short
    git diff --stat
+   git diff --cached --stat
+   git log --oneline @{u}..HEAD 2>/dev/null || true
+   ```
+   Stop if there are no working-tree changes and no unpushed commits. Ask before committing suspicious files: secrets, credentials, huge generated artifacts, vendored dependency dumps, or changes unrelated to the issue.
+
+   Completion criterion: the intended handoff change set is clear, and every suspicious file is either excluded or explicitly approved.
+
+4. Ensure the branch is PR-safe before committing.
+   ```bash
+   DEFAULT_BRANCH="$(gh repo view --json defaultBranchRef -q '.defaultBranchRef.name' 2>/dev/null || git remote show origin | perl -ne 'print "$1\n" if /HEAD branch: (.+)/')"
+   case "$BRANCH" in
+     main|master|dev|"$DEFAULT_BRANCH")
+       SAFE_TITLE="$(printf '%s' "$TITLE" | tr '[:upper:]' '[:lower:]' | perl -0pe 's/[^a-z0-9]+/-/g; s/^-|-$//g; s/-+/-/g')"
+       BRANCH="$(printf '%s-%s' "$ISSUE_ID" "$SAFE_TITLE" | tr '[:upper:]' '[:lower:]')"
+       git switch -c "$BRANCH"
+       ;;
+   esac
    ```
 
-5. Stage and commit all intended worktree changes.
-   - Use a Conventional Commit subject based on the actual diff: `<type>(<scope>): <imperative summary> [$ISSUE_ID]`.
-   - Use standard types such as `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, or `perf`.
-   - Include a scope when helpful; omit it when it would be vague.
-   - Put the ticket id in brackets at the end of the subject.
-   - Put the Linear URL in the body after a blank line.
-   - Use `Linear:` / `Refs:` wording, not `Fixes:`, `Closes:`, or `Resolves:`.
+   Completion criterion: the current branch is not `main`, `master`, `dev`, or the repository default branch.
+
+5. Commit uncommitted work, if any.
+   - Base the subject on the actual diff: `<type>(<scope>): <imperative summary> [$ISSUE_ID]`.
+   - Use `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, or `perf`.
+   - Include a scope only when it is specific.
+   - Put the Linear URL in the body with `Linear:`. Do not use `Fixes:`, `Closes:`, or `Resolves:`.
 
    ```bash
-   git add -A
-   MSG_FILE="$(mktemp)"
-   printf '%s\n\nLinear: %s\n' "<type>(<scope>): <imperative summary> [$ISSUE_ID]" "$URL" > "$MSG_FILE"
-   git commit -F "$MSG_FILE"
-   rm "$MSG_FILE"
+   if ! git diff --quiet || ! git diff --cached --quiet; then
+     git add -A
+     MSG_FILE="$(mktemp)"
+     printf '%s\n\nLinear: %s\n' "<type>(<scope>): <imperative summary> [$ISSUE_ID]" "$URL" > "$MSG_FILE"
+     git commit -F "$MSG_FILE"
+     rm "$MSG_FILE"
+   fi
    COMMIT_SHA="$(git rev-parse --short HEAD)"
    ```
 
-6. Push the branch. Do not create PRs from `main`, `master`, or `dev`; if currently on a protected/base branch, create a feature branch named from the issue id + title first.
+   Completion criterion: all intended local changes are committed, or there were none; `COMMIT_SHA` names the handoff commit.
+
+6. Record verification truthfully.
+   Run the relevant tests/checks when obvious and cheap. If verification is not run, record `Not run`; do not invent commands.
+
+   Completion criterion: the PR body can state exactly what was run, or exactly that nothing was run.
+
+7. Push the branch without rewriting history.
    ```bash
-   BRANCH="$(git branch --show-current)"
    git push -u origin "$BRANCH"
    ```
 
-7. Create or reuse a GitHub PR with `gh`.
-   - First check for an existing PR for the branch and reuse it if present.
-   - Use the repository default branch as the PR base.
-   - PR title format: `$ISSUE_ID: $TITLE` unless the user supplied a better title.
-   - PR body must include the Linear URL, summary, and verification actually run.
+   Completion criterion: the remote branch exists on `origin`.
 
+8. Create or reuse a GitHub PR.
    ```bash
    PR_URL="$(gh pr view --json url -q .url 2>/dev/null || true)"
    if [ -z "$PR_URL" ]; then
      BASE_BRANCH="$(gh repo view --json defaultBranchRef -q '.defaultBranchRef.name')"
-
      BODY_FILE="$(mktemp)"
      cat > "$BODY_FILE" <<EOF
 Linear: $URL
@@ -85,20 +107,28 @@ EOF
    fi
    ```
 
-8. Move the Linear issue to **In Review** only after the PR exists. If this fails, report it; do not mark the issue completed as a fallback.
+   Completion criterion: exactly one PR exists for the branch and `PR_URL` is known.
+
+9. Move Linear to **In Review** only after the PR exists.
    ```bash
    linear issue update "$ISSUE_ID" --state "In Review"
    ```
+   If this fails, report the failure. Do not use another terminal state as a fallback.
 
-9. Return a concise summary:
-   - issue id, title, Linear URL
-   - commit SHA + branch
-   - PR URL
-   - Linear state update result
+   Completion criterion: the issue is In Review, or the state-update failure is reported with the PR URL.
 
-## Safety rules
+10. Return the handoff summary.
+    ```text
+    Issue: <ISSUE_ID> — <title>
+    Commit: <COMMIT_SHA> on <branch>
+    PR: <PR_URL>
+    Linear: <URL>
+    State: In Review | failed to update (<reason>)
+    Verification: <commands run | Not run>
+    ```
 
-- Never close, complete, resolve, archive, or mark Done. Only move to `In Review`.
-- Never use `Fixes`, `Closes`, or `Resolves` in commit/PR text for this workflow.
-- Never force-push, amend, rebase, or squash unless the user explicitly asks.
-- Never create a duplicate PR if one already exists for the branch.
+## Hard stops
+
+- No `Fixes:`, `Closes:`, or `Resolves:` anywhere in commit or PR text.
+- No force-push, amend, rebase, or squash unless the user explicitly asks.
+- No duplicate PR when one already exists for the branch.

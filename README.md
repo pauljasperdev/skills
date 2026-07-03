@@ -11,5 +11,5 @@ npx skills add pauljasperdev/skills -g --agent pi claude-code --skill '*' -y
 Install one:
 
 ```bash
-npx skills add pauljasperdev/skills -g --agent pi --skill linear-worktree
+npx skills add pauljasperdev/skills -g --agent pi --skill to-wt
 ```

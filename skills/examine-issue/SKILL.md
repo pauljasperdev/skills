@@ -1,45 +1,61 @@
 ---
 name: examine-issue
-description: Pull a Linear issue with the linear CLI, send many narrow scout subagents plus a context-builder over the codebase, then return a concise rundown. Use when the user invokes /examine-issue, asks to examine a Linear issue before implementation, or wants a subagent-backed TODO breakdown for an issue id, issue URL, or issue title.
-allowed-tools: Bash(linear:*), Bash(mkdir:*), Bash(rm:*), Bash(jq:*), subagent
+disable-model-invocation: true
+description: Read-only Linear issue triage with scout subagents and a TODO rundown.
+allowed-tools: Bash(linear:*), Bash(mkdir:*), Bash(rm:*), Bash(jq:*), Bash(cat:*), Bash(printf:*), subagent
 ---
 
 # Examine Issue
 
-Use this as read-only triage before implementation. Do not edit project files.
+`examine-issue` is reconnaissance before implementation. Keep it read-only: do not edit project files, change Linear state, create branches, install dependencies, or start implementation.
 
-## Workflow
+## Steps
 
-1. Resolve the issue id from the input. If only a title/search term is given:
-   ```bash
-   linear issue query --search "<term>" --all-states --limit 10 --json
-   ```
-   Ask the user to choose if there is no obvious single match.
+1. Resolve exactly one Linear issue.
+   - If the input includes an id like `GEM-123` or a Linear URL, use that id.
+   - If the input is a title/search term, run:
+     ```bash
+     linear issue query --search "<term>" --all-states --limit 10 --json
+     ```
+     Ask the user to choose if there is no obvious single match.
 
-2. Pull the issue into `/tmp` for subagents to read:
+   Completion criterion: exactly one issue id is known.
+
+2. Snapshot the issue into `/tmp` for child agents.
    ```bash
    ISSUE_ID="GEM-123"
-   ISSUE_FILE="/tmp/pi-examine-issue-$ISSUE_ID.md"
+   WORK_DIR="/tmp/pi-examine-issue-$ISSUE_ID"
+   ISSUE_FILE="$WORK_DIR/issue.md"
+   rm -rf "$WORK_DIR"
+   mkdir -p "$WORK_DIR"
    linear issue view "$ISSUE_ID" --no-pager --show-resolved-threads --no-download > "$ISSUE_FILE"
    ```
 
-3. List available subagents, then run a fresh-context chain: parallel narrow `scout` tasks first, then one `context-builder` synthesis.
+   Completion criterion: `ISSUE_FILE` exists and contains the issue title, description, comments, and resolved threads available from Linear.
 
-   Default scouts, dropping only clearly irrelevant ones:
-   - `issue-scope`: read only the Linear issue; extract requested outcome, constraints, non-goals.
-   - `code-search`: search for keywords/routes/services named by the issue; return candidate files only.
-   - `existing-patterns`: inspect 1-3 analogous implementations; return patterns to copy/avoid.
+3. Send a scout fanout.
+   - First list available subagents.
+   - Use fresh context for scouts so each one does independent legwork.
+   - Prefer `context-builder` for scout tasks when available; otherwise use the most read-only-capable available agent.
+   - Run relevant scouts in parallel. Drop a scout only when the issue clearly cannot touch that area.
+   - Tell every scout: read-only, no project/source edits, concise evidence-backed findings, file paths when available, no full implementation plan.
+
+   Scout pack:
+   - `issue-scope`: read only `ISSUE_FILE`; extract requested outcome, constraints, non-goals, and acceptance hints.
+   - `code-search`: search keywords/routes/services named by the issue; return candidate files/areas only.
+   - `existing-patterns`: inspect 1-3 analogous implementations; return patterns to copy or avoid.
    - `data-config-infra`: inspect env/config/db/infra touchpoints if the issue might need them.
    - `tests-validation`: find existing tests, scripts, QA flows, and likely validation commands.
-   - `risk-questions`: identify unclear decisions, cross-package boundaries, migration/release risks.
+   - `risk-questions`: identify unclear decisions, cross-package boundaries, migrations, rollout, and release risks.
 
-   Keep scout prompts small. Each scout gets `ISSUE_ID`, `ISSUE_FILE`, one narrow objective, and a hard limit of about 5-10 bullets. Scouts should not synthesize the whole plan; they should return evidence-backed findings with file paths.
+   Completion criterion: every relevant scout returns either evidence-backed findings or an explicit “no relevant evidence found”; no scout edits files or writes the whole plan.
 
-   The final `context-builder` reads the issue plus all scout outputs and turns them into TODOs, acceptance criteria, risks/questions, and validation ideas.
+4. Synthesize the scout outputs.
+   Use `context-builder` for the final synthesis when available; otherwise synthesize inline. Feed it `ISSUE_FILE` plus every scout result. The synthesis should turn evidence into TODOs, acceptance criteria, risks/questions, and validation ideas without implementing anything.
 
-   Tell every child: read-only, no project/source edits, concise evidence-backed findings.
+   Completion criterion: every scout finding is either represented in the rundown or intentionally omitted as irrelevant.
 
-4. Report back with this shape:
+5. Report the rundown.
    ```text
    Issue: <ID> — <title>
    Rundown:
@@ -57,3 +73,5 @@ Use this as read-only triage before implementation. Do not edit project files.
    Validation:
    - <command or manual check>
    ```
+
+   Completion criterion: the report contains the issue, likely TODOs, relevant files/areas, risks/questions, and validation, with no implementation changes made.
