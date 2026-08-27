@@ -1,0 +1,7 @@
+interface:
+  display_name: "PR"
+  short_description: "Push branch, open PR, update Linear"
+  default_prompt: "Use $pr to push the current branch, open or reuse its pull request, and move its Linear issue to In Review."
+
+policy:
+  allow_implicit_invocation: false

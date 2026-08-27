@@ -55,11 +55,15 @@ allowed-tools: Bash(linear:*), Bash(mkdir:*), Bash(rm:*), Bash(jq:*), Bash(cat:*
 
    Completion criterion: every scout finding is either represented in the rundown or intentionally omitted as irrelevant.
 
-5. Report the rundown.
+5. Report the implementation brief.
    ```text
    Issue: <ID> — <title>
-   Rundown:
-   - <1-3 sentence summary>
+
+   Problem / feature:
+   <1-2 plain-language sentences explaining what needs to be solved and why it matters.>
+
+   Proposed solution:
+   <the concrete implementation approach>
 
    Likely TODOs:
    - [ ] <todo> (<file/path or area>)
@@ -74,4 +78,4 @@ allowed-tools: Bash(linear:*), Bash(mkdir:*), Bash(rm:*), Bash(jq:*), Bash(cat:*
    - <command or manual check>
    ```
 
-   Completion criterion: the report contains the issue, likely TODOs, relevant files/areas, risks/questions, and validation, with no implementation changes made.
+   Completion criterion: the report begins with a concise, easy-to-understand problem or feature statement, follows immediately with the proposed solution, then gives likely TODOs, relevant files/areas, risks/questions, and validation, with no implementation changes made.

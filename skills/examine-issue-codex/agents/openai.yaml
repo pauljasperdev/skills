@@ -1,0 +1,4 @@
+interface:
+  display_name: "Examine Linear Issue in Codex"
+  short_description: "Read-only Linear issue reconnaissance"
+  default_prompt: "Use $examine-issue-codex to examine one Linear issue with the installed Linear app and return a read-only implementation rundown."

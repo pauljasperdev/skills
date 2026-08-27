@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Codex Worktree"
+  short_description: "Open Linear issues in Codex worktrees"
+  default_prompt: "Use $to-codex to open a clear Linear issue in a new Codex worktree task and start $examine-issue-codex."
