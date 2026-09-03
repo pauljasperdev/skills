@@ -1,0 +1,7 @@
+interface:
+  display_name: "Handoff to Codex"
+  short_description: "Move examined work into a Codex implementation session"
+  default_prompt: "Use $handoff2codex after issue examination to write a design-focused Markdown handoff and start a GPT-5.6 Sol/high implementation thread on the same T3 worktree."
+
+policy:
+  allow_implicit_invocation: false

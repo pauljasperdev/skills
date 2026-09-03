@@ -1,7 +1,0 @@
-interface:
-  display_name: "To T3 Worktree"
-  short_description: "Open Linear issues in native T3 worktrees"
-  default_prompt: "Use $to-t3 to open an unblocked Linear issue in a native T3 Code worktree and start $examine-issue-codex."
-
-policy:
-  allow_implicit_invocation: false

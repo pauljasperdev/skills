@@ -1,0 +1,7 @@
+interface:
+  display_name: "Linear to Claude"
+  short_description: "Open Linear issues in Fable worktrees"
+  default_prompt: "Use $linear2claude to open unblocked Linear work in native T3 worktrees with Claude Fable 5.1 and start /examine-issue."
+
+policy:
+  allow_implicit_invocation: false

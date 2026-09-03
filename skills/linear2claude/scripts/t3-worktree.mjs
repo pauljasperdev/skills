@@ -8,23 +8,19 @@ import path from "node:path";
 import { promisify } from "node:util";
 
 const execFile = promisify(execFileCallback);
-const SUPPORTED_SERVER_VERSIONS = new Set(["0.0.33"]);
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DISPATCH_TIMEOUT_MS = 180_000;
 const VERIFY_TIMEOUT_MS = 20_000;
 const EXAMINE_MODEL_SELECTION = Object.freeze({
-  instanceId: "opencode",
-  model: "openai/gpt-5.6-sol",
-  options: Object.freeze([
-    Object.freeze({ id: "variant", value: "high" }),
-    Object.freeze({ id: "agent", value: "build" }),
-  ]),
+  instanceId: "claudeAgent",
+  model: "claude-fable-5-1",
+  options: Object.freeze([Object.freeze({ id: "effort", value: "high" })]),
 });
 
-class ToT3Error extends Error {
+class Linear2ClaudeError extends Error {
   constructor(code, message, details = undefined) {
     super(message);
-    this.name = "ToT3Error";
+    this.name = "Linear2ClaudeError";
     this.code = code;
     this.details = details;
   }
@@ -33,7 +29,7 @@ class ToT3Error extends Error {
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function fail(code, message, details) {
-  throw new ToT3Error(code, message, details);
+  throw new Linear2ClaudeError(code, message, details);
 }
 
 function trimForError(value, maxLength = 1_500) {
@@ -91,7 +87,7 @@ async function discoverRuntime(t3Home) {
     try {
       state = await readJson(runtimePath, "T3_RUNTIME_INVALID");
     } catch (error) {
-      if (error instanceof ToT3Error) continue;
+      if (error instanceof Linear2ClaudeError) continue;
       throw error;
     }
     if (
@@ -118,16 +114,6 @@ async function discoverRuntime(t3Home) {
       typeof descriptor?.serverVersion !== "string"
     ) {
       continue;
-    }
-    if (!SUPPORTED_SERVER_VERSIONS.has(descriptor.serverVersion)) {
-      fail(
-        "T3_VERSION_UNSUPPORTED",
-        `T3 ${descriptor.serverVersion} is not supported by this adapter.`,
-        {
-          supportedVersions: [...SUPPORTED_SERVER_VERSIONS],
-          runtimePath,
-        },
-      );
     }
     return {
       ...state,
@@ -175,9 +161,9 @@ async function withSession(runtime, run) {
     "--ttl",
     "10m",
     "--label",
-    "to-t3",
+    "linear2claude",
     "--subject",
-    "to-t3",
+    "linear2claude",
   ]);
 
   let session;
@@ -199,7 +185,7 @@ async function withSession(runtime, run) {
       { allowFailure: true },
     );
     if (revoked === null) {
-      process.stderr.write("Warning: the temporary to-t3 API session could not be revoked.\n");
+      process.stderr.write("Warning: the temporary linear2claude API session could not be revoked.\n");
     }
   }
 }
@@ -224,10 +210,10 @@ class RpcSocket {
     });
     socket.addEventListener("close", () => {
       this.closed = true;
-      this.rejectAll(new ToT3Error("T3_RPC_CLOSED", "The T3 WebSocket closed unexpectedly."));
+      this.rejectAll(new Linear2ClaudeError("T3_RPC_CLOSED", "The T3 WebSocket closed unexpectedly."));
     });
     socket.addEventListener("error", () => {
-      this.rejectAll(new ToT3Error("T3_RPC_FAILED", "The T3 WebSocket reported an error."));
+      this.rejectAll(new Linear2ClaudeError("T3_RPC_FAILED", "The T3 WebSocket reported an error."));
     });
   }
 
@@ -238,7 +224,7 @@ class RpcSocket {
     const socket = new globalThis.WebSocket(url);
     await new Promise((resolve, reject) => {
       const timer = setTimeout(
-        () => reject(new ToT3Error("T3_RPC_TIMEOUT", "Timed out connecting to the T3 WebSocket.")),
+        () => reject(new Linear2ClaudeError("T3_RPC_TIMEOUT", "Timed out connecting to the T3 WebSocket.")),
         10_000,
       );
       socket.addEventListener(
@@ -253,7 +239,7 @@ class RpcSocket {
         "error",
         () => {
           clearTimeout(timer);
-          reject(new ToT3Error("T3_RPC_FAILED", "Could not connect to the T3 WebSocket."));
+          reject(new Linear2ClaudeError("T3_RPC_FAILED", "Could not connect to the T3 WebSocket."));
         },
         { once: true },
       );
@@ -267,9 +253,9 @@ class RpcSocket {
       decoded = JSON.parse(await dataToText(data));
     } catch (error) {
       this.rejectAll(
-        error instanceof ToT3Error
+        error instanceof Linear2ClaudeError
           ? error
-          : new ToT3Error("T3_RPC_PROTOCOL_ERROR", "T3 returned invalid WebSocket JSON."),
+          : new Linear2ClaudeError("T3_RPC_PROTOCOL_ERROR", "T3 returned invalid WebSocket JSON."),
       );
       return;
     }
@@ -279,7 +265,7 @@ class RpcSocket {
       if (message?._tag === "Pong") continue;
       if (message?._tag === "ClientProtocolError") {
         this.rejectAll(
-          new ToT3Error("T3_RPC_PROTOCOL_ERROR", "T3 rejected the WebSocket RPC protocol.", {
+          new Linear2ClaudeError("T3_RPC_PROTOCOL_ERROR", "T3 rejected the WebSocket RPC protocol.", {
             error: trimForError(message.error),
           }),
         );
@@ -287,7 +273,7 @@ class RpcSocket {
       }
       if (message?._tag === "Defect") {
         this.rejectAll(
-          new ToT3Error("T3_RPC_DEFECT", "T3 reported a WebSocket RPC defect.", {
+          new Linear2ClaudeError("T3_RPC_DEFECT", "T3 reported a WebSocket RPC defect.", {
             defect: trimForError(message.defect),
           }),
         );
@@ -302,7 +288,7 @@ class RpcSocket {
         pending.resolve(message.exit.value);
       } else {
         pending.reject(
-          new ToT3Error("T3_RPC_COMMAND_FAILED", `T3 rejected RPC ${pending.tag}.`, {
+          new Linear2ClaudeError("T3_RPC_COMMAND_FAILED", `T3 rejected RPC ${pending.tag}.`, {
             cause: trimForError(message.exit?.cause),
           }),
         );
@@ -320,13 +306,13 @@ class RpcSocket {
 
   call(tag, payload, timeoutMs = DEFAULT_TIMEOUT_MS) {
     if (this.closed || this.socket.readyState !== globalThis.WebSocket.OPEN) {
-      return Promise.reject(new ToT3Error("T3_RPC_CLOSED", "The T3 WebSocket is not open."));
+      return Promise.reject(new Linear2ClaudeError("T3_RPC_CLOSED", "The T3 WebSocket is not open."));
     }
     const id = randomUUID();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new ToT3Error("T3_RPC_TIMEOUT", `Timed out waiting for RPC ${tag}.`));
+        reject(new Linear2ClaudeError("T3_RPC_TIMEOUT", `Timed out waiting for RPC ${tag}.`));
       }, timeoutMs);
       this.pending.set(id, { resolve, reject, timer, tag });
       this.socket.send(
@@ -454,7 +440,7 @@ function validateExamineProvider(config) {
     (candidate) => candidate?.instanceId === EXAMINE_MODEL_SELECTION.instanceId,
   );
   if (!provider || provider.status !== "ready") {
-    fail("T3_EXAMINE_PROVIDER_UNAVAILABLE", "The OpenCode provider is not ready in T3.", {
+    fail("T3_EXAMINE_PROVIDER_UNAVAILABLE", "The Claude Code provider is not ready in T3.", {
       instanceId: EXAMINE_MODEL_SELECTION.instanceId,
       status: provider?.status ?? "missing",
     });
@@ -463,7 +449,7 @@ function validateExamineProvider(config) {
     (candidate) => candidate?.slug === EXAMINE_MODEL_SELECTION.model,
   );
   if (!model) {
-    fail("T3_EXAMINE_MODEL_UNAVAILABLE", "OpenCode does not expose the required GPT-5.6 model.", {
+    fail("T3_EXAMINE_MODEL_UNAVAILABLE", "Claude Code does not expose the required Fable 5.1 model.", {
       instanceId: EXAMINE_MODEL_SELECTION.instanceId,
       model: EXAMINE_MODEL_SELECTION.model,
     });
@@ -475,8 +461,8 @@ function validateExamineProvider(config) {
         descriptor?.id === id &&
         (descriptor.options ?? []).some((option) => option?.id === value),
     );
-  if (!supports("variant", "high") || !supports("agent", "build")) {
-    fail("T3_EXAMINE_OPTIONS_UNAVAILABLE", "OpenCode does not support the required high/build options.", {
+  if (!supports("effort", "high")) {
+    fail("T3_EXAMINE_OPTIONS_UNAVAILABLE", "Claude Code does not support the required high effort.", {
       instanceId: EXAMINE_MODEL_SELECTION.instanceId,
       model: EXAMINE_MODEL_SELECTION.model,
     });
@@ -486,8 +472,7 @@ function validateExamineProvider(config) {
     driver: provider.driver,
     status: provider.status,
     model: model.slug,
-    variant: "high",
-    agent: "build",
+    effort: "high",
   };
 }
 
@@ -587,7 +572,7 @@ function validateTitle(title) {
 }
 
 function issuePrompt(issue) {
-  return `/examine-issue ${issue}\n\nUse the installed Linear CLI for issue context. T3 owns this worktree and has started its configured worktree setup automatically; do not run bootstrap again. If reconnaissance needs setup-produced files that are not ready yet, wait for setup to finish. If setup failed, stop and report the failure. Keep the task read-only and finish with a concise, code-first implementation brief; do not edit project files or change Linear.`;
+  return `T3 owns this worktree and has started its configured worktree setup automatically. Wait for setup to finish successfully and do not run bootstrap again. If setup fails, stop and report the failure without invoking issue reconnaissance. Once setup is ready, use /examine-issue to start and examine ${issue}. Keep the repository read-only. Make the consequential technical design decisions: define interfaces and ownership, choose appropriate seams and data flow, and explain how every affected library or framework should be used according to its conventions, with particular attention to Effect and React when present. Leave Codex latitude over incidental implementation details such as local control flow and naming. Do not produce a waterfall implementation plan or start implementation. Finish with a concise technical foundation that can be handed to /handoff2codex.`;
 }
 
 function makeBootstrapCommand({ project, baseBranch, worktreeBranch, startFromOrigin, issue, title }) {
@@ -740,7 +725,7 @@ async function verifyCreated(runtime, token, expected, project) {
         "T3 created a detached worktree instead of a branch-backed worktree.",
       );
     } catch (error) {
-      if (error instanceof ToT3Error) throw error;
+      if (error instanceof Linear2ClaudeError) throw error;
     }
 
     const turnState = body?.latestTurn?.state ?? thread.latestTurn?.state;
@@ -756,8 +741,7 @@ async function verifyCreated(runtime, token, expected, project) {
     const modelMatches =
       thread.modelSelection?.instanceId === EXAMINE_MODEL_SELECTION.instanceId &&
       thread.modelSelection?.model === EXAMINE_MODEL_SELECTION.model &&
-      modelOptions.get("variant") === "high" &&
-      modelOptions.get("agent") === "build";
+      modelOptions.get("effort") === "high";
     if (
       messagePresent &&
       turnStarted &&
@@ -1023,9 +1007,9 @@ try {
   if (result !== null) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 } catch (error) {
   const normalized =
-    error instanceof ToT3Error
+    error instanceof Linear2ClaudeError
       ? error
-      : new ToT3Error("UNEXPECTED", error instanceof Error ? error.message : "Unexpected failure.");
+      : new Linear2ClaudeError("UNEXPECTED", error instanceof Error ? error.message : "Unexpected failure.");
   process.stderr.write(
     `${JSON.stringify(
       {
