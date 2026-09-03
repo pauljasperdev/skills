@@ -1,0 +1,4 @@
+interface:
+  display_name: "Examine Linear Issue"
+  short_description: "Stateless technical issue reconnaissance"
+  default_prompt: "Use $examine-issue to examine one Linear issue without changing Linear or repository state and return a design-focused technical foundation."

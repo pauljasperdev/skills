@@ -1,27 +1,27 @@
 ---
 name: to-codex
-description: Open unblocked Linear issues as new Codex App tasks in Codex-managed Git worktrees and immediately start repository-read-only issue reconnaissance with $examine-issue-codex. Use when the user asks to open, start, or grab Linear To Do issues in Codex; create Codex chats, tasks, or worktrees from Linear issues; or open a count or filtered set of Linear work. Requires the installed Linear app and Codex App task tools. Never use the Linear CLI, tmux, or manual git worktree commands.
+description: Open unblocked Linear issues as new Codex App tasks in Codex-managed Git worktrees, move each verified issue to its team's started state, and immediately start repository-read-only issue reconnaissance with $examine-issue. Use when the user asks to open, start, or grab Linear To Do issues in Codex; create Codex chats, tasks, or worktrees from Linear issues; or open a count or filtered set of Linear work. Requires the installed Linear app and Codex App task tools. Never use the Linear CLI, tmux, or manual git worktree commands.
 ---
 
 # To Codex
 
-Turn selected Linear work into one visible Codex task per issue. Let the Codex App own each worktree and start `$examine-issue-codex` as the task's initial prompt.
+Turn selected Linear work into one visible Codex task per issue. Let the Codex App own each worktree and start the provider-neutral `$examine-issue` skill as the task's initial prompt.
 
 ## Invariants
 
 - Treat invoking this skill as an explicit request to create new Codex tasks.
-- Use the installed Linear app for every Linear read. Never update Linear in this dispatcher; the child `$examine-issue-codex` turn uses the app for its one allowed status transition. Do not run `linear` in a shell.
+- Use the installed Linear app for every Linear read and for the dispatcher's one allowed status transition per newly verified task. Do not run `linear` in a shell.
 - Use Codex App task tools for task and worktree creation. Do not run `git worktree`, create tmux sessions, launch Pi, or create branches.
 - Never open an issue with an unresolved Linear blocker. Fail closed when relation or blocker state cannot be read.
 - Do not choose or reprioritize work beyond the user's selector and Linear priority.
 - Resolve the repository's remote default branch and pass it explicitly when creating worktrees. Do not rely on Codex's inferred project default.
 - Set each child task's explicit title to the Linear issue identifier and issue title, for example `GEM-71 — Remove @gemhog/consent and colocate cookie consent in each runtime`, so the task list never falls back to the reconnaissance prompt.
 - Treat a returned `clientThreadId` as a provisioning receipt, not proof that the final task is usable. A task is ready only after its concrete `threadId`, registered worktree, selected Codex environment setup, terminal, and workspace-wide review are verified.
-- Keep the child task's repository read-only by starting `$examine-issue-codex`; that child skill alone owns the issue's transition to the team's started status. This dispatcher never changes Linear.
+- Keep the child task's Linear and repository access read-only by starting `$examine-issue`. This dispatcher alone owns the issue's transition to the team's started status.
 
 ## 1. Verify capabilities
 
-Before selection, confirm that Linear issue search/list and relation-aware issue detail are callable. Before a non-preview run, also confirm that status listing and issue update are available to the child `$examine-issue-codex` turn.
+Before selection, confirm that Linear issue search/list and relation-aware issue detail are callable. Before a non-preview run, also confirm that this dispatcher can list team statuses, update an issue, and re-read it to verify the transition.
 
 If the Linear app is unavailable, stop before task creation and ask the user to connect or enable it. Do not fall back to the Linear CLI.
 
@@ -94,7 +94,7 @@ Create one Codex project task with:
 - Initial prompt: use the reconnaissance prompt below only when the selected environment can be passed natively. Otherwise use the setup-first handshake that follows it.
 
 ```text
-Use $examine-issue-codex to start and examine <ISSUE_ID> using the installed Linear app. Keep the repository strictly read-only: do not edit project files, create a branch, install dependencies, or start implementation. The invoked skill owns the issue's started-status transition and must make no other Linear changes. Finish at its developer approval gate with a concise, code-first implementation brief. Do not restate the Linear issue. If the user later authorizes implementation in this task, inspect `git status` and use the workspace-wide unstaged review; never infer that the worktree is clean from an empty turn-attributed diff.
+Use $examine-issue to examine <ISSUE_ID> using the installed Linear app. Keep Linear and the repository strictly read-only: do not update the issue, edit project files, create a branch, install dependencies, or start implementation. The dispatcher owns the issue's workflow-state transition. Finish with a concise, design-focused technical foundation rather than a sequential implementation plan. Do not restate the Linear issue. If the user later authorizes implementation in this task, inspect `git status` and use the workspace-wide unstaged review; never infer that the worktree is clean from an empty turn-attributed diff.
 ```
 
 When the task-creation capability cannot carry the selected local environment, its initial prompt must be setup-only:
@@ -112,7 +112,7 @@ This handshake is the fallback for a missing native environment field, not an op
 Task creation is asynchronous:
 
 - A returned `threadId` is a candidate task. Take one compact progress snapshot with the Codex task-wait tool, then run the verification below.
-- A returned `clientThreadId` means worktree setup is queued. Never pass it to tools requiring a `threadId`. Re-list Codex tasks for a bounded period and resolve exactly one newly created task on the expected host whose title starts with the issue identifier. The pre-creation duplicate check makes that identifier the stable correlation key. If no unique concrete task appears during this run, report it as `queued/unverified`, make no Linear update, and stop processing that issue. Do not claim its status is unchanged because the child may start later.
+- A returned `clientThreadId` means worktree setup is queued. Never pass it to tools requiring a `threadId`. Re-list Codex tasks for a bounded period and resolve exactly one newly created task on the expected host whose title starts with the issue identifier. The pre-creation duplicate check makes that identifier the stable correlation key. If no unique concrete task appears during this run, report it as `queued/unverified`, leave Linear unchanged, and stop processing that issue.
 - If creation fails, do not update the Linear issue.
 
 For every concrete task, verify all of the following before declaring it ready:
@@ -125,11 +125,18 @@ For every concrete task, verify all of the following before declaring it ready:
 6. Verify the selected environment setup:
    - With native environment provisioning, require the task/worktree setup result to show that the selected environment completed successfully.
    - With the setup-first handshake, wait for the first turn to finish, read it with tool outputs, require the exact setup command to have exited `0`, require `SETUP READY`, and independently require no tracked or staged Git changes. `node_modules` alone is not proof because a later worker may have run a partial install.
-7. For the setup-first handshake, only now send the repository-read-only `$examine-issue-codex` prompt as a follow-up to the concrete task. Keep model and reasoning overrides omitted unless the user requested them. Take one compact progress snapshot after the follow-up is accepted.
+7. For the setup-first handshake, only now send the Linear- and repository-read-only `$examine-issue` prompt as a follow-up to the concrete task. Keep model and reasoning overrides omitted unless the user requested them. Take one compact progress snapshot after the follow-up is accepted.
 
-If any verification fails, keep the created task for diagnosis, report the exact mismatch, make no Linear update, and do not silently create a replacement. If the child prompt may already have started, do not claim its status transition failed or left the issue unchanged without fresh evidence.
+If any verification fails, keep the created task for diagnosis, report the exact mismatch, leave Linear unchanged, and do not silently create a replacement.
 
-Do not update Linear after launching reconnaissance or duplicate the child skill's transition. `$examine-issue-codex` resolves and applies the issue team's exact `started` status in its own turn.
+After the concrete task, worktree, environment setup, and reconnaissance prompt are all verified, transition the issue:
+
+1. List the issue team's active workflow states whose type is exactly `started`.
+2. Select the sole match. If there are multiple, select the unique state with the lowest workflow position; fail closed on a tie rather than guessing.
+3. Update the issue using that exact state ID.
+4. Re-read the issue and require the returned state ID to match.
+
+Do not transition blocked, failed, queued/unverified, previewed, or existing-task issues. If the update or verification fails, preserve the successfully created task, report the task/Linear mismatch, and stop processing that issue. The `$examine-issue` child must never duplicate this transition.
 
 The initial reconnaissance is repository-read-only, so an empty `unstaged` review is normal. If the user later authorizes implementation in the child task, the child should use the workspace-wide review rather than relying only on turn attribution. Before claiming there is no diff, inspect `git status`; newly created untracked files may need intent-to-add so the review can render them without staging their contents.
 
@@ -157,6 +164,6 @@ Failures:
 
 Include `Blocked` and `Failures` only when non-empty. Account for every candidate exactly once.
 
-For each created task, report the status transition as delegated to `$examine-issue-codex`; mark it successful only when the child result or a fresh Linear read proves it.
+For each created task, report the exact started state applied by this dispatcher and whether the verification read succeeded.
 
 After each accepted Codex task creation, emit the app's created-task directive on its own line using the returned `threadId`, or the returned `clientThreadId` while setup is still queued. Do not describe a queued or failed-verification task as ready.

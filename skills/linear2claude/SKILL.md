@@ -9,8 +9,8 @@ Turn selected Linear work into one native T3 Code worktree thread per issue. Let
 
 ## Invariants
 
-- Treat invocation as authorization to create T3 threads. `/examine-issue` alone owns each issue's transition to its team's started status.
-- Use the installed `linear` CLI for reads, following `/linear-cli` when available. Never update Linear in this dispatcher.
+- Treat invocation as authorization to create T3 threads and move each successfully opened issue to its team's entry `started` status.
+- Use the installed `linear` CLI for Linear reads and the one status transition, following `/linear-cli` when available. `/examine-issue` is stateless and never changes Linear.
 - Use `scripts/t3-worktree.mjs` for T3 access. It authenticates through the official T3 CLI and calls T3's native worktree bootstrap RPC; do not substitute Computer Use, browser automation, direct database access, or an HTTP dispatch endpoint. T3 is alpha software, so attempt the current CLI and RPC before reporting a concrete incompatibility.
 - Do not run `git worktree`, create branches or tmux sessions, or run repository setup yourself.
 - Treat the invocation checkout only as a repository locator. It may already be a linked worktree; the adapter resolves it to T3's saved project by exact path or Git common-directory identity.
@@ -19,7 +19,7 @@ Turn selected Linear work into one native T3 Code worktree thread per issue. Let
 - Pin the first session to provider `claudeAgent`, model `claude-fable-5-1`, with `effort: high`.
 - Name its branch `t3code/<issue-id>-<issue-title-slug>` so T3 gives the worktree the same issue-derived name; add a numeric suffix only for a real collision.
 - Title every thread `<ISSUE_ID> — <issue title>` and start `/examine-issue <ISSUE_ID>` as its first prompt.
-- Never change Linear. The first `/examine-issue` turn performs the status transition after resolving its issue.
+- Update Linear only after the adapter verifies the concrete branch-backed worktree, setup launch, and first examination turn. Leave it unchanged for blocked, failed, dry-run, or existing results.
 
 ## 1. Select issues
 
@@ -58,7 +58,7 @@ Resolve the installed skill directory, then run its adapter health check once fr
 node <linear2claude-skill-dir>/scripts/t3-worktree.mjs doctor --cwd <absolute-current-checkout>
 ```
 
-Confirm that `checkout.projectPath` is the intended saved T3 project, `worktreeDefaults.baseBranch` and `worktreeDefaults.startFromOrigin` match the requested launch, and `examineProvider` reports Fable 5.1 at high effort. Stop with no dispatcher-owned Linear mutation if resolution or the health check fails.
+Confirm that `checkout.projectPath` is the intended saved T3 project, `worktreeDefaults.baseBranch` and `worktreeDefaults.startFromOrigin` match the requested launch, and `examineProvider` reports Fable 5.1 at high effort. Stop with Linear unchanged if resolution or the health check fails.
 
 For each clear issue, sequentially:
 
@@ -73,10 +73,10 @@ LINEAR2CLAUDE_JSON
 
 3. Treat `action: "existing"` as skipped existing work and do not change Linear.
 4. Treat only `ok: true`, `action: "created"`, a non-null `thread.worktreePath`, and `worktree.detached: false` as successful creation. The adapter uses the saved project's current branch as the base, honors T3's start-from-origin setting, verifies Claude Code and Fable 5.1 are ready, creates the issue-derived branch/worktree, requests automatic setup, starts the fixed examination prompt, and verifies Git/T3 state.
-5. On any adapter error, make no Linear update and report whether the child turn may have started. Do not claim the issue status is unchanged without re-reading it. Do not fall back to UI automation, manual Git worktrees, direct T3 storage access, or HTTP dispatch.
-6. Do not update Linear or duplicate the child skill's status transition. The verified first turn now owns that result.
+5. On any adapter error, make no Linear update and report whether the child turn may have started. Do not fall back to UI automation, manual Git worktrees, direct T3 storage access, or HTTP dispatch.
+6. Resolve the issue team's active workflow states and select the `started` state with the lowest workflow position. Fail on a true position tie rather than guessing. Update the issue to that exact state and immediately re-read it to verify the transition. If discovery, update, or verification fails, preserve the T3 thread and report the mismatch.
 
-Completion criterion: each clear issue is an existing thread, a concrete new native worktree thread with examination started, or a recorded failure; this dispatcher made no Linear changes.
+Completion criterion: each clear issue is an existing thread, a concrete new native worktree thread with examination started and a verified Linear transition, or a recorded failure.
 
 ## 4. Report
 
@@ -88,8 +88,8 @@ Opened Claude worktree threads
 Selection: <selector and filters>
 Count: <opened>/<eligible> opened, <existing> existing, <blocked> blocked, <failed> failed
 
-| Issue | Title | T3 thread/worktree | Result |
+| Issue | Title | T3 thread/worktree | Linear status | Result |
 | ... |
 ```
 
-Include blocked issues and failures only when non-empty. For newly created threads, describe the status transition as delegated to `/examine-issue`; do not claim it succeeded unless the child result or a fresh Linear read proves it. For adapter failures, include the error code and state that this dispatcher made no Linear update rather than assuming the child made none.
+Include blocked issues and failures only when non-empty. Report the verified transition for each newly created thread. For adapter failures, include the error code and state that Linear was unchanged. For a post-creation status failure, keep the thread and report the actual Linear state when it can be freshly read.
