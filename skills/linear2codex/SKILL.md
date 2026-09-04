@@ -11,7 +11,7 @@ Turn selected Linear work into one visible Codex task per issue. Let the Codex A
 
 - Treat invoking this skill as an explicit request to create new Codex tasks.
 - Use the installed `linear` CLI for Linear reads and for the dispatcher's one allowed status transition per newly verified task. Resolve the repository's workspace first and pass `--workspace <slug>` to every Linear command. Do not use a mismatched Linear app connection.
-- Use Codex App task tools for task and worktree creation. Do not run `git worktree`, create tmux sessions, launch Pi, or create branches.
+- Use Codex App task tools for task and worktree creation. Do not run `git worktree`, create tmux sessions, or create branches.
 - Pin each task to model `gpt-5.6-sol` with reasoning effort `high`. Do not inherit the saved project default or substitute another model unless the user explicitly requests a different one.
 - Never open an issue with an unresolved Linear blocker. Fail closed when relation or blocker state cannot be read.
 - Do not choose or reprioritize work beyond the user's selector and Linear priority.

@@ -5,7 +5,7 @@ Personal agent skills.
 Install all:
 
 ```bash
-npx skills add pauljasperdev/skills -g --agent pi claude-code --skill '*' -y
+npx skills add pauljasperdev/skills -g --agent claude-code --skill '*' -y
 ```
 
 Install one:
