@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review in Fable"
+  short_description: "Open a Fable 5.1 T3 thread running /review on this worktree"
+  default_prompt: "Use $review2claude to open a new Fable 5.1 T3 thread on this exact worktree and branch that runs $review."
+policy:
+  allow_implicit_invocation: false

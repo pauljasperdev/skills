@@ -1,17 +1,18 @@
 ---
-name: to-codex
-description: Open unblocked Linear issues as new Codex App tasks in Codex-managed Git worktrees, move each verified issue to its team's started state, and immediately start repository-read-only issue reconnaissance with $examine-issue. Use when the user asks to open, start, or grab Linear To Do issues in Codex; create Codex chats, tasks, or worktrees from Linear issues; or open a count or filtered set of Linear work. Requires the installed Linear app and Codex App task tools. Never use the Linear CLI, tmux, or manual git worktree commands.
+name: linear2codex
+description: Open one, many, filtered, or all unblocked Linear issues from the repository's configured workspace as new Codex App tasks in Codex-managed Git worktrees, pin each session to GPT-5.6 Sol with high reasoning, move each verified issue to its team's started state, and start read-only reconnaissance with $examine-issue. Use when the user asks to send, open, start, or dispatch Linear work directly to Codex. Never use for a Fable-to-Codex handoff on an existing worktree; use $handoff2codex for that.
 ---
 
-# To Codex
+# Linear to Codex
 
 Turn selected Linear work into one visible Codex task per issue. Let the Codex App own each worktree and start the provider-neutral `$examine-issue` skill as the task's initial prompt.
 
 ## Invariants
 
 - Treat invoking this skill as an explicit request to create new Codex tasks.
-- Use the installed Linear app for every Linear read and for the dispatcher's one allowed status transition per newly verified task. Do not run `linear` in a shell.
+- Use the installed `linear` CLI for Linear reads and for the dispatcher's one allowed status transition per newly verified task. Resolve the repository's workspace first and pass `--workspace <slug>` to every Linear command. Do not use a mismatched Linear app connection.
 - Use Codex App task tools for task and worktree creation. Do not run `git worktree`, create tmux sessions, launch Pi, or create branches.
+- Pin each task to model `gpt-5.6-sol` with reasoning effort `high`. Do not inherit the saved project default or substitute another model unless the user explicitly requests a different one.
 - Never open an issue with an unresolved Linear blocker. Fail closed when relation or blocker state cannot be read.
 - Do not choose or reprioritize work beyond the user's selector and Linear priority.
 - Resolve the repository's remote default branch and pass it explicitly when creating worktrees. Do not rely on Codex's inferred project default.
@@ -21,13 +22,13 @@ Turn selected Linear work into one visible Codex task per issue. Let the Codex A
 
 ## 1. Verify capabilities
 
-Before selection, confirm that Linear issue search/list and relation-aware issue detail are callable. Before a non-preview run, also confirm that this dispatcher can list team statuses, update an issue, and re-read it to verify the transition.
+Resolve the Git root and require `workspace` in its `.linear.toml` or `.config/linear.toml`. Also read `team_id` when present as the repository's default team. Never infer either value from the directory name. Verify the credential with `linear auth whoami --workspace <slug>` and stop before selection if the returned workspace differs or authentication fails. An explicit cross-workspace request requires the user to name the override; otherwise a URL whose workspace conflicts with repository config is an error.
 
-If the Linear app is unavailable, stop before task creation and ask the user to connect or enable it. Do not fall back to the Linear CLI.
+Before selection, confirm that workspace-scoped issue search/list and relation-aware issue detail are callable through the CLI. Before a non-preview run, also confirm that status listing, issue update, and verification reads accept the same workspace. If the credential is unavailable, stop before task creation and ask the user to run `linear auth login --workspace <slug>`.
 
 ## 2. Resolve the selector
 
-Build an ordered, de-duplicated candidate list:
+Build an ordered, de-duplicated candidate list, passing `--workspace <slug>` to every Linear command:
 
 - Linear identifiers or URLs: extract identifiers such as `GEM-123` in first-seen order, then fetch each issue with relations.
 - One title or search phrase: use Linear full-text issue search with at most 10 results. Continue only for one obvious match; otherwise ask the user to choose.
@@ -89,12 +90,13 @@ Create one Codex project task with:
 - Environment: `worktree`.
 - Starting state: pass the resolved remote default ref, or the user's explicitly named existing base ref. Never omit it or use this field to invent a new branch name.
 - Title: pass exactly `<ISSUE_ID> — <issue title>`. Do not omit this field or substitute the initial prompt.
-- Model and reasoning: omit both unless the user explicitly requested overrides.
+- Model: `gpt-5.6-sol`.
+- Reasoning effort: `high`.
 - Local environment: if task creation exposes a local-environment config field, pass the selected config explicitly.
 - Initial prompt: use the reconnaissance prompt below only when the selected environment can be passed natively. Otherwise use the setup-first handshake that follows it.
 
 ```text
-Use $examine-issue to examine <ISSUE_ID> using the installed Linear app. Keep Linear and the repository strictly read-only: do not update the issue, edit project files, create a branch, install dependencies, or start implementation. The dispatcher owns the issue's workflow-state transition. Finish with a concise, design-focused technical foundation rather than a sequential implementation plan. Do not restate the Linear issue. If the user later authorizes implementation in this task, inspect `git status` and use the workspace-wide unstaged review; never infer that the worktree is clean from an empty turn-attributed diff.
+Use $examine-issue to examine <ISSUE_ID> in Linear workspace <WORKSPACE_SLUG>. Resolve the repository's committed Linear config and use only a read integration that reports that exact workspace; prefer `linear ... --workspace <WORKSPACE_SLUG>` when the installed Linear app is connected elsewhere. Keep Linear and the repository strictly read-only: do not update the issue, edit project files, create a branch, install dependencies, or start implementation. The dispatcher owns the issue's workflow-state transition. Finish with a concise, design-focused technical foundation rather than a sequential implementation plan. Do not restate the Linear issue. If the user later authorizes implementation in this task, inspect `git status` and use the workspace-wide unstaged review; never infer that the worktree is clean from an empty turn-attributed diff.
 ```
 
 When the task-creation capability cannot carry the selected local environment, its initial prompt must be setup-only:
@@ -125,16 +127,16 @@ For every concrete task, verify all of the following before declaring it ready:
 6. Verify the selected environment setup:
    - With native environment provisioning, require the task/worktree setup result to show that the selected environment completed successfully.
    - With the setup-first handshake, wait for the first turn to finish, read it with tool outputs, require the exact setup command to have exited `0`, require `SETUP READY`, and independently require no tracked or staged Git changes. `node_modules` alone is not proof because a later worker may have run a partial install.
-7. For the setup-first handshake, only now send the Linear- and repository-read-only `$examine-issue` prompt as a follow-up to the concrete task. Keep model and reasoning overrides omitted unless the user requested them. Take one compact progress snapshot after the follow-up is accepted.
+7. For the setup-first handshake, only now send the Linear- and repository-read-only `$examine-issue` prompt as a follow-up to the concrete task. Keep the task's fixed model and reasoning selection unchanged. Take one compact progress snapshot after the follow-up is accepted.
 
 If any verification fails, keep the created task for diagnosis, report the exact mismatch, leave Linear unchanged, and do not silently create a replacement.
 
 After the concrete task, worktree, environment setup, and reconnaissance prompt are all verified, transition the issue:
 
-1. List the issue team's active workflow states whose type is exactly `started`.
+1. In the verified workspace, list the issue team's active workflow states whose type is exactly `started`.
 2. Select the sole match. If there are multiple, select the unique state with the lowest workflow position; fail closed on a tie rather than guessing.
 3. Update the issue using that exact state ID.
-4. Re-read the issue and require the returned state ID to match.
+4. Re-read the issue with `--workspace <slug>` and require the returned state ID to match.
 
 Do not transition blocked, failed, queued/unverified, previewed, or existing-task issues. If the update or verification fails, preserve the successfully created task, report the task/Linear mismatch, and stop processing that issue. The `$examine-issue` child must never duplicate this transition.
 
@@ -148,6 +150,7 @@ Return a compact report containing:
 Opened Codex worktree tasks
 
 Selection: <selector and filters>
+Linear workspace: <workspace slug>
 Codex project: <project>
 Codex environment: <config path and setup command>
 Count: <ready>/<eligible> ready, <queued> queued/unverified, <existing> existing, <blocked> blocked, <failed> failed

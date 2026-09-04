@@ -561,6 +561,13 @@ function validateIssue(issue) {
   return issue;
 }
 
+function validateWorkspace(workspace) {
+  if (typeof workspace !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(workspace)) {
+    fail("WORKSPACE_INVALID", "workspace must be a Linear workspace slug such as gemhog.");
+  }
+  return workspace;
+}
+
 function validateTitle(title) {
   if (typeof title !== "string" || title.trim().length === 0) {
     fail("TITLE_INVALID", "title must be a non-empty Linear issue title.");
@@ -571,16 +578,16 @@ function validateTitle(title) {
   return title.trim();
 }
 
-function issuePrompt(issue) {
-  return `T3 owns this worktree and has started its configured worktree setup automatically. Wait for setup to finish successfully and do not run bootstrap again. If setup fails, stop and report the failure without invoking issue reconnaissance. Once setup is ready, use /examine-issue to examine ${issue}. Keep Linear and the repository read-only; the dispatcher owns the issue's workflow-state transition. Make the consequential technical design decisions: define interfaces and ownership, choose appropriate seams and data flow, and explain how every affected library or framework should be used according to its conventions, with particular attention to Effect and React when present. Leave Codex latitude over incidental implementation details such as local control flow and naming. Do not produce a waterfall implementation plan or start implementation. Finish with a concise technical foundation that can be handed to /handoff2codex.`;
+function issuePrompt(issue, workspace) {
+  return `T3 owns this worktree and has started its configured worktree setup automatically. Wait for setup to finish successfully and do not run bootstrap again. If setup fails, stop and report the failure without invoking issue reconnaissance. Once setup is ready, use /examine-issue to examine ${issue} in Linear workspace ${workspace}. Resolve the repository's committed Linear config and pass --workspace ${workspace} to every Linear CLI read; refuse any mismatched workspace. Keep Linear and the repository read-only; the dispatcher owns the issue's workflow-state transition. Make the consequential technical design decisions: define interfaces and ownership, choose appropriate seams and data flow, and explain how every affected library or framework should be used according to its conventions, with particular attention to Effect and React when present. Leave Codex latitude over incidental implementation details such as local control flow and naming. Do not produce a waterfall implementation plan or start implementation. Finish with a concise technical foundation that can be handed to /handoff2codex.`;
 }
 
-function makeBootstrapCommand({ project, baseBranch, worktreeBranch, startFromOrigin, issue, title }) {
+function makeBootstrapCommand({ project, baseBranch, worktreeBranch, startFromOrigin, workspace, issue, title }) {
   const createdAt = new Date().toISOString();
   const threadId = randomUUID();
   const messageId = randomUUID();
   const threadTitle = `${issue} — ${title}`;
-  const prompt = issuePrompt(issue);
+  const prompt = issuePrompt(issue, workspace);
   const modelSelection = EXAMINE_MODEL_SELECTION;
   const runtimeMode = "full-access";
   const interactionMode = "default";
@@ -841,6 +848,7 @@ async function openIssue(spec, t3Home, dryRun) {
     fail("INPUT_INVALID", "open --json expects one JSON object on stdin.");
   }
   const issue = validateIssue(spec.issue);
+  const workspace = validateWorkspace(spec.workspace);
   const title = validateTitle(spec.title);
   const cwd = await canonicalPath(spec.cwd ?? process.cwd());
   const runtime = await discoverRuntime(t3Home);
@@ -855,6 +863,7 @@ async function openIssue(spec, t3Home, dryRun) {
         ok: true,
         action: "existing",
         issue,
+        workspace,
         project: summarizeProject(project),
         thread: {
           id: existing.id,
@@ -879,6 +888,7 @@ async function openIssue(spec, t3Home, dryRun) {
           ok: true,
           action: "existing",
           issue,
+          workspace,
           project: summarizeProject(project),
           thread: {
             id: racedExisting.id,
@@ -896,6 +906,7 @@ async function openIssue(spec, t3Home, dryRun) {
         baseBranch,
         worktreeBranch,
         startFromOrigin,
+        workspace,
         issue,
         title,
       });
@@ -905,6 +916,7 @@ async function openIssue(spec, t3Home, dryRun) {
           ok: true,
           action: "dry-run",
           issue,
+          workspace,
           runtime: { origin: runtime.origin, serverVersion: runtime.serverVersion },
           project: summarizeProject(project),
           worktree: {
@@ -934,6 +946,7 @@ async function openIssue(spec, t3Home, dryRun) {
         ok: true,
         action: "created",
         issue,
+        workspace,
         project: summarizeProject(project),
         dispatch,
         thread: verified,
@@ -982,7 +995,7 @@ async function readStdinJson() {
 }
 
 function printHelp() {
-  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor [--cwd PATH]\n  node t3-worktree.mjs open --json [--dry-run]\n\nopen JSON: {"cwd":"/repo","issue":"GEM-61","title":"Issue title"}\n`);
+  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor [--cwd PATH]\n  node t3-worktree.mjs open --json [--dry-run]\n\nopen JSON: {"cwd":"/repo","workspace":"gemhog","issue":"GEM-61","title":"Issue title"}\n`);
 }
 
 async function main() {

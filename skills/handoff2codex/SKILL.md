@@ -18,7 +18,7 @@ Transfer a completed technical examination into a separate Codex implementation 
 
 ## 1. Identify the source
 
-Recover the examined Linear identifier from the current conversation and verify that it agrees with the current T3 thread context. If there is no issue, use a general handoff and omit Linear-specific metadata.
+Recover the examined Linear identifier from the current conversation and verify that it agrees with the current T3 thread context. For an issue handoff, require the worktree's committed `.linear.toml` or `.config/linear.toml` and preserve its `workspace` slug as part of the handoff context. Stop if it conflicts with the workspace used during examination. If there is no issue, use a general handoff and omit Linear-specific metadata.
 
 Use the completed examination as the source of truth for the technical handoff. Preserve meaningful uncertainty; do not silently turn an open decision into a requirement.
 
@@ -55,7 +55,7 @@ The handoff should capture the technical thesis, consequential design decisions,
 
 ## 3. Create the Codex implementation thread
 
-Resolve this skill's installed directory. Encode the current worktree path, optional issue identifier, and Markdown safely as JSON; do not interpolate Markdown into shell arguments:
+Resolve this skill's installed directory. Encode the current worktree path, optional issue identifier, and Markdown safely as JSON; do not interpolate Markdown into shell arguments. The adapter resolves and verifies the workspace from the worktree's committed Linear configuration.
 
 ```text
 HANDOFF_FILE=<temporary-markdown-path>
@@ -82,7 +82,7 @@ A successful creation must report:
 
 T3 blocks settlement while a thread's turn is still running, so the Fable invocation cannot settle itself synchronously. The new Codex prompt therefore makes source-thread settlement its first action: it calls the same adapter with the exact source thread ID and worktree, waits for Fable to become idle, verifies `settledOverride: "settled"`, and only then proceeds. If settlement fails, Codex stops before editing. Never use a detached background process for this lifecycle step.
 
-The Codex prompt instructs the implementation agent to validate the handoff against current source and implement rather than plan. For a Linear handoff it also instructs Codex to re-read the exact issue, its comments/relations/attachments, and its direct parent milestone metadata and description for broader context, without inspecting sibling issues or expanding scope.
+The Codex prompt instructs the implementation agent to validate the handoff against current source and implement rather than plan. For a Linear handoff it also carries the verified workspace slug and instructs Codex to re-read the exact issue, its comments/relations/attachments, and its direct parent milestone metadata and description for broader context, without inspecting sibling issues or expanding scope. Codex may use the installed Linear app only when `get_workspace` matches that slug; otherwise it must use `linear ... --workspace <slug>` or stop.
 
 ## 4. Report
 
@@ -93,6 +93,7 @@ Handed off to Codex
 
 Source: <Fable thread id/title>
 Issue: <identifier or none>
+Linear workspace: <workspace slug or none>
 Worktree: <path>
 Handoff: <durable markdown path>
 Codex: <thread id/title> — GPT-5.6 Sol, high

@@ -10,7 +10,7 @@ Turn selected Linear work into one native T3 Code worktree thread per issue. Let
 ## Invariants
 
 - Treat invocation as authorization to create T3 threads and move each successfully opened issue to its team's entry `started` status.
-- Use the installed `linear` CLI for Linear reads and the one status transition, following `/linear-cli` when available. `/examine-issue` is stateless and never changes Linear.
+- Use the installed `linear` CLI for Linear reads and the one status transition, following `/linear-cli` when available. Resolve the repository's workspace first and pass `--workspace <slug>` to every Linear command. `/examine-issue` is stateless and never changes Linear.
 - Use `scripts/t3-worktree.mjs` for T3 access. It authenticates through the official T3 CLI and calls T3's native worktree bootstrap RPC; do not substitute Computer Use, browser automation, direct database access, or an HTTP dispatch endpoint. T3 is alpha software, so attempt the current CLI and RPC before reporting a concrete incompatibility.
 - Do not run `git worktree`, create branches or tmux sessions, or run repository setup yourself.
 - Treat the invocation checkout only as a repository locator. It may already be a linked worktree; the adapter resolves it to T3's saved project by exact path or Git common-directory identity.
@@ -23,7 +23,9 @@ Turn selected Linear work into one native T3 Code worktree thread per issue. Let
 
 ## 1. Select issues
 
-Resolve an ordered, de-duplicated candidate list with the Linear CLI:
+Resolve the Git root and require `workspace` in its `.linear.toml` or `.config/linear.toml`. Also read `team_id` when present as the repository's default team. Never infer either value from the directory name. Verify the credential with `linear auth whoami --workspace <slug>` and stop before selection if the returned workspace differs or authentication fails. An explicit cross-workspace request requires the user to name the override; otherwise a URL whose workspace conflicts with repository config is an error.
+
+Resolve an ordered, de-duplicated candidate list with the Linear CLI, passing the verified `--workspace <slug>` on every command:
 
 - Identifiers or Linear URLs: preserve first-seen order.
 - One title or search phrase: search at most ten results and continue only for one obvious match.
@@ -67,14 +69,14 @@ For each clear issue, sequentially:
 
 ```text
 node <linear2claude-skill-dir>/scripts/t3-worktree.mjs open --json <<'LINEAR2CLAUDE_JSON'
-{"cwd":"<absolute-current-checkout>","issue":"<ISSUE_ID>","title":"<issue title>"}
+{"cwd":"<absolute-current-checkout>","workspace":"<workspace-slug>","issue":"<ISSUE_ID>","title":"<issue title>"}
 LINEAR2CLAUDE_JSON
 ```
 
 3. Treat `action: "existing"` as skipped existing work and do not change Linear.
 4. Treat only `ok: true`, `action: "created"`, a non-null `thread.worktreePath`, and `worktree.detached: false` as successful creation. The adapter uses the saved project's current branch as the base, honors T3's start-from-origin setting, verifies Claude Code and Fable 5.1 are ready, creates the issue-derived branch/worktree, requests automatic setup, starts the fixed examination prompt, and verifies Git/T3 state.
 5. On any adapter error, make no Linear update and report whether the child turn may have started. Do not fall back to UI automation, manual Git worktrees, direct T3 storage access, or HTTP dispatch.
-6. Resolve the issue team's active workflow states and select the `started` state with the lowest workflow position. Fail on a true position tie rather than guessing. Update the issue to that exact state and immediately re-read it to verify the transition. If discovery, update, or verification fails, preserve the T3 thread and report the mismatch.
+6. In the verified workspace, resolve the issue team's active workflow states and select the `started` state with the lowest workflow position. Fail on a true position tie rather than guessing. Update the issue to that exact state and immediately re-read it, always passing `--workspace <slug>`, to verify the transition. If discovery, update, or verification fails, preserve the T3 thread and report the mismatch.
 
 Completion criterion: each clear issue is an existing thread, a concrete new native worktree thread with examination started and a verified Linear transition, or a recorded failure.
 
@@ -86,6 +88,7 @@ Return a compact accounting:
 Opened Claude worktree threads
 
 Selection: <selector and filters>
+Linear workspace: <workspace slug>
 Count: <opened>/<eligible> opened, <existing> existing, <blocked> blocked, <failed> failed
 
 | Issue | Title | T3 thread/worktree | Linear status | Result |
