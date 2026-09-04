@@ -24,7 +24,7 @@ Turn selected Linear work into one visible Codex task per issue. Let the Codex A
 
 Resolve the Git root and require `workspace` in its `.linear.toml` or `.config/linear.toml`. Also read `team_id` when present as the repository's default team. Never infer either value from the directory name. Verify the credential with `linear auth whoami --workspace <slug>` and stop before selection if the returned workspace differs or authentication fails. An explicit cross-workspace request requires the user to name the override; otherwise a URL whose workspace conflicts with repository config is an error.
 
-Before selection, confirm that workspace-scoped issue search/list and relation-aware issue detail are callable through the CLI. Before a non-preview run, also confirm that status listing, issue update, and verification reads accept the same workspace. If the credential is unavailable, stop before task creation and ask the user to run `linear auth login --workspace <slug>`.
+Before selection, confirm that workspace-scoped issue search/list and relation-aware issue detail are callable through the CLI. Before a non-preview run, also confirm that status listing, issue update, and verification reads accept the same workspace. If the credential is unavailable, stop before task creation and ask the user to run `linear auth login`; login derives the workspace from the supplied API key.
 
 ## 2. Resolve the selector
 
