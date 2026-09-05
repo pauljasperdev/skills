@@ -71,6 +71,8 @@ Reconcile Linear facts and scout evidence into one recommended technical directi
 
 Use this structure, omitting empty optional sections:
 
+Always include “Problem and proposed solution” before the technical details. Write two short paragraphs in everyday language for someone unfamiliar with the codebase: explain what is wrong or missing and why it matters, then what should change, how that addresses the problem, and what the result will be. Avoid unexplained jargon, file paths, and implementation steps in this section. Keep the explanation consistent with the evidence and clearly state if the solution is still uncertain.
+
 ````text
 # <ID> technical foundation
 
@@ -81,8 +83,10 @@ Workspace: <workspace slug>
 Milestone context
 <milestone goal and this issue's role; omit when unassigned>
 
-Problem / outcome
-<one or two plain-language sentences>
+Problem and proposed solution
+Problem: <what is wrong or missing today and why it matters, in simple language>
+
+Proposed solution: <what should change, why it solves the problem, and the expected result, in simple language>
 
 Technical direction
 <the recommended solution as a cohesive explanation; up to three bullets only when they improve clarity>
