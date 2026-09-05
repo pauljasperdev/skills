@@ -6,21 +6,18 @@ import { access, readFile, realpath } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { pathToFileURL } from "node:url";
+import { resolveProfile, validateExamineProvider, modelMatches } from "./profiles.mjs";
 
 const execFile = promisify(execFileCallback);
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DISPATCH_TIMEOUT_MS = 180_000;
 const VERIFY_TIMEOUT_MS = 20_000;
-const EXAMINE_MODEL_SELECTION = Object.freeze({
-  instanceId: "claudeAgent",
-  model: "claude-fable-5-1",
-  options: Object.freeze([Object.freeze({ id: "effort", value: "high" })]),
-});
 
-class Linear2ClaudeError extends Error {
+class Linear2ThreadError extends Error {
   constructor(code, message, details = undefined) {
     super(message);
-    this.name = "Linear2ClaudeError";
+    this.name = "Linear2ThreadError";
     this.code = code;
     this.details = details;
   }
@@ -29,7 +26,7 @@ class Linear2ClaudeError extends Error {
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function fail(code, message, details) {
-  throw new Linear2ClaudeError(code, message, details);
+  throw new Linear2ThreadError(code, message, details);
 }
 
 function trimForError(value, maxLength = 1_500) {
@@ -87,7 +84,7 @@ async function discoverRuntime(t3Home) {
     try {
       state = await readJson(runtimePath, "T3_RUNTIME_INVALID");
     } catch (error) {
-      if (error instanceof Linear2ClaudeError) continue;
+      if (error instanceof Linear2ThreadError) continue;
       throw error;
     }
     if (
@@ -161,9 +158,9 @@ async function withSession(runtime, run) {
     "--ttl",
     "10m",
     "--label",
-    "linear2claude",
+    "linear2thread",
     "--subject",
-    "linear2claude",
+    "linear2thread",
   ]);
 
   let session;
@@ -185,7 +182,7 @@ async function withSession(runtime, run) {
       { allowFailure: true },
     );
     if (revoked === null) {
-      process.stderr.write("Warning: the temporary linear2claude API session could not be revoked.\n");
+      process.stderr.write("Warning: the temporary linear2thread API session could not be revoked.\n");
     }
   }
 }
@@ -210,10 +207,10 @@ class RpcSocket {
     });
     socket.addEventListener("close", () => {
       this.closed = true;
-      this.rejectAll(new Linear2ClaudeError("T3_RPC_CLOSED", "The T3 WebSocket closed unexpectedly."));
+      this.rejectAll(new Linear2ThreadError("T3_RPC_CLOSED", "The T3 WebSocket closed unexpectedly."));
     });
     socket.addEventListener("error", () => {
-      this.rejectAll(new Linear2ClaudeError("T3_RPC_FAILED", "The T3 WebSocket reported an error."));
+      this.rejectAll(new Linear2ThreadError("T3_RPC_FAILED", "The T3 WebSocket reported an error."));
     });
   }
 
@@ -224,7 +221,7 @@ class RpcSocket {
     const socket = new globalThis.WebSocket(url);
     await new Promise((resolve, reject) => {
       const timer = setTimeout(
-        () => reject(new Linear2ClaudeError("T3_RPC_TIMEOUT", "Timed out connecting to the T3 WebSocket.")),
+        () => reject(new Linear2ThreadError("T3_RPC_TIMEOUT", "Timed out connecting to the T3 WebSocket.")),
         10_000,
       );
       socket.addEventListener(
@@ -239,7 +236,7 @@ class RpcSocket {
         "error",
         () => {
           clearTimeout(timer);
-          reject(new Linear2ClaudeError("T3_RPC_FAILED", "Could not connect to the T3 WebSocket."));
+          reject(new Linear2ThreadError("T3_RPC_FAILED", "Could not connect to the T3 WebSocket."));
         },
         { once: true },
       );
@@ -253,9 +250,9 @@ class RpcSocket {
       decoded = JSON.parse(await dataToText(data));
     } catch (error) {
       this.rejectAll(
-        error instanceof Linear2ClaudeError
+        error instanceof Linear2ThreadError
           ? error
-          : new Linear2ClaudeError("T3_RPC_PROTOCOL_ERROR", "T3 returned invalid WebSocket JSON."),
+          : new Linear2ThreadError("T3_RPC_PROTOCOL_ERROR", "T3 returned invalid WebSocket JSON."),
       );
       return;
     }
@@ -265,7 +262,7 @@ class RpcSocket {
       if (message?._tag === "Pong") continue;
       if (message?._tag === "ClientProtocolError") {
         this.rejectAll(
-          new Linear2ClaudeError("T3_RPC_PROTOCOL_ERROR", "T3 rejected the WebSocket RPC protocol.", {
+          new Linear2ThreadError("T3_RPC_PROTOCOL_ERROR", "T3 rejected the WebSocket RPC protocol.", {
             error: trimForError(message.error),
           }),
         );
@@ -273,7 +270,7 @@ class RpcSocket {
       }
       if (message?._tag === "Defect") {
         this.rejectAll(
-          new Linear2ClaudeError("T3_RPC_DEFECT", "T3 reported a WebSocket RPC defect.", {
+          new Linear2ThreadError("T3_RPC_DEFECT", "T3 reported a WebSocket RPC defect.", {
             defect: trimForError(message.defect),
           }),
         );
@@ -288,7 +285,7 @@ class RpcSocket {
         pending.resolve(message.exit.value);
       } else {
         pending.reject(
-          new Linear2ClaudeError("T3_RPC_COMMAND_FAILED", `T3 rejected RPC ${pending.tag}.`, {
+          new Linear2ThreadError("T3_RPC_COMMAND_FAILED", `T3 rejected RPC ${pending.tag}.`, {
             cause: trimForError(message.exit?.cause),
           }),
         );
@@ -306,13 +303,13 @@ class RpcSocket {
 
   call(tag, payload, timeoutMs = DEFAULT_TIMEOUT_MS) {
     if (this.closed || this.socket.readyState !== globalThis.WebSocket.OPEN) {
-      return Promise.reject(new Linear2ClaudeError("T3_RPC_CLOSED", "The T3 WebSocket is not open."));
+      return Promise.reject(new Linear2ThreadError("T3_RPC_CLOSED", "The T3 WebSocket is not open."));
     }
     const id = randomUUID();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Linear2ClaudeError("T3_RPC_TIMEOUT", `Timed out waiting for RPC ${tag}.`));
+        reject(new Linear2ThreadError("T3_RPC_TIMEOUT", `Timed out waiting for RPC ${tag}.`));
       }, timeoutMs);
       this.pending.set(id, { resolve, reject, timer, tag });
       this.socket.send(
@@ -435,47 +432,6 @@ async function resolveProject(shell, cwd) {
   });
 }
 
-function validateExamineProvider(config) {
-  const provider = (config?.providers ?? []).find(
-    (candidate) => candidate?.instanceId === EXAMINE_MODEL_SELECTION.instanceId,
-  );
-  if (!provider || provider.status !== "ready") {
-    fail("T3_EXAMINE_PROVIDER_UNAVAILABLE", "The Claude Code provider is not ready in T3.", {
-      instanceId: EXAMINE_MODEL_SELECTION.instanceId,
-      status: provider?.status ?? "missing",
-    });
-  }
-  const model = (provider.models ?? []).find(
-    (candidate) => candidate?.slug === EXAMINE_MODEL_SELECTION.model,
-  );
-  if (!model) {
-    fail("T3_EXAMINE_MODEL_UNAVAILABLE", "Claude Code does not expose the required Fable 5.1 model.", {
-      instanceId: EXAMINE_MODEL_SELECTION.instanceId,
-      model: EXAMINE_MODEL_SELECTION.model,
-    });
-  }
-  const descriptors = model.capabilities?.optionDescriptors ?? [];
-  const supports = (id, value) =>
-    descriptors.some(
-      (descriptor) =>
-        descriptor?.id === id &&
-        (descriptor.options ?? []).some((option) => option?.id === value),
-    );
-  if (!supports("effort", "high")) {
-    fail("T3_EXAMINE_OPTIONS_UNAVAILABLE", "Claude Code does not support the required high effort.", {
-      instanceId: EXAMINE_MODEL_SELECTION.instanceId,
-      model: EXAMINE_MODEL_SELECTION.model,
-    });
-  }
-  return {
-    instanceId: provider.instanceId,
-    driver: provider.driver,
-    status: provider.status,
-    model: model.slug,
-    effort: "high",
-  };
-}
-
 function findExistingThread(shell, projectId, issue) {
   return (shell.threads ?? []).find(
     (thread) =>
@@ -578,23 +534,25 @@ function validateTitle(title) {
   return title.trim();
 }
 
-function issuePrompt(issue, workspace) {
-  return `T3 owns this worktree and has started its configured worktree setup automatically. Wait for setup to finish successfully and do not run bootstrap again. If setup fails, stop and report the failure without invoking issue reconnaissance. Once setup is ready, use /examine-issue to examine ${issue} in Linear workspace ${workspace}. Resolve the repository's committed Linear config and pass --workspace ${workspace} to every Linear CLI read; refuse any mismatched workspace. Keep Linear and the repository read-only; the dispatcher owns the issue's workflow-state transition. Make the consequential technical design decisions: define interfaces and ownership, choose appropriate seams and data flow, and explain how every affected library or framework should be used according to its conventions, with particular attention to Effect and React when present. Leave Codex latitude over incidental implementation details such as local control flow and naming. Do not produce a waterfall implementation plan or start implementation. Finish with a concise technical foundation that can be handed to /handoff2codex.`;
+function issuePrompt(issue, workspace, profile) {
+  const examine = profile.name === "codex" ? "$examine-issue" : "/examine-issue";
+  return `T3 owns this worktree and has started its configured worktree setup automatically. Wait for setup to finish successfully and do not run bootstrap again. If setup fails, stop and report the failure without invoking issue reconnaissance. Once setup is ready, use ${examine} to examine ${issue} in Linear workspace ${workspace}. Resolve the repository's committed Linear config and pass --workspace ${workspace} to every Linear CLI read; refuse any mismatched workspace. Keep Linear and the repository read-only; the dispatcher owns the issue's workflow-state transition. Make the consequential technical design decisions: define interfaces and ownership, choose appropriate seams and data flow, and explain how every affected library or framework should be used according to its conventions, with particular attention to Effect and React when present. Leave the implementation agent latitude over incidental implementation details such as local control flow and naming. Do not produce a waterfall implementation plan or start implementation. Finish with a concise technical foundation. ${profile.name === "claude" ? "It can be handed to /handoff2codex." : "Wait for user authorization before implementation."}`;
 }
 
-function makeBootstrapCommand({ project, baseBranch, worktreeBranch, startFromOrigin, workspace, issue, title }) {
+export function makeBootstrapCommand({ profile, project, baseBranch, worktreeBranch, startFromOrigin, workspace, issue, title }) {
   const createdAt = new Date().toISOString();
   const threadId = randomUUID();
   const messageId = randomUUID();
   const threadTitle = `${issue} — ${title}`;
-  const prompt = issuePrompt(issue, workspace);
-  const modelSelection = EXAMINE_MODEL_SELECTION;
+  const prompt = issuePrompt(issue, workspace, profile);
+  const modelSelection = profile.modelSelection;
   const runtimeMode = "full-access";
   const interactionMode = "default";
 
   return {
     threadId,
     messageId,
+    modelSelection,
     worktreeBranch,
     expectedWorktreeName: worktreeBranch.replaceAll("/", "-"),
     threadTitle,
@@ -732,7 +690,7 @@ async function verifyCreated(runtime, token, expected, project) {
         "T3 created a detached worktree instead of a branch-backed worktree.",
       );
     } catch (error) {
-      if (error instanceof Linear2ClaudeError) throw error;
+      if (error instanceof Linear2ThreadError) throw error;
     }
 
     const turnState = body?.latestTurn?.state ?? thread.latestTurn?.state;
@@ -742,20 +700,14 @@ async function verifyCreated(runtime, token, expected, project) {
       branch === thread.branch &&
       branch === expected.worktreeBranch;
     const worktreeNameMatches = path.basename(thread.worktreePath) === expected.expectedWorktreeName;
-    const modelOptions = new Map(
-      (thread.modelSelection?.options ?? []).map((option) => [option?.id, option?.value]),
-    );
-    const modelMatches =
-      thread.modelSelection?.instanceId === EXAMINE_MODEL_SELECTION.instanceId &&
-      thread.modelSelection?.model === EXAMINE_MODEL_SELECTION.model &&
-      modelOptions.get("effort") === "high";
+    const selectedModelMatches = modelMatches(thread.modelSelection, expected.modelSelection);
     if (
       messagePresent &&
       turnStarted &&
       registered &&
       branchMatches &&
       worktreeNameMatches &&
-      modelMatches &&
+      selectedModelMatches &&
       (!setupExpected || setupStarted)
     ) {
       return {
@@ -780,7 +732,7 @@ async function verifyCreated(runtime, token, expected, project) {
       worktreeName: path.basename(thread.worktreePath),
       expectedWorktreeName: expected.expectedWorktreeName,
       modelSelection: thread.modelSelection,
-      modelMatches,
+      modelMatches: selectedModelMatches,
       setupExpected,
       setupStarted,
     };
@@ -792,20 +744,20 @@ async function verifyCreated(runtime, token, expected, project) {
   });
 }
 
-function summarizeProject(project) {
+function summarizeProject(project, profile) {
   return {
     id: project.id,
     title: project.title,
     workspaceRoot: project.workspaceRoot,
     configuredDefaultModelSelection: project.defaultModelSelection,
-    examineModelSelection: EXAMINE_MODEL_SELECTION,
+    examineModelSelection: profile.modelSelection,
     setupScripts: (project.scripts ?? [])
       .filter((script) => script?.runOnWorktreeCreate === true)
       .map((script) => ({ id: script.id, name: script.name, command: script.command })),
   };
 }
 
-async function doctor(cwd, t3Home) {
+async function doctor(cwd, t3Home, profile) {
   const canonicalCwd = await canonicalPath(cwd);
   const runtime = await discoverRuntime(t3Home);
   return await withSession(runtime, async (token) => {
@@ -816,7 +768,7 @@ async function doctor(cwd, t3Home) {
     const rpcState = await withRpc(runtime, token, async (rpc) => {
       const config = await rpc.call("server.getConfig", {});
       const settings = await rpc.call("server.getSettings", {});
-      return { settings, examineProvider: validateExamineProvider(config) };
+      return { settings, examineProvider: validateExamineProvider(config, profile) };
     });
     return {
       ok: true,
@@ -831,7 +783,7 @@ async function doctor(cwd, t3Home) {
         projectPath: projectCwd,
         matchedBy,
       },
-      project: summarizeProject(project),
+      project: summarizeProject(project, profile),
       worktreeDefaults: {
         baseBranch,
         startFromOrigin: rpcState.settings?.newWorktreesStartFromOrigin === true,
@@ -843,7 +795,7 @@ async function doctor(cwd, t3Home) {
   });
 }
 
-async function openIssue(spec, t3Home, dryRun) {
+async function openIssue(spec, t3Home, dryRun, profile) {
   if (!spec || typeof spec !== "object" || Array.isArray(spec)) {
     fail("INPUT_INVALID", "open --json expects one JSON object on stdin.");
   }
@@ -864,7 +816,7 @@ async function openIssue(spec, t3Home, dryRun) {
         action: "existing",
         issue,
         workspace,
-        project: summarizeProject(project),
+        project: summarizeProject(project, profile),
         thread: {
           id: existing.id,
           title: existing.title,
@@ -877,7 +829,7 @@ async function openIssue(spec, t3Home, dryRun) {
 
     const baseBranch = await resolveBaseBranch(projectCwd, spec.baseBranch);
     return await withRpc(runtime, token, async (rpc) => {
-      validateExamineProvider(await rpc.call("server.getConfig", {}));
+      validateExamineProvider(await rpc.call("server.getConfig", {}), profile);
       const settings = await rpc.call("server.getSettings", {});
       const startFromOrigin = settings?.newWorktreesStartFromOrigin === true;
 
@@ -889,7 +841,7 @@ async function openIssue(spec, t3Home, dryRun) {
           action: "existing",
           issue,
           workspace,
-          project: summarizeProject(project),
+          project: summarizeProject(project, profile),
           thread: {
             id: racedExisting.id,
             title: racedExisting.title,
@@ -902,6 +854,7 @@ async function openIssue(spec, t3Home, dryRun) {
 
       const worktreeBranch = await resolveIssueBranch(projectCwd, issue, title);
       const prepared = makeBootstrapCommand({
+        profile,
         project,
         baseBranch,
         worktreeBranch,
@@ -918,7 +871,7 @@ async function openIssue(spec, t3Home, dryRun) {
           issue,
           workspace,
           runtime: { origin: runtime.origin, serverVersion: runtime.serverVersion },
-          project: summarizeProject(project),
+          project: summarizeProject(project, profile),
           worktree: {
             baseBranch,
             branch: prepared.worktreeBranch,
@@ -928,7 +881,7 @@ async function openIssue(spec, t3Home, dryRun) {
           thread: {
             id: prepared.threadId,
             title: prepared.threadTitle,
-            modelSelection: EXAMINE_MODEL_SELECTION,
+            modelSelection: profile.modelSelection,
             runtimeMode: prepared.command.runtimeMode,
             interactionMode: prepared.command.interactionMode,
             prompt: prepared.prompt,
@@ -947,7 +900,7 @@ async function openIssue(spec, t3Home, dryRun) {
         action: "created",
         issue,
         workspace,
-        project: summarizeProject(project),
+        project: summarizeProject(project, profile),
         dispatch,
         thread: verified,
         worktree: {
@@ -971,7 +924,7 @@ function parseArgs(argv) {
       options[argument.slice(2)] = true;
       continue;
     }
-    if (argument === "--cwd" || argument === "--t3-home") {
+    if (argument === "--cwd" || argument === "--t3-home" || argument === "--profile") {
       const value = rest[index + 1];
       if (value === undefined) fail("ARGUMENT_INVALID", `${argument} requires a value.`);
       options[argument.slice(2)] = value;
@@ -995,18 +948,19 @@ async function readStdinJson() {
 }
 
 function printHelp() {
-  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor [--cwd PATH]\n  node t3-worktree.mjs open --json [--dry-run]\n\nopen JSON: {"cwd":"/repo","workspace":"gemhog","issue":"GEM-61","title":"Issue title"}\n`);
+  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH]\n  node t3-worktree.mjs open --profile claude|codex --json [--dry-run]\n\nopen JSON: {"cwd":"/repo","workspace":"gemhog","issue":"GEM-61","title":"Issue title"}\n`);
 }
 
 async function main() {
   const { command, options } = parseArgs(process.argv.slice(2));
   const t3Home = path.resolve(options["t3-home"] ?? process.env.T3CODE_HOME ?? path.join(homedir(), ".t3"));
   if (command === "doctor") {
-    return await doctor(options.cwd ?? process.cwd(), t3Home);
+    return await doctor(options.cwd ?? process.cwd(), t3Home, resolveProfile(options.profile));
   }
   if (command === "open") {
     if (options.json !== true) fail("ARGUMENT_INVALID", "open requires --json.");
-    return await openIssue(await readStdinJson(), t3Home, options["dry-run"] === true);
+    const profile = resolveProfile(options.profile);
+    return await openIssue(await readStdinJson(), t3Home, options["dry-run"] === true, profile);
   }
   if (command === "help" || command === "--help" || command === undefined) {
     printHelp();
@@ -1015,27 +969,29 @@ async function main() {
   fail("ARGUMENT_INVALID", `Unknown command: ${command}`);
 }
 
-try {
-  const result = await main();
-  if (result !== null) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-} catch (error) {
-  const normalized =
-    error instanceof Linear2ClaudeError
-      ? error
-      : new Linear2ClaudeError("UNEXPECTED", error instanceof Error ? error.message : "Unexpected failure.");
-  process.stderr.write(
-    `${JSON.stringify(
-      {
-        ok: false,
-        error: {
-          code: normalized.code,
-          message: normalized.message,
-          ...(normalized.details === undefined ? {} : { details: normalized.details }),
+if (process.argv[1] && import.meta.url === pathToFileURL(await realpath(process.argv[1])).href) {
+  try {
+    const result = await main();
+    if (result !== null) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  } catch (error) {
+    const normalized =
+      error instanceof Linear2ThreadError
+        ? error
+        : new Linear2ThreadError(error?.code ?? "UNEXPECTED", error instanceof Error ? error.message : "Unexpected failure.");
+    process.stderr.write(
+      `${JSON.stringify(
+        {
+          ok: false,
+          error: {
+            code: normalized.code,
+            message: normalized.message,
+            ...(normalized.details === undefined ? {} : { details: normalized.details }),
+          },
         },
-      },
-      null,
-      2,
-    )}\n`,
-  );
-  process.exitCode = 1;
+        null,
+        2,
+      )}\n`,
+    );
+    process.exitCode = 1;
+  }
 }
