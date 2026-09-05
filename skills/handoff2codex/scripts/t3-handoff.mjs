@@ -17,7 +17,7 @@ const SOURCE_SETTLE_TIMEOUT_MS = 60_000;
 const ADAPTER_PATH = fileURLToPath(import.meta.url);
 const CODEX_MODEL_SELECTION = Object.freeze({
   instanceId: "codex",
-  model: "gpt-5.6-sol",
+  model: "gpt-6-astra",
   options: Object.freeze([Object.freeze({ id: "reasoningEffort", value: "high" })]),
 });
 
@@ -361,14 +361,14 @@ function validateCodexProvider(config) {
     (candidate) => candidate?.slug === CODEX_MODEL_SELECTION.model,
   );
   if (!model) {
-    fail("T3_CODEX_MODEL_UNAVAILABLE", "Codex does not expose GPT-5.6 Sol.");
+    fail("T3_CODEX_MODEL_UNAVAILABLE", "Codex does not expose GPT-6 Astra.");
   }
   const supportsHigh = (model.capabilities?.optionDescriptors ?? []).some(
     (descriptor) => descriptor?.id === "reasoningEffort" &&
       (descriptor.options ?? []).some((option) => option?.id === "high"),
   );
   if (!supportsHigh) {
-    fail("T3_CODEX_OPTIONS_UNAVAILABLE", "Codex does not expose high reasoning for GPT-5.6 Sol.");
+    fail("T3_CODEX_OPTIONS_UNAVAILABLE", "Codex does not expose high reasoning for GPT-6 Astra.");
   }
 }
 

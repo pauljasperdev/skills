@@ -1,6 +1,6 @@
 ---
 name: linear2codex
-description: Open one, many, filtered, or all unblocked Linear issues from the repository's configured workspace as new Codex App tasks in Codex-managed Git worktrees, pin each session to GPT-5.6 Sol with high reasoning, move each verified issue to its team's started state, and start read-only reconnaissance with $examine-issue. Use when the user asks to send, open, start, or dispatch Linear work directly to Codex. Never use for a Fable-to-Codex handoff on an existing worktree; use $handoff2codex for that.
+description: Open one, many, filtered, or all unblocked Linear issues from the repository's configured workspace as new Codex App tasks in Codex-managed Git worktrees, pin each session to GPT-6 Astra with high reasoning, move each verified issue to its team's started state, and start read-only reconnaissance with $examine-issue. Use when the user asks to send, open, start, or dispatch Linear work directly to Codex. Never use for a Fable-to-Codex handoff on an existing worktree; use $handoff2codex for that.
 ---
 
 # Linear to Codex
@@ -12,7 +12,7 @@ Turn selected Linear work into one visible Codex task per issue. Let the Codex A
 - Treat invoking this skill as an explicit request to create new Codex tasks.
 - Use the installed `linear` CLI for Linear reads and for the dispatcher's one allowed status transition per newly verified task. Resolve the repository's workspace first and pass `--workspace <slug>` to every Linear command. Do not use a mismatched Linear app connection.
 - Use Codex App task tools for task and worktree creation. Do not run `git worktree`, create tmux sessions, or create branches.
-- Pin each task to model `gpt-5.6-sol` with reasoning effort `high`. Do not inherit the saved project default or substitute another model unless the user explicitly requests a different one.
+- Pin each task to model `gpt-6-astra` with reasoning effort `high`. Do not inherit the saved project default or substitute another model unless the user explicitly requests a different one.
 - Never open an issue with an unresolved Linear blocker. Fail closed when relation or blocker state cannot be read.
 - Do not choose or reprioritize work beyond the user's selector and Linear priority.
 - Resolve the repository's remote default branch and pass it explicitly when creating worktrees. Do not rely on Codex's inferred project default.
@@ -90,7 +90,7 @@ Create one Codex project task with:
 - Environment: `worktree`.
 - Starting state: pass the resolved remote default ref, or the user's explicitly named existing base ref. Never omit it or use this field to invent a new branch name.
 - Title: pass exactly `<ISSUE_ID> — <issue title>`. Do not omit this field or substitute the initial prompt.
-- Model: `gpt-5.6-sol`.
+- Model: `gpt-6-astra`.
 - Reasoning effort: `high`.
 - Local environment: if task creation exposes a local-environment config field, pass the selected config explicitly.
 - Initial prompt: use the reconnaissance prompt below only when the selected environment can be passed natively. Otherwise use the setup-first handshake that follows it.

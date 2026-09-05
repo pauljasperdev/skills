@@ -1,7 +1,7 @@
 ---
 name: handoff2codex
 disable-model-invocation: true
-description: Hand an already examined issue or technical brief from a Claude Fable T3 thread to a new Codex GPT-5.6 Sol/high implementation thread on the exact same worktree. Writes a durable Markdown handoff, carries interface and codebase-pattern guidance without a waterfall plan, and instructs Codex to implement. Invoke explicitly after /examine-issue; do not use for initial issue triage or a new worktree.
+description: Hand an already examined issue or technical brief from a Claude Fable T3 thread to a new Codex GPT-6 Astra/high implementation thread on the exact same worktree. Writes a durable Markdown handoff, carries interface and codebase-pattern guidance without a waterfall plan, and instructs Codex to implement. Invoke explicitly after /examine-issue; do not use for initial issue triage or a new worktree.
 allowed-tools: Bash(git:*), Bash(pwd:*), Bash(mktemp:*), Bash(jq:*), Bash(node:*), Write
 ---
 
@@ -75,7 +75,7 @@ Treat `action: "existing"` as an idempotent success: report the existing impleme
 
 A successful creation must report:
 
-- provider `codex`, model `gpt-5.6-sol`, `reasoningEffort: high`;
+- provider `codex`, model `gpt-6-astra`, `reasoningEffort: high`;
 - the same `projectId`, branch, and canonical `worktreePath` as the Fable source thread;
 - a started implementation turn containing the Markdown handoff;
 - a durable handoff copy under the T3 home directory, outside the Git worktree.
@@ -96,7 +96,7 @@ Issue: <identifier or none>
 Linear workspace: <workspace slug or none>
 Worktree: <path>
 Handoff: <durable markdown path>
-Codex: <thread id/title> — GPT-5.6 Sol, high
+Codex: <thread id/title> — GPT-6 Astra, high
 Result: <created, dry-run, or existing>
 Source settlement: <delegated to the verified Codex first turn, already settled, or not applicable>
 ```

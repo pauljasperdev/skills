@@ -1,4 +1,4 @@
 interface:
   display_name: "Linear to Codex"
   short_description: "Examine Linear work in Codex worktrees"
-  default_prompt: "Use $linear2codex to open unblocked Linear work in GPT-5.6 Sol/high Codex worktrees and start $examine-issue."
+  default_prompt: "Use $linear2codex to open unblocked Linear work in GPT-6 Astra/high Codex worktrees and start $examine-issue."
