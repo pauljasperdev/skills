@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Inspect the current Git worktree and create one or more coherent Conventional Commits directly in the invoking coding-agent session. Use when the user asks to commit, runs /commit, or wants the current worktree changes turned into commits.
+description: Commit current worktree changes as coherent Conventional Commits in this session. Use when the user asks to commit; excludes pushing and pull-request creation.
 ---
 
 # Commit
@@ -74,10 +74,3 @@ Commits:
 Remaining: <none | compact uncommitted summary>
 Hooks: <passed | failed with reason | not run>
 ```
-
-## Hard stops
-
-- Never create or use another task or session for commit work.
-- Never guess an ambiguous issue.
-- Never change Linear, push, amend, rebase, force, or bypass hooks.
-- Never mix incidental work into a Linear issue commit.

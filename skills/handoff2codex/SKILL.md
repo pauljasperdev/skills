@@ -1,7 +1,7 @@
 ---
 name: handoff2codex
 disable-model-invocation: true
-description: Hand an already examined issue or technical brief from a Claude Fable T3 thread to a new Codex GPT-6 Astra/high implementation thread on the exact same worktree. Writes a durable Markdown handoff, carries interface and codebase-pattern guidance without a waterfall plan, and instructs Codex to implement. Invoke explicitly after /examine-issue; do not use for initial issue triage or a new worktree.
+description: Transfer a completed Fable examination to a GPT-6 Astra/high implementation thread on the same T3 worktree, with a durable Markdown handoff and source-thread settlement.
 allowed-tools: Bash(git:*), Bash(pwd:*), Bash(mktemp:*), Bash(jq:*), Bash(node:*), Write
 ---
 
@@ -12,6 +12,7 @@ Transfer a completed technical examination into a separate Codex implementation 
 ## Preconditions
 
 - Run only after `/examine-issue` has produced a technical foundation in the current Fable 5.1 T3 thread, or when the user supplies an equivalent technical brief explicitly.
+- Require an implementation-ready foundation: acceptance requirements, supporting evidence, and proposed validation are accounted for. If examination is incomplete, report the missing evidence before dispatch; do not manufacture readiness during handoff.
 - Resolve any blocking product or scope decision identified by the examination before creating an implementation thread. A handoff invocation alone does not answer an unresolved question; preserve non-blocking assumptions explicitly.
 - Require a branch-backed Git worktree and inspect `git status --short`. The normal post-examination state is clean. If tracked, staged, or untracked project files are present, stop and explain the overlap unless the user explicitly says the changes are expected and should be inherited.
 - Do not re-run issue examination, add implementation detail just to make the handoff longer, edit repository files, update Linear, or start implementation in the Fable session.
@@ -27,46 +28,11 @@ Completion criterion: the source is one examined issue or one explicit non-Linea
 
 ## 2. Write the Markdown handoff
 
-Create a temporary Markdown file outside the repository. Preserve the examination's technical foundation followed by its self-contained human review, including source evidence and decision rationale. Reuse the completed sections rather than compressing them into a second lossy summary. For an equivalent nonstandard brief, use this shape without inventing missing facts; omit empty optional subsections:
+Create a temporary Markdown file outside the repository. For an `examine-issue` report, retain its **Technical foundation followed by Human review**, including source evidence, scope, decision rationale, and proposed-versus-executed validation status. The examination owns the report format; reuse its sections and incorporate user corrections without a second lossy summary.
 
-```text
-# <issue or change> implementation handoff
+Only when the user supplies an equivalent nonstandard brief, read [references/brief-format.md](references/brief-format.md) to normalize it. That branch does not authorize new examination or invented requirements.
 
-Issue: <identifier/link or none> | Workspace: <slug or not applicable>
-
-## Technical foundation
-
-### Contracts and ownership
-<technical direction, paths/symbols, required behavior and contracts with their authority, recommended design and rationale, and implementation freedom>
-
-### Relevant library patterns and source evidence
-<existing capabilities and conventions to use; source references; justification for necessary custom machinery>
-
-### Assumptions, risks, and unresolved evidence
-<material non-blocking uncertainty, its consequence, and what would resolve it>
-
-### Acceptance scenarios and proposed validation
-<observable outcomes and failure cases; verified commands with working directories; existing coverage versus tests still needed>
-Validation is proposed, not executed during examination.
-
-## Human review
-
-### Problem and proposed solution
-<plain-language problem, proposed change, and expected result>
-
-### Expected behavior and what stays unchanged
-<concrete success examples, acceptance boundaries, and non-goals>
-
-### Important choices
-<recommendation, reason, tradeoff, and any subsequent user decision>
-
-### Decision status
-<no blocking decisions found, or how the user resolved them; preserve material non-blocking assumptions>
-```
-
-Preserve the distinction between required behavior/contracts, recommended design, and flexible implementation mechanics. Preserve the examination's choices about every materially affected library, with particular attention to Effect and React when present. Proposed internal signatures or pseudocode can be illustrative; actual required public contracts are not optional. Do not turn the foundation into a sequential TODO list, file-by-file marching order, speculative implementation, local variable choices, or an exhaustive restatement of Linear.
-
-Carry forward the simplicity standard: prefer the smallest coherent solution and existing repository or library-native capabilities. New abstractions, dependencies, configuration, or generalization must serve a present requirement that existing capabilities do not meet. Avoid duplicated state, pass-through layers, scattered ownership, speculative extension points, and unrelated cleanup. This is a design constraint, not a request to omit required error handling or tests, nor an invitation to conduct a broad refactor.
+Preserve the examination's required/recommended/flexible distinctions, library choices, and simplicity standard. Carry design decisions forward without adding implementation mechanics or an ordered task list. The resulting handoff is complete when those decisions, acceptance boundaries, evidence, and any user corrections survive the transfer, with no unresolved blocking question.
 
 ## 3. Create the Codex implementation thread
 
@@ -87,6 +53,8 @@ For a preview or dry run, append `--dry-run`; it must not create a thread or per
 Use only the adapter's official T3 CLI authentication and native bootstrap RPC. Do not create a Git worktree or branch, run setup again, use UI automation, access T3's database directly, or fall back to an HTTP dispatch endpoint.
 
 Treat `action: "existing"` as an idempotent success: report the existing implementation thread and do not create another unless the user explicitly asked for a duplicate.
+
+If dispatch or verification fails, retain any created thread and report the concrete error and known partial result. Do not retry creation blindly or claim the source thread is settled without verification.
 
 A successful creation must report:
 

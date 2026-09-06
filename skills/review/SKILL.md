@@ -1,6 +1,6 @@
 ---
 name: review
-description: "Review everything that changed on the current branch against the origin state of the default branch, along two axes: Standards (does the code follow this repo's documented coding standards and the code-smell baseline?) and Spec (does the code match what the owning Linear issue and its milestone asked for?). Runs both axes in parallel sub-agents and reports them side by side. Use when the user asks to review a branch, a worktree, work in progress, the current diff, or asks to \"review since X\"."
+description: Review branch or worktree changes read-only against origin's default branch or an explicit base. Use for code review or review-since requests; reports repository standards and Linear spec compliance as separate axes, including uncommitted work.
 ---
 
 # Review
@@ -65,7 +65,7 @@ On top of whatever the repo documents, the Standards axis always carries the **s
 - **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
 - **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation. Like any standard here, skip anything tooling already enforces.
 
-Each smell reads *what it is* → *how to fix*; match it against the diff:
+Each smell reads *what it is* → *a possible correction*. Report it only when the changed code shows a concrete cost or risk; a resemblance alone is not a finding. Prefer the smallest correction that fits the repository and its libraries, not an automatic extraction, new type, or abstraction:
 
 - **Mysterious Name**: a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
 - **Duplicated Code**: the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
@@ -98,9 +98,13 @@ Use fresh, read-only sub-agents in the environment's native syntax. Give each th
 
 If no issue owns the branch, skip the Spec sub-agent and note this in the final report.
 
+Each finding must identify a precise location, the violated requirement or design concern, and its concrete consequence. Keep any correction at the design level. Each sub-agent must account for the supplied changed and untracked files, and report unreadable files or missing evidence as coverage gaps. A word limit bounds presentation, not inspection; group repetitive findings instead of silently dropping material ones.
+
 ### 5. Aggregate
 
 Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings, because the two axes are deliberately separate (see _Why two axes_).
+
+Check each returned report for source-backed findings and coverage gaps before presenting it. Resolve factual contradictions with targeted reads without merging the axes. A failed or incomplete sub-agent must be reported as incomplete, never converted into “no findings.” The review is complete when each applicable axis has inspected the captured surface and any limits are explicit.
 
 Open with one line naming the review surface: base ref, merge-base short SHA, commit count, whether uncommitted work was included, and the Linear workspace, issue, and milestone reviewed against.
 

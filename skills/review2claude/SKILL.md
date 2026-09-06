@@ -1,7 +1,7 @@
 ---
 name: review2claude
 disable-model-invocation: true
-description: Open a new T3 Code thread on the current worktree and branch, pin it to Claude Fable 5.1 at high effort, and start /review as its first turn. Use to review the work in progress in this worktree from a separate Fable session, whoever implemented it. Never use to create a worktree or hand work to Codex.
+description: Start a separate Claude Fable/high T3 review thread on the current branch and worktree, including uncommitted work, without changing the implementing thread.
 allowed-tools: Bash(git:*), Bash(pwd:*), Bash(node:*)
 ---
 
@@ -14,6 +14,7 @@ Start a review of the current worktree in its own Fable 5.1 thread. The new thre
 - Run from inside a branch-backed Git worktree that belongs to a saved T3 project. A detached `HEAD` cannot back a T3 thread; stop and say so.
 - A dirty worktree is expected and correct here. `/review` covers uncommitted and untracked work, so never stage, commit, stash, or clean before dispatching.
 - Do not create a branch or worktree, run repository setup, edit files, update Linear, or start the review yourself in this session.
+- Leave the invoking thread and other sibling threads unchanged, including their settlement, archive, and title state.
 - The `review` skill must be installed for the Claude Code agent that T3 launches; the new thread's first prompt is the bare slash command.
 
 ## 1. Confirm the target
@@ -42,6 +43,8 @@ The adapter resolves the saved T3 project from an existing thread on this worktr
 
 Treat `action: "existing"` as an idempotent success: report the existing review thread and do not create another unless the user explicitly asked for a duplicate.
 
+On an adapter error, stop and report the error code plus any known created thread. Preserve partial state for diagnosis; do not blindly retry a dispatch whose outcome is uncertain.
+
 A successful creation must report provider `claudeAgent`, model `claude-fable-5-1`, `effort: high`, the same `projectId`, `branch`, and canonical `worktreePath` as this worktree, and a started turn whose message is the `/review` prompt.
 
 Completion criterion: one verified new review thread, one reported existing thread, a dry-run preview, or a recorded failure.
@@ -62,10 +65,3 @@ Result: <created, dry-run, or existing>
 ```
 
 Do not claim the review finished or summarize findings; only report that the verified review turn started. The findings land in the new thread.
-
-## Hard stops
-
-- Never settle, archive, retitle, or otherwise mutate the thread you were invoked from, or any other sibling thread on this worktree.
-- Never create a Git worktree or branch, and never run the project's setup script.
-- Never modify the worktree contents or Linear.
-- Never dispatch a second review thread for the same worktree without an explicit request.

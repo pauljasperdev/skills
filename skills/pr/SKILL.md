@@ -1,6 +1,6 @@
 ---
 name: pr
-description: Push the current committed branch, create or reuse its GitHub pull request, and move an originating Linear issue to In Review. Use for explicit `/pr` review handoffs after work has been committed.
+description: Publish committed work by pushing a branch, creating or reusing its GitHub PR, and moving its Linear issue to In Review. Use for explicit PR handoffs after committing.
 ---
 
 # Pull Request
@@ -66,11 +66,15 @@ Linear: <issue URL>
 
 Without a Linear issue, derive a concise title from the published commits and omit the `Linear:` line. Never claim checks that were not run.
 
+Before updating Linear, re-read the PR and verify its repository, head, base, URL, and actual draft state. If an existing PR targets another base or its draft state conflicts with an explicit user request, report the mismatch before changing the PR or Linear. Reusing a PR does not authorize silently retargeting or editing it.
+
 ## 5. Move Linear to In Review
 
 Only after the PR exists, inspect the issue's current state with `linear issue view <ISSUE_ID> --json --no-download --workspace <slug>`. If needed, move it with `linear issue update <ISSUE_ID> --state "In Review" --workspace <slug>`. If `linear` is unavailable, use a Linear connector only after verifying that it reports the same workspace. If it is already In Review, leave it unchanged. If no Linear issue owns the worktree, skip this step.
 
 If the status or update is unavailable, keep the pushed branch and PR, then report the Linear failure. Never substitute Done, Closed, Canceled, or another started state.
+
+Re-read the issue after any update and verify its actual state. A successful update request without a confirming read is unverified, not a completed transition.
 
 ## 6. Report
 

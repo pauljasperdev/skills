@@ -1,6 +1,6 @@
 ---
 name: examine-issue
-description: Statelessly examine exactly one Linear issue in the repository's configured Linear workspace using a matching read-only integration and fresh repository scouts. Produces an evidence-backed technical foundation covering interfaces, ownership, and library-native patterns without changing Linear, editing the repository, or prescribing incidental implementation details. Use for issue reconnaissance in Claude, Codex, or another coding-agent environment, especially when invoked by a Linear dispatcher or before handoff.
+description: Examine one Linear issue read-only before implementation or handoff. Use for issue reconnaissance directly or from a Linear dispatcher; returns an evidence-backed technical foundation and plain-language human review in any coding-agent environment.
 ---
 
 # Examine Issue
@@ -54,6 +54,8 @@ Run two scouts in parallel:
 
 Prefer `rg`; do not run tests, setup, generators, or dependency installation. Every claim about current code must be verified from source.
 
+Scouting is complete when the affected ownership path and relevant existing capabilities are evidenced, and each acceptance requirement has an identified design implication or an explicit evidence gap. Resolve conflicting scout findings with targeted reads. A failed scout is an incomplete examination, not an empty findings report; disclose it rather than presenting the foundation as ready.
+
 ## 5. Synthesize a technical foundation
 
 Reconcile Linear facts and scout evidence into one recommended technical direction.
@@ -64,14 +66,13 @@ Reconcile Linear facts and scout evidence into one recommended technical directi
 - Avoid design smells in the proposed change: duplicated sources of truth, pass-through layers, scattered ownership, and speculative extension points. Do not turn this into a repository-wide cleanup. Include adjacent refactoring only when needed for a correct, understandable solution; otherwise leave it out. Simplicity must not remove required failure handling, compatibility, or validation.
 - Make firm, evidence-backed decisions about consequential design questions rather than passing them all to the implementation agent. This includes how affected libraries and frameworks should be used; Effect and React deserve explicit attention when present, but are not the only conventions that matter.
 - For consequential choices, explain the recommendation, evidence, and main tradeoff; compare a credible alternative only when one materially competes. Do not manufacture options for routine decisions. Surface unresolved product or scope choices for the user instead of silently deciding them.
-- Name exact paths and symbols when evidence supports them.
 - Distinguish **required** behavior, compatibility constraints, and invariants from **recommended** design decisions and **flexible** implementation mechanics. Identify whether a requirement comes from Linear, an explicit user decision, or an existing contract. Recommendations may change if new source evidence contradicts them; that is not permission to discard requirements silently.
 - Include signatures, schemas, or focused pseudocode only when they clarify a contract. Label proposed internal shapes as illustrative; do not label an actual required public contract as optional.
 - Preserve implementation freedom below the design level. Do not prescribe local variable names, incidental control flow, line-by-line edits, or an ordered checklist that a capable agent can derive from the technical foundation.
-- Distinguish issue requirements from codebase inferences.
-- Include only open decisions that would materially change or block the solution.
 
 Before reporting, challenge the recommendation against the evidence: does it explain the important acceptance behavior and relevant failure paths? What finding would invalidate it? Could an existing capability remove proposed machinery? Resolve contradictions through targeted source reads, or disclose the remaining uncertainty and its consequence. Do not add a separate audit or invent hypothetical risks.
+
+The foundation is ready for handoff only when every acceptance requirement is accounted for by the proposed behavior and validation, material claims have source evidence, and no blocking decision or evidence gap remains. Otherwise report the useful partial analysis and what is missing. Readiness describes the analysis, not permission to implement.
 
 ## 6. Report
 

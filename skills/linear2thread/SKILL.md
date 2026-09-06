@@ -1,6 +1,6 @@
 ---
 name: linear2thread
-description: Shared Linear-to-T3 dispatcher used by linear2claude and linear2codex. Select and gate Linear issues, then use the bundled authenticated WebSocket RPC adapter to create native T3 threads and branch-backed worktrees, run T3 setup, and start read-only examination. Use directly when the user requests Linear work in T3 and specifies a Claude or Codex profile.
+description: Dispatch Linear issues into native T3 worktree threads through the shared RPC adapter. Used by linear2claude and linear2codex, or directly when the user requests T3 issue dispatch with a Claude or Codex profile. Supports read-only previews.
 ---
 
 # Linear to T3 thread
@@ -60,6 +60,8 @@ Fetch each candidate's relations, then every blocking issue's current state. In 
 
 Completed, canceled, or duplicate terminal blockers are resolved; others remain active. Classify candidates as `CLEAR`, `BLOCKED`, or `FAIL`; an unavailable or ambiguous relation read is `FAIL`.
 
+Selection is complete when every candidate needed to fill the requested selector/count has a known blocker classification and the eligible ordering is fixed. Report any shortfall rather than filling it with blocked or unreadable issues.
+
 Preview stops here: report eligible issues, blockers, failures, and ordering without creating threads or changing Linear.
 
 ## 3. Run the shared adapter
@@ -88,6 +90,8 @@ Encode input with a JSON serializer. Never interpolate issue text into shell cod
 - `created`: require `ok: true`, a concrete `thread.id`, non-null `thread.worktreePath`, `worktree.detached: false`, and the selected model/options. The title is `<ID> — <title>`; the branch is `t3code/<issue-id>-<issue-title-slug>`, with a numeric suffix only on collision.
 - Error: stop processing that issue, leave Linear unchanged, and report the code plus whether dispatch may have created a thread. Do not silently retry creation.
 
+If authentication, provider availability, or the RPC protocol fails for the whole batch, stop dispatching and mark the remaining issues unattempted. An issue-specific failure does not prevent processing other clear issues.
+
 The receipt verifies **setup launch and examination-turn start**, not setup completion or completed examination. The first prompt enforces successful setup before read-only `examine-issue`. It asks for interfaces, ownership, data flow, and relevant library conventions, leaving incidental implementation choices open.
 
 ## 4. Update Linear and report
@@ -96,4 +100,4 @@ Only after verified `created`, list the issue team's workflow states in the same
 
 Never change Linear for preview, blocked, existing, failed, or unverified results. On a status-update failure retain the thread and report the mismatch.
 
-Report the selector, workspace, profile/model, and counts, then one row per selected issue: ID, title, T3 thread ID/worktree, setup status, verified Linear transition, and result. Include named blockers and concrete failures. Do not claim setup or examination completed from a launch receipt.
+Report the selector, workspace, profile/model, and counts, then one row per selected issue: ID, title, T3 thread ID/worktree, setup status, verified Linear transition, and result. Account for every selected issue, including blocked, failed, and unattempted results; include named blockers and concrete failures. Do not claim setup or examination completed from a launch receipt.
