@@ -11,6 +11,8 @@ Treat the implementation completed immediately before invocation as a first comp
 
 If no completed implementation can be identified, ask which change to refine before editing. Keep that original change as the scope for the whole pass.
 
+Question the complexity your implementation introduced: does it earn its keep, or did you overbuild? Every added line is a maintenance liability. Look for code, abstractions, and special cases that can be removed or simplified while preserving functional correctness. Favor the clearest maintainable solution, not merely the shortest code; keep necessary error handling and tests.
+
 Take a fresh-eyes pass for concrete friction or fragility exposed by the implementation: needless complexity or duplication, awkward boundaries, misplaced responsibilities, brittle assumptions, temporary workarounds, incomplete error handling, poor testability, or divergence from established codebase patterns. Follow evidence rather than mechanically applying this list.
 
 Make improvements now when they materially improve correctness, simplicity, maintainability, or architectural fit. Prefer removing unnecessary machinery and using existing repository or library capabilities. Tie each refactoring to a concrete problem in the scoped implementation; preserve its requested behavior and leave unrelated user-owned changes alone.
