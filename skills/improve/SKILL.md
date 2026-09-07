@@ -17,6 +17,8 @@ Take a fresh-eyes pass for concrete friction or fragility exposed by the impleme
 
 Make improvements now when they materially improve correctness, simplicity, maintainability, or architectural fit. Prefer removing unnecessary machinery and using existing repository or library capabilities. Tie each refactoring to a concrete problem in the scoped implementation; preserve its requested behavior and leave unrelated user-owned changes alone.
 
+When writing or updating documentation, including `AGENTS.md` and `CLAUDE.md`, read and apply `$writing-for-agents`. Keep only information future agents need to build safely in this codebase: non-obvious contracts, conventions, decision rationale, and pitfalls relevant to the change. Prefer updating the existing authoritative doc and linking to source over duplicating code or configuration. Keep task history and completion summaries in the conversation; add documentation only when it fills a durable information gap.
+
 Make a focused pass, run verification appropriate to the changes, then re-read the final diff for regressions and scope drift. Resolve problems introduced by the pass; further changes need a concrete correctness or acceptance gap, not another opportunity for polish. Finish when the identified problems are resolved and verification is accounted for, or report a specific blocker. If the implementation is already sound, leave it unchanged and say so.
 
 Report the improvements made and their rationale, the verification performed, and any impediment that remains unresolved.

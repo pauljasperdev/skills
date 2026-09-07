@@ -35,6 +35,8 @@ Implement in small, working increments through the real runtime path. Add or ada
 
 Keep adjacent refactoring limited to what makes this change correct and understandable. Preserve necessary validation, error handling, compatibility, and tests while simplifying. A failing check is a problem to explain or fix, not a reason to weaken the contract.
 
+When writing or updating documentation, including `AGENTS.md` and `CLAUDE.md`, read and apply `$writing-for-agents`. Keep only information future agents need to build safely in this codebase: non-obvious contracts, conventions, decision rationale, and pitfalls relevant to the change. Prefer updating the existing authoritative doc and linking to source over duplicating code or configuration. Keep task history and completion summaries in the conversation; add documentation only when it fills a durable information gap.
+
 Implementation is complete when every acceptance requirement is connected to working behavior, including required wiring and failure paths, with no placeholder standing in for requested functionality.
 
 ## 4. Verify and subtract
