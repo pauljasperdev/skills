@@ -20,6 +20,8 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill linear2thread
 
 `review` reviews the current branch against the origin state of the default branch on two axes — repo standards and the owning Linear issue plus its milestone — using parallel sub-agents.
 
+`audit-effect` is manually invoked to audit Effect usage across the current codebase and produce pattern-level findings with standalone refactoring prompts. It uses the installed `effect` and `codebase-design` skills for practices and architecture judgment; the audit leaves code unchanged.
+
 `review2claude` opens a new Fable 5.1 T3 thread on the current worktree and branch that runs `/review`, so the review happens in its own session without touching the implementing thread.
 
 `linear2thread` owns the shared Linear selection, blocker gating, and T3 RPC dispatch workflow. `linear2claude` selects Fable 5.1/high; `linear2codex` selects GPT-6 Astra/high. Both create native T3 threads and branch-backed worktrees through the same authenticated WebSocket bootstrap adapter. Install the base alongside either entry skill. T3 runs its configured worktree setup; Codex App task tools and Codex environment TOMLs are not required.

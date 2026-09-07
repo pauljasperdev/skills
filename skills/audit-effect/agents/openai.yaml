@@ -1,0 +1,7 @@
+interface:
+  display_name: "Audit Effect"
+  short_description: "Audit Effect patterns and draft refactoring prompts"
+  default_prompt: "Use $audit-effect to review this codebase read-only and produce evidence-backed Effect pattern findings with standalone refactoring prompts."
+
+policy:
+  allow_implicit_invocation: false
