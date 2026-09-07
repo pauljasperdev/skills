@@ -60,6 +60,8 @@ Two failure modes, handled differently:
 
 Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md`, `CONTRIBUTING.md`, or `CLAUDE.md` and nested agent instruction files covering the changed paths.
 
+When the changed execution path uses Effect, verify the pinned version. For Effect v4, read `$effect` and its references matching the changed behavior, then include that guidance in the Standards review. For other versions, use version-matched package guidance and repository patterns. If the skill is unavailable, disclose the gap and use verified package sources. Keep this a read-only review of the change, not an upgrade or codebase-wide audit; documented repository conventions take precedence over opinionated skill defaults.
+
 On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
 
 - **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
@@ -88,6 +90,7 @@ Use fresh, read-only sub-agents in the environment's native syntax. Give each th
 
 - The exact diff command, commit list command, and the untracked project files from step 1.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full (the sub-agent has no other access to it).
+- When Effect is in scope, its verified version and the applicable skill/reference paths from step 3. Require the sub-agent to read those references and assess concrete correctness and maintainability risks, including custom machinery where a fitting library capability exists; distinguish opinionated defaults from actual contract violations.
 - The brief: "Report, per file/hunk where relevant, (a) every place the change violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls: documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** should include:
