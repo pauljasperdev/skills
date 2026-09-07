@@ -2,6 +2,8 @@
 
 Personal agent skills.
 
+`implement` builds an authorized feature, fix, or handoff with minimal, maintainable code and verified behavior. It uses the installed `codebase-design` skill for design decisions and `effect` for Effect v4 work; it does not introduce Effect into other projects. `improve` is a separate refinement pass after implementation.
+
 Install all:
 
 ```bash
