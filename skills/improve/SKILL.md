@@ -7,18 +7,18 @@ metadata:
 
 # Improve
 
-Treat the implementation completed immediately before invocation as a first complete draft. Re-read the original request, then inspect the implementation's diff, relevant surrounding code, callers, and tests. Use conversation and edit history to distinguish it from unrelated or pre-existing worktree changes.
+Reduce unnecessary code and complexity in the implementation just completed. Every line is a maintenance liability. The goal is the smallest clear, maintainable solution to the human's original request, not a broader or more ambitious implementation.
 
-If no completed implementation can be identified, ask which change to refine before editing. Keep that original change as the scope for the whole pass.
+Re-read the original request and explicit user decisions, then inspect the implementation's diff, callers, and tests. Use conversation and edit history to separate this implementation from unrelated or pre-existing changes. If the target cannot be identified, ask before editing.
 
-Question the complexity your implementation introduced: does it earn its keep, or did you overbuild? Every added line is a maintenance liability. Look for code, abstractions, and special cases that can be removed or simplified while preserving functional correctness. Favor the clearest maintainable solution, not merely the shortest code; keep necessary error handling and tests.
+Check each addition against the request: does it deliver requested behavior, preserve an affected existing contract, or verify the change? What would fail or remain unsolved without it? Remove clearly unrequested behavior and speculative machinery introduced by this implementation. If intent or necessity is unclear, ask the user before changing that part; do not guess in favor of adding or deleting behavior.
 
-Take a fresh-eyes pass for concrete friction or fragility exposed by the implementation: needless complexity or duplication, awkward boundaries, misplaced responsibilities, brittle assumptions, temporary workarounds, incomplete error handling, poor testability, or divergence from established codebase patterns. Follow evidence rather than mechanically applying this list.
+Prefer deletion, straightforward control flow, and existing repository or library capabilities. Extra abstractions, dependencies, options, fallbacks, and future-proofing need demonstrated necessity for the original task. Simplify the scoped implementation; architectural taste or a nearby smell does not authorize adjacent cleanup.
 
-Make improvements now when they materially improve correctness, simplicity, maintainability, or architectural fit. Prefer removing unnecessary machinery and using existing repository or library capabilities. Tie each refactoring to a concrete problem in the scoped implementation; preserve its requested behavior and leave unrelated user-owned changes alone.
+Add code only to close a verified gap in the original request or preserve an affected contract. Keep required error handling, validation, compatibility, and tests. Reduce lines by eliminating unnecessary machinery, not by making code cryptic or weakening functional correctness. Leave unrelated user-owned changes alone.
 
-When writing or updating documentation, including `AGENTS.md` and `CLAUDE.md`, read and apply `$writing-for-agents`. Keep only information future agents need to build safely in this codebase: non-obvious contracts, conventions, decision rationale, and pitfalls relevant to the change. Prefer updating the existing authoritative doc and linking to source over duplicating code or configuration. Keep task history and completion summaries in the conversation; add documentation only when it fills a durable information gap.
+When docs need changing, read `$writing-for-agents`. Retain only necessary, durable guidance for future agents in existing authoritative docs where possible. Remove redundant task documentation introduced by this implementation; keep completion summaries in the conversation.
 
-Make a focused pass, run verification appropriate to the changes, then re-read the final diff for regressions and scope drift. Resolve problems introduced by the pass; further changes need a concrete correctness or acceptance gap, not another opportunity for polish. Finish when the identified problems are resolved and verification is accounted for, or report a specific blocker. If the implementation is already sound, leave it unchanged and say so.
+Make one focused pass, run checks appropriate to the changes, and inspect the final diff for regressions and scope drift. Resolve problems introduced by the pass, then stop when the original request is satisfied without unsupported additions. If no justified simplification or correctness fix is found, leave the implementation unchanged.
 
-Report the improvements made and their rationale, the verification performed, and any impediment that remains unresolved.
+Report what was removed or simplified and why, any necessary additions, checks actually run, and unresolved questions or verification gaps. Do not claim completion when a required behavior remains blocked or unverified.

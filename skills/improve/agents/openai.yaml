@@ -1,7 +1,7 @@
 interface:
   display_name: "Improve"
   short_description: "Refine a completed implementation"
-  default_prompt: "Use $improve to review the implementation just completed, make worthwhile improvements, and verify the result."
+  default_prompt: "Use $improve to remove unnecessary code and unsupported additions from the implementation just completed, preserve the original requirements, ask where intent is unclear, and verify the result."
 
 policy:
   allow_implicit_invocation: false

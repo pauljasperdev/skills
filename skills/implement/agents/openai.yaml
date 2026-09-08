@@ -1,4 +1,4 @@
 interface:
   display_name: "Implement"
   short_description: "Build minimal, maintainable, verified implementations"
-  default_prompt: "Use $implement to deliver the requested change with the smallest coherent design, applying $codebase-design and $effect when relevant, and verify the resulting behavior."
+  default_prompt: "Use $implement to deliver only the requested behavior with necessary, minimal code; ask about unclear requirements before implementing them and verify the result."

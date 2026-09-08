@@ -5,42 +5,38 @@ description: Implement an authorized feature, fix, or technical handoff with min
 
 # Implement
 
-Deliver the requested behavior with the smallest coherent design. Every added line carries a maintenance cost; elegance means making the behavior easy to understand and change, not compressing it into fewer lines.
+Implement exactly the human's requested behavior. Every line of code is a maintenance liability: add only what is necessary to deliver and verify that behavior while preserving existing contracts. Aim for clean, lean code that is easy to understand and maintain.
 
 ## 1. Establish the contract
 
-Read the request or handoff, applicable repository instructions, and the affected code, callers, and tests. For a referenced Linear issue, use `linear-cli` with the repository's configured workspace to read its requirements and assigned milestone context. Inspect worktree changes so unrelated user work stays intact.
+Read the request, applicable repository instructions, and affected code, callers, tests, and worktree changes. For a referenced Linear issue, use `linear-cli` in the repository's configured workspace to read the issue and assigned milestone. The milestone provides context, not additional implementation scope.
 
-Preserve required behavior, compatibility, and explicit user decisions. Treat handoff design recommendations as evidence-backed starting points: explain consequential departures when current source contradicts them. Ask only about missing decisions that materially change the result.
+Identify the requested outcome, acceptance behavior, and what must stay unchanged. A handoff or another agent's recommendation is not authority to add requirements. Follow explicit user decisions; if a proposed approach conflicts with them or with verified source, explain the conflict and ask before departing from it.
 
-Ready to edit when acceptance behavior, non-goals, affected ownership, and relevant validation are known, with no blocking scope decision. An implementation request authorizes code changes and proportionate local checks, not deployment, publishing, Linear updates, or session/worktree creation unless separately requested.
+If requirements, expected behavior, or the necessity of extra code are unclear, ask the user before implementing the affected part. Do not turn guesses into requirements or add behavior on the assumption that it might be needed. Choose routine implementation mechanics within the established contract; uncertainty about the contract itself requires clarification.
+
+Start editing only when the scope is clear. Authorization covers the requested code changes and proportionate local checks, not deployment, publishing, Linear updates, or session/worktree creation.
 
 ## 2. Choose the simplest fitting design
 
-- Read and apply `$codebase-design` before choosing or changing module interfaces and ownership. Use its depth, locality, and deletion tests to decide whether an abstraction earns its place.
-- When the affected path uses Effect, check the pinned version. For Effect v4, read `$effect` and its task-matching references before writing Effect code. For another version, follow version-matched package guidance and repository patterns; introducing or upgrading Effect requires an explicit request.
-- For every affected library, check existing repository usage and built-in capabilities before writing a substitute. If a referenced skill is unavailable, report that and use repository guidance and verified source rather than inventing its rules.
+- Read `$codebase-design` when choosing or changing interfaces and ownership. Its design guidance does not expand the task.
+- For Effect code, check the pinned version. Read `$effect` and task-matching references for v4; otherwise use version-matched guidance and repository patterns. Introducing or upgrading Effect requires an explicit request.
+- Check existing repository and library capabilities before writing custom code. If a referenced skill is unavailable, report that and use verified source and repository guidance.
 
-Keep the design concrete:
+Each addition must serve a requested requirement, preserve an affected existing contract, or verify the change. Be able to explain what would fail or remain unsolved without it. Possible future use, generic best practice, or a nearby improvement is not sufficient justification.
 
-- Build for present requirements. New abstractions, dependencies, options, and generalization need a current use or a demonstrable reduction in complexity.
-- Give each rule and piece of authoritative state a clear owner. Share repeated domain knowledge; similar-looking code alone does not justify coupling unrelated behavior.
-- Reveal intent through domain names, straightforward control flow, and explicit data and failure paths. Comments explain non-obvious reasons and constraints.
-
-Ready to build when the chosen approach satisfies the contract and any custom machinery has a reason existing capabilities cannot meet. Keep this analysis proportional; proceed to implementation rather than returning a waterfall plan.
+Prefer the simplest existing path. Extra abstractions, dependencies, configuration, fallbacks, and extension points require demonstrated necessity for this task. Keep ownership clear and control flow direct; do not build a framework around a single use case.
 
 ## 3. Build with feedback
 
-Implement in small, working increments through the real runtime path. Add or adapt tests around observable behavior and meaningful failure cases; for a bug, establish a reproducing check before fixing it when feasible. Use repository-native checks as feedback while working, not only at the end.
+Implement through the real runtime path in small, working increments. Add or adapt tests for requested behavior and relevant failure cases; reproduce a bug before fixing it when feasible. Use repository-native checks while working.
 
-Keep adjacent refactoring limited to what makes this change correct and understandable. Preserve necessary validation, error handling, compatibility, and tests while simplifying. A failing check is a problem to explain or fix, not a reason to weaken the contract.
+Keep adjacent cleanup and unrelated fixes out of the diff. Change surrounding code only where the requested solution requires it. Preserve necessary validation, error handling, compatibility, and tests; minimal code must still be correct and complete.
 
-When writing or updating documentation, including `AGENTS.md` and `CLAUDE.md`, read and apply `$writing-for-agents`. Keep only information future agents need to build safely in this codebase: non-obvious contracts, conventions, decision rationale, and pitfalls relevant to the change. Prefer updating the existing authoritative doc and linking to source over duplicating code or configuration. Keep task history and completion summaries in the conversation; add documentation only when it fills a durable information gap.
-
-Implementation is complete when every acceptance requirement is connected to working behavior, including required wiring and failure paths, with no placeholder standing in for requested functionality.
+When docs need changing, read `$writing-for-agents`. Update existing authoritative docs with only necessary, non-obvious contracts, rationale, conventions, or pitfalls for future agents. Link to source instead of duplicating it; keep task history in the conversation.
 
 ## 4. Verify and subtract
 
-Inspect the final diff and ask: what complexity did I introduce that the behavior does not need? Remove or simplify that excess, then rerun affected checks. Favor clarity over line-count reductions; finish after this focused pass rather than reopening unrelated design questions.
+Review every added block against the scope: is it necessary, or did I invent a requirement? Remove unsupported additions and simplify avoidable complexity within your changes. Reduce code by removing machinery, not by obscuring logic or dropping required safeguards. Rerun affected checks after simplifying.
 
-Done means acceptance behavior has been checked, relevant verification has passed or its limitations are explicit, and unrelated work remains untouched. Report delivered behavior, consequential design choices, checks actually run, and any remaining blocker. A blocked or unverified result is not a claim of completion.
+Finish when all requested behavior is wired and verified, no speculative additions remain, and unrelated work is untouched. Report the delivered behavior, checks actually run, and any unresolved question or verification gap. Stop at the requested outcome; an unverified or blocked result is not complete.
