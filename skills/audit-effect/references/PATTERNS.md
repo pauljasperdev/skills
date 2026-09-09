@@ -9,18 +9,23 @@ and which counterexamples prevent mechanical rewrites.
 Search `make*`/`create*` factories, dependency objects, concrete client imports,
 `Layer.provide`, `provideMerge`, `mergeAll`, and `Context.Reference`.
 
-Trace each dependency from composition to use. Candidates include collaborating
-application modules passed around outside the Effect environment, concrete
-transports selected inside policy code, and defaults that silently remove
-required behavior. Establish which useful adapter substitution or lifecycle is
-obstructed before proposing a different seam.
+Trace acquisition, implementation selection, provisioning, and lifetime through
+the composition root and consumers. Candidates include collaborating application
+modules passed around outside the Effect environment, concrete transports selected
+inside policy code, and defaults that silently remove required behavior. Acquiring
+a service or overriding a low-level function does not establish that callers can
+substitute its full implementation. Identify the actual substitution or ownership
+cost, then check whether the proposed seam resolves it or merely moves a dependency
+object.
 
 Configuration-value factories, platform-binding adapters, transaction-local
 helpers, and seeded test layers can be appropriate. A private helper closing over
 a dependency already acquired by its owning module is ordinary implementation
-detail. `provideMerge` can intentionally expose dependencies, and a defaultable
-reference can have a truthful fallback. Judge missing required authority
-separately from explicitly optional operation.
+detail. Layer recipes can preserve conditional, separately scoped acquisition;
+compare that lifetime with any proposed shared service graph. `provideMerge` can
+intentionally expose dependencies, and a defaultable reference can have a truthful
+fallback. Judge missing required authority separately from explicitly optional
+operation.
 
 ## Workflows and execution
 
@@ -88,6 +93,11 @@ Check that required configuration is explicit, expected failures retain typed
 recovery, and diagnostics preserve useful classifications without private data.
 Inspect fallback truthfulness and whether recovery preserves interruption and
 distinguishes expected failures from defects.
+
+Evaluate configuration acquisition and substitution separately from stricter
+validation, new defaults, or snapshotting. Check read timing, empty/missing values,
+and the existing error boundary before deciding whether a Config/provider seam
+can preserve behavior. A blocked validation change need not block that seam.
 
 Trusted construction and constant decoding can be synchronous. Migration scripts
 and host-binding adapters legitimately acquire external configuration. Foreign
