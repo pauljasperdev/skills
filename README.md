@@ -26,6 +26,8 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill linear2thread
 
 `linear2thread` owns the shared Linear selection, blocker gating, and T3 RPC dispatch workflow. `linear2claude` selects Fable 5.1/high; `linear2codex` selects GPT-6 Astra/high. Both create native T3 threads and branch-backed worktrees through the same authenticated WebSocket bootstrap adapter. Install the base alongside either entry skill. T3 runs its configured worktree setup; Codex App task tools and Codex environment TOMLs are not required.
 
-`examine-issue` is their shared, provider-neutral reconnaissance skill: it reads one issue and the repository without mutating either. The dispatcher owns workflow-state changes. After Fable examination, `handoff2codex` can start implementation on the same T3 worktree.
+`examine-work` investigates proposed work from any prompt or supplied brief, with no issue tracker required. It keeps the project read-only and produces an evidence-backed technical foundation followed by a plain-language human review. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
+
+`examine-issue` wraps `examine-work` with Linear workspace verification, issue retrieval, and milestone context. Install both together (`--skill examine-issue examine-work`), including when using the Linear dispatchers. The dispatcher owns workflow-state changes. After either examination in Fable, `handoff2codex` can start implementation on the same T3 worktree.
 
 Repositories that use Linear must commit `.linear.toml` (or `.config/linear.toml`) with their `workspace` and default `team_id`. Credentials stay in the system keychain. Linear-aware skills verify this repository context and never infer a workspace from the directory name or issue prefix.

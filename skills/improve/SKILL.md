@@ -19,6 +19,18 @@ Add code only to close a verified gap in the original request or preserve an aff
 
 When docs need changing, read `$writing-for-agents`. Retain only necessary, durable guidance for future agents in existing authoritative docs where possible. Remove redundant task documentation introduced by this implementation; keep completion summaries in the conversation.
 
+## UI: clarity through subtraction
+
+When the completed implementation changes UI, read `$frontend-design` and apply it within the original scope and established visual language. Aim for the smallest, cleanest interface that makes the task self-explanatory. Refine the affected interface without expanding into a redesign.
+
+Check whether hierarchy, grouping, spacing, familiar controls, and visible feedback make the primary action, available choices, and current state clear. Fix confusing interactions at that level before adding explanatory prose. Remove redundant headings and descriptions, narration of obvious controls, filler, implementation details, and decoration that adds no useful information.
+
+Keep concise, concrete labels and action names. Retain supporting text where it helps users make a consequential choice, enter valid input, or recover from an error. Prefer a clear visible label to an ambiguous icon or help hidden in a tooltip. Preserve accessibility, discoverability, necessary feedback, and requested behavior while simplifying.
+
+Inspect the rendered result and exercise affected interactions when the environment permits. Verify that a first-time user can identify the next action and understand its outcome without explanatory narration. Report any gap in visual or interaction verification.
+
+## Verify and finish
+
 Make one focused pass, run checks appropriate to the changes, and inspect the final diff for regressions and scope drift. Resolve problems introduced by the pass, then stop when the original request is satisfied without unsupported additions. If no justified simplification or correctness fix is found, leave the implementation unchanged.
 
 Report what was removed or simplified and why, any necessary additions, checks actually run, and unresolved questions or verification gaps. Do not claim completion when a required behavior remains blocked or unverified.

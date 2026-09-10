@@ -1,0 +1,4 @@
+interface:
+  display_name: "Examine Work"
+  short_description: "Read-only work design and plain-language review"
+  default_prompt: "Use $examine-work to investigate the work described in my prompt read-only, recommend the simplest coherent design, and report the technical foundation followed by a plain-language human review."

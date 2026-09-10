@@ -1,4 +1,4 @@
 interface:
   display_name: "Examine Linear Issue"
-  short_description: "Read-only issue design and plain-language review"
+  short_description: "Linear context and shared work examination"
   default_prompt: "Use $examine-issue to examine one Linear issue read-only, recommend the simplest coherent design, and report the technical foundation followed by a plain-language human review."

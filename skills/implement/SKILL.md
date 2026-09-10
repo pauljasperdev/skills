@@ -27,6 +27,14 @@ Each addition must serve a requested requirement, preserve an affected existing 
 
 Prefer the simplest existing path. Extra abstractions, dependencies, configuration, fallbacks, and extension points require demonstrated necessity for this task. Keep ownership clear and control flow direct; do not build a framework around a single use case.
 
+### UI: clarity through design
+
+When building or reshaping a UI, read `$frontend-design`. Apply it within the requested scope and the product's established visual language. Aim for the smallest, cleanest interface that makes the task self-explanatory.
+
+Make the primary action, available choices, and current state clear through hierarchy, grouping, spacing, familiar controls, and visible feedback. Resolve confusing interactions in the design before adding explanatory prose. Each element must help the user act, orient themselves, or understand a result.
+
+Use concise, concrete labels and action names. Add supporting text only when it provides information the layout and controls cannot convey, such as a consequential choice, required input format, or error recovery. Remove narration of obvious controls, repeated headings and descriptions, filler, and implementation details. Prefer a clear visible label to an ambiguous icon or help hidden in a tooltip. Minimalism must preserve accessibility, discoverability, and necessary feedback.
+
 ## 3. Build with feedback
 
 Implement through the real runtime path in small, working increments. Add or adapt tests for requested behavior and relevant failure cases; reproduce a bug before fixing it when feasible. Use repository-native checks while working.
@@ -38,5 +46,7 @@ When docs need changing, read `$writing-for-agents`. Update existing authoritati
 ## 4. Verify and subtract
 
 Review every added block against the scope: is it necessary, or did I invent a requirement? Remove unsupported additions and simplify avoidable complexity within your changes. Reduce code by removing machinery, not by obscuring logic or dropping required safeguards. Rerun affected checks after simplifying.
+
+For UI changes, inspect the rendered result and exercise the affected interaction when the environment permits. Check whether a first-time user can identify the next action and understand the outcome without explanatory narration. Remove redundant text and visual elements; fix any remaining ambiguity in the layout, labels, or feedback. Report any gap in visual or interaction verification.
 
 Finish when all requested behavior is wired and verified, no speculative additions remain, and unrelated work is untouched. Report the delivered behavior, checks actually run, and any unresolved question or verification gap. Stop at the requested outcome; an unverified or blocked result is not complete.

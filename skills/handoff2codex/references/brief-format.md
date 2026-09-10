@@ -1,6 +1,6 @@
 # Normalize a nonstandard brief
 
-Use only for an explicit technical brief that did not come from `examine-issue`. Reorganize supplied evidence and decisions without adding new design work. If a material requirement, contract, or evidence needed for implementation is absent, report the gap before dispatch.
+Use only for an explicit technical brief that did not come from `examine-work` or `examine-issue`. Reorganize supplied evidence and decisions without adding new design work. If a material requirement, contract, or evidence needed for implementation is absent, report the gap before dispatch.
 
 Use this shape, omitting empty optional subsections:
 

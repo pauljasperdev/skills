@@ -11,7 +11,7 @@ Transfer a completed technical examination into a separate Codex implementation 
 
 ## Preconditions
 
-- Run only after `/examine-issue` has produced a technical foundation in the current Fable 5.1 T3 thread, or when the user supplies an equivalent technical brief explicitly.
+- Run only after `/examine-work` or `/examine-issue` has produced a technical foundation in the current Fable 5.1 T3 thread, or when the user supplies an equivalent technical brief explicitly.
 - Require an implementation-ready foundation: acceptance requirements, supporting evidence, and proposed validation are accounted for. If examination is incomplete, report the missing evidence before dispatch; do not manufacture readiness during handoff.
 - Resolve any blocking product or scope decision identified by the examination before creating an implementation thread. A handoff invocation alone does not answer an unresolved question; preserve non-blocking assumptions explicitly.
 - Require a branch-backed Git worktree and inspect `git status --short`. The normal post-examination state is clean. If tracked, staged, or untracked project files are present, stop and explain the overlap unless the user explicitly says the changes are expected and should be inherited.
@@ -24,11 +24,11 @@ Recover the examined Linear identifier from the current conversation and verify 
 
 Use the completed examination and subsequent explicit user decisions as the source of truth for the technical handoff. Preserve meaningful uncertainty; do not silently turn an open decision into a requirement. Incorporate user corrections consistently in both the technical foundation and human review.
 
-Completion criterion: the source is one examined issue or one explicit non-Linear technical brief.
+Completion criterion: the source is one completed work or issue examination, or one explicit technical brief.
 
 ## 2. Write the Markdown handoff
 
-Create a temporary Markdown file outside the repository. For an `examine-issue` report, retain its **Technical foundation followed by Human review**, including source evidence, scope, decision rationale, and proposed-versus-executed validation status. The examination owns the report format; reuse its sections and incorporate user corrections without a second lossy summary.
+Create a temporary Markdown file outside the repository. For an `examine-work` or `examine-issue` report, retain its **Technical foundation followed by Human review**, including source evidence, scope, decision rationale, and proposed-versus-executed validation status. `examine-work` owns the shared report format; reuse its sections and incorporate user corrections without a second lossy summary.
 
 Only when the user supplies an equivalent nonstandard brief, read [references/brief-format.md](references/brief-format.md) to normalize it. That branch does not authorize new examination or invented requirements.
 
