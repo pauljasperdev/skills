@@ -21,13 +21,13 @@ When docs need changing, read `$writing-for-agents`. Retain only necessary, dura
 
 ## UI: clarity through subtraction
 
-When the completed implementation changes UI, read `$frontend-design` and apply it within the original scope and established visual language. Aim for the smallest, cleanest interface that makes the task self-explanatory. Refine the affected interface without expanding into a redesign.
+When the completed implementation changes UI, read `$frontend-design` within the original scope and established visual language. Aim for the smallest, cleanest interface that makes the task self-explanatory.
 
-Check whether hierarchy, grouping, spacing, familiar controls, and visible feedback make the primary action, available choices, and current state clear. Fix confusing interactions at that level before adding explanatory prose. Remove redundant headings and descriptions, narration of obvious controls, filler, implementation details, and decoration that adds no useful information.
+Make the primary action, available choices, and current state clear through hierarchy, grouping, spacing, familiar controls, and feedback. Fix confusing interactions before adding explanatory prose. Remove redundant headings and descriptions, narration of obvious controls, filler, implementation details, and decoration without a purpose.
 
-Keep concise, concrete labels and action names. Retain supporting text where it helps users make a consequential choice, enter valid input, or recover from an error. Prefer a clear visible label to an ambiguous icon or help hidden in a tooltip. Preserve accessibility, discoverability, necessary feedback, and requested behavior while simplifying.
+Keep concise labels and action names, plus guidance needed for consequential choices, valid input, and error recovery. Prefer visible labels to ambiguous icons or help hidden in tooltips. Preserve accessibility, discoverability, and necessary feedback.
 
-Inspect the rendered result and exercise affected interactions when the environment permits. Verify that a first-time user can identify the next action and understand its outcome without explanatory narration. Report any gap in visual or interaction verification.
+During verification, inspect the rendered result and exercise affected interactions when the environment permits. Check whether a first-time user can identify the next action and understand its outcome without explanatory narration.
 
 ## Verify and finish
 
