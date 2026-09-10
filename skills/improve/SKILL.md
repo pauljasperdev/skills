@@ -7,7 +7,7 @@ metadata:
 
 # Improve
 
-Reduce unnecessary code and complexity in the implementation just completed. Every line is a maintenance liability. The goal is the smallest clear, maintainable solution to the human's original request, not a broader or more ambitious implementation.
+Reduce unnecessary code and complexity in the implementation just completed and the code it supersedes. Every line is a maintenance liability. The goal is the smallest clear, maintainable solution to the human's original request, not a broader or more ambitious implementation.
 
 Re-read the original request and explicit user decisions, then inspect the implementation's diff, callers, and tests. Use conversation and edit history to separate this implementation from unrelated or pre-existing changes. If the target cannot be identified, ask before editing.
 
@@ -18,6 +18,14 @@ Prefer deletion, straightforward control flow, and existing repository or librar
 Add code only to close a verified gap in the original request or preserve an affected contract. Keep required error handling, validation, compatibility, and tests. Reduce lines by eliminating unnecessary machinery, not by making code cryptic or weakening functional correctness. Leave unrelated user-owned changes alone.
 
 When docs need changing, read `$writing-for-agents`. Retain only necessary, durable guidance for future agents in existing authoritative docs where possible. Remove redundant task documentation introduced by this implementation; keep completion summaries in the conversation.
+
+## Dead code and superseded behavior
+
+Trace what the implementation replaces or disconnects, including existing code outside the diff. Look for unused symbols and files, unreachable branches, obsolete state, duplicate paths, and adapters or fallbacks whose purpose the new implementation has removed. Follow their imports, callers, runtime registration, configuration, and dependencies to find anything newly orphaned. Keep this scan tied to the implementation's effects.
+
+Before deleting a candidate, verify that no supported path or contract still needs it. Use repository-wide reference searches and relevant entry points; account for dynamic loading, framework discovery, side effects, and external consumers where applicable. A missing text reference or unused-code warning is a lead, not proof. Preserve required compatibility and historical migrations; retain uncertain candidates and report the evidence gap.
+
+Remove confirmed dead code together with its exclusive wiring, configuration, dependencies, and obsolete tests or fixtures. Preserve coverage of behavior that remains required. Continue through anything those deletions orphan, using the same evidence standard. The scan is complete when affected replacement paths have been traced and identified candidates are either removed or retained for a stated reason.
 
 ## UI: clarity through subtraction
 
