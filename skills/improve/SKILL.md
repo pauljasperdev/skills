@@ -25,6 +25,8 @@ Treat the original contract, changed runtime paths, and superseded behavior as a
 
 For every verified gap, use red-green development: add the smallest failing regression test, make the minimal correctness change, then refactor with the suite green. Check all real layers—unit rules and boundaries, integration seams and wiring, and end-to-end critical user-visible/runtime flows. Prefer deterministic fixtures and controlled failures, while keeping integration and end-to-end tests on real wiring so mocks cannot conceal configuration, serialization, lifecycle, or registration defects. Use coverage or mutation reports when available to locate untested branches; the matrix and observable assertions are the completeness bar, and exclusions need a concrete reason.
 
+Make every retained or added test meaningful: identify its input or action, assert an observable result or invariant, and confirm it would fail for a plausible regression. Tests that only execute lines, mirror implementation details, check mock calls without a contract consequence, accept any result, or add snapshots without semantic assertions do not establish coverage. Prefer fewer strong tests over test count or percentage inflation.
+
 Run focused tests during the pass and the complete relevant unit, integration, and end-to-end suites plus repository-native type, lint, build, and coverage checks afterward. If a required layer or check is unavailable, record the exact blocker and affected unverified behavior. Completion requires every applicable matrix case to be covered by a passing test or an explicitly documented verification gap.
 
 ## Dead code and superseded behavior
