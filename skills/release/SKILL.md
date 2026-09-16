@@ -1,25 +1,26 @@
 ---
 name: release
-description: Bump a project version and release the changes on pre to main through a concise, CI-gated pull request.
+description: Bump a project version and release the default branch to main through a concise, CI-gated pull request and tagged merge commit.
 disable-model-invocation: true
 ---
 
 # Release
 
-Run only for an explicit release request in one of these repositories. `$release` bumps the patch version by default; `$release minor` and `$release major` request the other SemVer bump types.
+Run only for an explicit release request in one of these repositories. `$release` bumps the patch version by default; `$release minor` and `$release major` request the other SemVer bump types. One invocation runs the complete release.
 
 ## Workflow
 
-1. Verify the repository root, current branch `pre`, a clean worktree, `gh` authentication, and the `origin` remote. Fetch `main` and `pre`. Stop on branch divergence or an existing ambiguous release PR.
-2. Analyze the complete `main..pre` range before making the release commit. Read the commits and relevant diff, and describe what is actually included. If there is nothing in `main..pre`, stop.
-3. Bump the root `VERSION` file directly. It contains one stable `MAJOR.MINOR.PATCH` value; if absent, initialize from `0.0.0`. Change no workspace package versions. Commit only this file on `pre` with `chore(release): bump version to vX.Y.Z`.
-4. Push `pre`, create the PR from `pre` to `main`, wait for required CI checks, and merge it with GitHub's merge-commit strategy. Stop with the PR open if CI fails. Never squash, rebase, force-push, or create tags/releases unless requested.
+1. Verify the repository root, a clean worktree, `gh` authentication, and the `origin` remote. Resolve the repository's configured default branch with GitHub; require the current branch to be that branch. Fetch `main` and the default branch. Stop on branch divergence or an existing ambiguous release PR.
+2. Analyze the complete `main..default-branch` range before making the release commit. Read the commits and relevant diff, and describe what is actually included. If there is nothing in the range, stop.
+3. Use the package manager declared in the root `package.json`. For Bun, run `bun pm version patch|minor|major --no-git-tag-version`; for pnpm, use its equivalent no-tag version command. If the root manifest has no version yet, initialize it at `0.0.0` before bumping. Change only the root manifest's project version; do not change workspace package versions. Commit only the version change with `chore(release): bump version to vX.Y.Z`.
+4. Push the default branch and create the PR from the default branch to `main`. Wait for required CI checks and merge it automatically with GitHub's merge-commit strategy. Stop with the PR open if CI fails or approval is required. Never squash, rebase, or force-push.
+5. After the PR is merged, create the annotated tag `vX.Y.Z` on the resulting merge commit and push it. Then fast-forward the default branch to that same merge commit, so the tag is reachable from both `main` and the default branch. Do not create a separate GitHub Release unless requested.
 
-The release is complete when the PR is merged and the resulting merge commit contains the requested version.
+The release is complete when the PR is merged, the tag points at its merge commit, and both `main` and the default branch contain that tagged commit.
 
 ## Pull request
 
-Use the title `chore(release): promote pre to main (vX.Y.Z)`. Generate the body from the actual `main..pre` changes. Keep it concise, fill every section, and write `None` where a section does not apply:
+Use the title `chore(release): promote default branch to main (vX.Y.Z)`. Generate the body from the actual `main..default-branch` changes. Keep it concise, fill every section, and write `None` where a section does not apply:
 
 ```markdown
 ## Release X.Y.Z
@@ -46,5 +47,5 @@ Relevant checks, test suites, CI status, and known limitations.
 Anything worth watching after promotion.
 
 ### Included work
-Links to included PRs and the `main..pre` commit range.
+Links to included PRs and the `main..default-branch` commit range.
 ```
