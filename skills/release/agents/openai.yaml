@@ -1,0 +1,7 @@
+interface:
+  display_name: "Release"
+  short_description: "Bump and release pre to main"
+  default_prompt: "Use $release to bump the patch version and release pre to main with a concise change summary."
+
+policy:
+  allow_implicit_invocation: false

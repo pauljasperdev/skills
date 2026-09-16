@@ -19,6 +19,14 @@ Add code only to close a verified gap in the original request or preserve an aff
 
 When docs need changing, read `$writing-for-agents`. Retain only necessary, durable guidance for future agents in existing authoritative docs where possible. Remove redundant task documentation introduced by this implementation; keep completion summaries in the conversation.
 
+## Test the change before simplifying
+
+Treat the original contract, changed runtime paths, and superseded behavior as a coverage matrix. Account for each applicable success case, boundary and empty value, malformed input, invalid transition, dependency or infrastructure failure, retry/timeout/cancellation, duplicate or out-of-order request, authorization, persistence/serialization, and concurrency case. Existing green tests are evidence only for the behavior they assert.
+
+For every verified gap, use red-green development: add the smallest failing regression test, make the minimal correctness change, then refactor with the suite green. Check all real layers—unit rules and boundaries, integration seams and wiring, and end-to-end critical user-visible/runtime flows. Prefer deterministic fixtures and controlled failures, while keeping integration and end-to-end tests on real wiring so mocks cannot conceal configuration, serialization, lifecycle, or registration defects. Use coverage or mutation reports when available to locate untested branches; the matrix and observable assertions are the completeness bar, and exclusions need a concrete reason.
+
+Run focused tests during the pass and the complete relevant unit, integration, and end-to-end suites plus repository-native type, lint, build, and coverage checks afterward. If a required layer or check is unavailable, record the exact blocker and affected unverified behavior. Completion requires every applicable matrix case to be covered by a passing test or an explicitly documented verification gap.
+
 ## Dead code and superseded behavior
 
 Trace what the implementation replaces or disconnects, including existing code outside the diff. Look for unused symbols and files, unreachable branches, obsolete state, duplicate paths, and adapters or fallbacks whose purpose the new implementation has removed. Follow their imports, callers, runtime registration, configuration, and dependencies to find anything newly orphaned. Keep this scan tied to the implementation's effects.
@@ -39,6 +47,6 @@ During verification, inspect the rendered result and exercise affected interacti
 
 ## Verify and finish
 
-Make one focused pass, run checks appropriate to the changes, and inspect the final diff for regressions and scope drift. Resolve problems introduced by the pass, then stop when the original request is satisfied without unsupported additions. If no justified simplification or correctness fix is found, leave the implementation unchanged.
+Make one focused pass, run the full applicable test and quality checks, and inspect the final diff for regressions, dead paths, and scope drift. Resolve problems introduced by the pass, then stop when the original request is satisfied without unsupported additions. If no justified simplification or correctness fix is found, leave the implementation unchanged.
 
 Report what was removed or simplified and why, any necessary additions, checks actually run, and unresolved questions or verification gaps. Do not claim completion when a required behavior remains blocked or unverified.
