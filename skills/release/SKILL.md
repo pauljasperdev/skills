@@ -1,51 +1,56 @@
 ---
 name: release
-description: Bump a project version and release the default branch to main through a concise, CI-gated pull request and tagged merge commit.
+description: Prepare a versioned release PR to main with release notes grounded in the actual changes.
 disable-model-invocation: true
 ---
 
 # Release
 
-Run only for an explicit release request in one of these repositories. `$release` bumps the patch version by default; `$release minor` and `$release major` request the other SemVer bump types. One invocation runs the complete release.
+`$release` prepares a patch release PR; `minor` and `major` select other bumps. The owner merges it using a merge commit; the repository's pipeline owns tagging and deployment. Discussing or editing this skill does not authorize a release.
 
-## Workflow
+## 1. Workspace
 
-1. Verify the repository root, a clean worktree, `gh` authentication, and the `origin` remote. Resolve the repository's configured default branch with GitHub; require the current branch to be that branch. Fetch `main` and the default branch. A history divergence between them is expected: the `default branch → main` PR is what reconciles it. Proceed with the PR; do not rebase or force-push.
-2. Analyze the complete `main..default-branch` range before making the release commit. Read the commits and relevant diff, and describe what is actually included. If there is nothing in the range, stop. Check for an existing release PR from the default branch to `main` and reuse the single unambiguous PR if one exists.
-3. Read the root `package.json` version and use the package manager declared there. For Bun, run `bun pm version patch|minor|major --no-git-tag-version`; for pnpm, use its equivalent no-tag version command. If the root manifest has no version yet, initialize it at `0.0.0` before bumping. If the default branch already contains the release bump commit from an interrupted run, reuse that version instead of bumping again. Change only the root manifest's project version; do not change workspace package versions. Commit only the version change with `chore(release): bump version to vX.Y.Z`.
-4. Push the default branch and create the PR from the default branch to `main`. Put the release analysis in the PR body. Request automatic merging with GitHub's merge-commit strategy and wait for required CI checks and approvals. If GitHub reports merge conflicts or a check fails, leave the PR open and report the blocker; the resolution is a PR update, not a rebase.
-5. After the PR is merged, create the annotated tag `vX.Y.Z` on the resulting merge commit and push it. Then fast-forward the default branch to that same merge commit, so the tag is reachable from both `main` and the default branch. Do not create a separate GitHub Release unless requested.
+Verify `gh` authentication and `origin`. Resolve GitHub's default branch, distinct from `main`, and fetch both branches and release tags. Invocation from a feature branch is supported: reuse a clean default-branch worktree or create an isolated worktree at its remote head. Preserve the caller's branch and unrelated work; fast-forward a reused checkout when needed.
 
-The release is complete when the PR is merged, the tag points at its merge commit, and both `main` and the default branch contain that tagged commit.
+Release only feature work already landed on the remote default branch. Confirm that its workflow will tag and deploy after promotion. Preserve divergent branch history without rebasing or force-pushing.
 
-## Pull request
+Proceed when the workspace contains the remote source revision and, if resuming, only the pending release bump. Report unresolved prerequisites.
 
-Use the title `chore(release): promote default branch to main (vX.Y.Z)`. Generate the body from the actual `main..default-branch` changes. Keep it concise, fill every section, and write `None` where a section does not apply:
+## 2. Scope
 
-```markdown
-## Release X.Y.Z
+Find an existing default-branch → `main` PR to reuse. Record base and source SHAs. Read the `main..default-branch` commits, associated PRs, and actual diff; deduplicate merged work. Distinguish PR changes from branch-tip differences when histories diverge. Inspect every changed migration and configuration contract. Check deployment results before claiming what is already in production; tags and previous PR descriptions are not deployment evidence.
 
-### Summary
-What this release accomplishes in plain language.
+Proceed when every material change is accounted for. If only history or a version-preparation commit differs, report no new release and leave any existing PR unchanged.
 
-### Included changes
-Grouped by feature, fix, infrastructure, and documentation.
+## 3. Release notes
 
-### User-visible changes
-What behaves differently for users or operators.
+Draft the whole release's notes before bumping. Lead with what users or operators gain, followed by:
 
-### Breaking changes
-Explicitly state none, or describe each one.
+- **Changes:** concrete behavior and included PR links. Distinguish available interfaces from backend capabilities awaiting an interface. Describe outcomes rather than copying commit subjects or promotion mechanics.
+- **Deployment notes, when applicable:** migrations, changed settings, breaking behavior, and operator actions verified against source. Treat database recovery separately from reverting application code.
+- **Validation:** checks actually run, results, revision-specific CI links, and gaps. Separate source checks from release-PR checks, and tests added from tests passed. Describe checks as required only when repository rules enforce them.
 
-### Data and deployment changes
-Migrations, environment changes, manual steps, and rollout order.
+Omit empty sections. Proceed when the notes cover the reviewed scope, every claim has evidence, and the reader can understand what ships without opening individual commits.
 
-### Validation
-Relevant checks, test suites, CI status, and known limitations.
+## 4. Version
 
-### Risks and rollback
-Anything worth watching after promotion.
+Use the root manifest's declared package manager with tagging disabled; for Bun, `bun pm version patch|minor|major --no-git-tag-version`. Initialize a missing version at `0.0.0`; leave workspace versions unchanged.
 
-### Included work
-Links to included PRs and the `main..default-branch` commit range.
-```
+Reuse a pending bump established by the manifest diff and release history, rather than bumping again on retry. Both new and reused versions must be stable SemVer, newer than `main`, and have an unused tag. Format and validate the manifest with repository tooling, then commit the root version change as `release: vX.Y.Z`.
+
+Proceed when the version is valid and the preparation commit changes only the intended root version.
+
+## 5. PR
+
+Recheck remote heads before pushing; reconcile changed scope or a rejected push before continuing. Push the release commit to the default branch and create or update its PR to `main`:
+
+- Title: `Release vX.Y.Z — <main changes>`, using a concrete description of this release.
+- Body: the reviewed release notes and a comparison link pinned to the base and final source SHAs. Supply it explicitly instead of accepting generated commit text.
+
+Read back the PR's title, body, version, head, and base. Reconcile again if its scope advanced. Because the default branch stays live, rerun `$release` to refresh notes if further changes land before merging.
+
+Finish when the open PR contains the verified bump and matching release notes. Return its URL, version, and known release concerns. CI can continue asynchronously; preparation is not a claim of successful deployment.
+
+## Boundary
+
+Stop at the open PR. Do not enable auto-merge, merge, create or move tags, publish a GitHub Release, manually trigger deployments, synchronize branches after merge, or change release automation or repository rules. The authorized source-branch push may start normal CI and preproduction deployment.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "To T3 Thread"
+  short_description: "Open tasks in native T3 worktree threads"
+  default_prompt: "Use $to-thread to open this task in a new T3 worktree thread with the requested Claude or Codex profile."

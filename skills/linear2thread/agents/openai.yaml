@@ -1,4 +1,4 @@
 interface:
   display_name: "Linear to T3 Thread"
-  short_description: "Shared RPC dispatch into native T3 worktrees"
+  short_description: "Dispatch unblocked Linear issues into T3 threads"
   default_prompt: "Use $linear2thread to open selected Linear issues in native T3 worktree threads with the requested Claude or Codex profile."

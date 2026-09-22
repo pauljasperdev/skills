@@ -15,7 +15,7 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill '*' -y
 Install one:
 
 ```bash
-npx skills add pauljasperdev/skills -g --agent claude-code --skill linear2thread linear2claude
+npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread linear2thread linear2claude
 ```
 
 `review` reviews the current branch against the origin state of the default branch on two axes — repo standards and the owning Linear issue plus its milestone — using parallel sub-agents.
@@ -24,7 +24,9 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill linear2thread
 
 `review2claude` opens a new Fable 5.1 T3 thread on the current worktree and branch that runs `/review`, so the review happens in its own session without touching the implementing thread.
 
-`linear2thread` owns the shared Linear selection, blocker gating, and T3 RPC dispatch workflow. `linear2claude` selects Fable 5.1/high; `linear2codex` selects GPT-6 Astra/high. Both create native T3 threads and branch-backed worktrees through the same authenticated WebSocket bootstrap adapter. Install the base alongside either entry skill. T3 runs its configured worktree setup; Codex App task tools and Codex environment TOMLs are not required.
+`to-thread` opens a native T3 thread and branch-backed worktree for any title and first prompt, without an issue tracker. It owns authenticated RPC creation, model profiles, automatic setup, and verification. For example: `$to-thread use Codex to investigate CSV export in a new thread`.
+
+`linear2thread` wraps `to-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select its model profile. Install `to-thread` alongside the Linear skills; the Linear adapter delegates creation to it.
 
 `examine-work` investigates proposed work from any prompt or supplied brief, with no issue tracker required. It keeps the project read-only and produces an evidence-backed technical foundation followed by a plain-language human review. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 

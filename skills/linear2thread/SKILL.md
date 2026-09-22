@@ -1,40 +1,17 @@
 ---
 name: linear2thread
-description: Dispatch Linear issues into native T3 worktree threads through the shared RPC adapter. Used by linear2claude and linear2codex, or directly when the user requests T3 issue dispatch with a Claude or Codex profile. Supports read-only previews.
+description: Open or preview Linear issues in T3 worktree threads. Wraps to-thread with workspace verification, issue selection, blocker gating, examination prompts, and Linear status updates.
 ---
 
 # Linear to T3 thread
 
-Create one native T3 worktree thread per selected unblocked Linear issue. `linear2claude` selects profile `claude`; `linear2codex` selects profile `codex`. They share this entire workflow and adapter. Direct invocation must resolve one of these profiles from the user's request; ask if neither is specified.
+Create one native T3 worktree thread per selected unblocked Linear issue. `linear2claude` selects profile `claude`; `linear2codex` selects `codex`. Direct invocation resolves a profile from the user's request; ask if neither is specified.
 
-## Execution contract: T3 owns creation
+This skill owns the Linear workflow. For dispatch, read sibling [`to-thread`](../to-thread/SKILL.md), which owns T3 creation and verification. Its scripts must be installed alongside this skill. If missing, install both from the same source:
 
-Run this skill's `scripts/t3-worktree.mjs`. The invoking agent may itself run in Claude, Codex, or T3; the target is always a **T3 Code thread**. Codex is a provider inside T3, not the Codex App task manager.
-
-Do not look for Codex App project/task tools, `open_in_codex`, or `.codex/environments/*.toml`. Do not create a branch/worktree with Git, tmux, UI automation, direct database access, or an HTTP dispatch endpoint. Read-only Git inspection by the adapter is expected.
-
-The adapter performs this concrete sequence:
-
-1. Discover the running T3 server and authenticate using its matching official CLI: `npx --yes t3@<serverVersion> auth session issue`. It revokes the temporary session afterward.
-2. Read T3's orchestration shell to resolve the saved project. The invoking checkout is a locator: exact path wins, with Git common-directory identity supporting linked worktrees.
-3. Obtain a WebSocket ticket and connect to `/ws`. Call `server.probe`, `server.getConfig`, and `server.getSettings`; verify the selected provider/model/high option and T3's worktree settings.
-4. Call **`orchestration.dispatchCommand` over WebSocket RPC**, with command type **`thread.turn.start`**. Its single bootstrap contains:
-   - `createThread`: saved T3 project ID, issue title, selected model, base branch, and initially null worktree path.
-   - `prepareWorktree`: canonical saved project path, base branch, issue-derived new branch, and T3's start-from-origin setting.
-   - `runSetupScript: true`.
-   The same command includes the first examination message and selected model.
-5. Verify the resulting concrete thread, registered Git worktree, exact issue branch, provider/model/options, setup launch when configured, and first examination turn.
-
-**Run the adapter; do not reconstruct that RPC sequence yourself.** The creation path does not depend on the host exposing a T3 MCP creation tool. Attempt the adapter before claiming the tools are unavailable. If the current T3 version rejects it, report the concrete adapter error and stop; preserve any created thread for diagnosis.
-
-T3 uses the saved project's currently checked-out branch as its default base and its `newWorktreesStartFromOrigin` setting. The adapter accepts an explicit existing local `baseBranch` override when the user supplies one. T3 runs project scripts marked `runOnWorktreeCreate`; absence of a configured setup script is a valid `not-configured` result. Never run setup again. The child must wait for any automatic setup to succeed before examination.
-
-Profiles are defined once in `scripts/profiles.mjs`:
-
-| Profile | T3 provider | Model | Option |
-| --- | --- | --- | --- |
-| `claude` | `claudeAgent` | `claude-fable-5-1` | `effort: high` |
-| `codex` | `codex` | `gpt-6-astra` | `reasoningEffort: high` |
+```sh
+npx skills add pauljasperdev/skills -g --agent <invoking-agent> --skill to-thread linear2thread -y
+```
 
 ## 1. Resolve Linear context and select issues
 
@@ -64,35 +41,21 @@ Selection is complete when every candidate needed to fill the requested selector
 
 Preview stops here: report eligible issues, blockers, failures, and ordering without creating threads or changing Linear.
 
-## 3. Run the shared adapter
+## 3. Dispatch through to-thread
 
-Resolve **this base skill's installed directory**, not the model wrapper's directory. Resolve `linear2thread/SKILL.md` through installed skill discovery, or the sibling `../linear2thread/SKILL.md` next to the wrapper. Read it before dispatching. If missing, install `linear2thread` with the requested wrapper from the same source using `npx skills add`; do not substitute an older adapter.
-
-Health check once per repository/profile:
-
-```sh
-node <linear2thread-dir>/scripts/t3-worktree.mjs doctor --profile <claude|codex> --cwd <absolute-invoking-checkout>
-```
-
-Confirm `checkout.projectPath`, `worktreeDefaults`, `examineProvider`, and `nativeBootstrapRpc: true`. A missing saved T3 project requires adding the repository in T3. A missing provider/model must be reported, never silently substituted.
-
-For each clear issue, sequentially, recheck blockers immediately before creation, then send trusted JSON on stdin:
+Run `to-thread`'s health check once per repository/profile. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke this skill's Linear adapter with serialized JSON on stdin:
 
 ```text
-node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> --json <<'LINEAR2THREAD_JSON'
-{"cwd":"<absolute-invoking-checkout>","workspace":"<verified-slug>","issue":"<ID>","title":"<issue title>"}
-LINEAR2THREAD_JSON
+node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> --json < <issue-json-file>
 ```
 
-Encode input with a JSON serializer. Never interpolate issue text into shell code. For an adapter-only inspection, append `--dry-run`; this validates provider/RPC access and prepares a payload without dispatching.
+Input: `{"cwd":"<absolute-invoking-checkout>","workspace":"<verified-slug>","issue":"<ID>","title":"<issue title>"}`. Forward an explicit `baseBranch` or `allowDuplicate: true` only when requested. Write the input with a JSON serializer.
 
-- `existing`: skip, with no Linear update. Duplicate detection covers both profiles within the saved project; never open a second model-specific thread merely because the model differs. Set `allowDuplicate: true` only for an explicit fresh/duplicate request.
-- `created`: require `ok: true`, a concrete `thread.id`, non-null `thread.worktreePath`, `worktree.detached: false`, and the selected model/options. The title is `<ID> — <title>`; the branch is `t3code/<issue-id>-<issue-title-slug>`, with a numeric suffix only on collision.
-- Error: stop processing that issue, leave Linear unchanged, and report the code plus whether dispatch may have created a thread. Do not silently retry creation.
+The Linear adapter supplies the title `<ID> — <title>`, issue-derived branch label, cross-profile duplicate key, and `examine-issue` prompt to `to-thread`. The branch remains `t3code/<issue-id>-<issue-title-slug>`, suffixed only on collision. `--dry-run` prepares the payload without dispatching; the Linear preview in step 2 stops before contacting T3.
 
-If authentication, provider availability, or the RPC protocol fails for the whole batch, stop dispatching and mark the remaining issues unattempted. An issue-specific failure does not prevent processing other clear issues.
+Handle `existing`, verified `created`, and errors under `to-thread`'s receipt contract. An issue-specific failure leaves that issue unchanged and allows the next clear issue; an authentication, provider, or protocol failure affecting the batch leaves all remaining issues unattempted.
 
-The receipt verifies **setup launch and examination-turn start**, not setup completion or completed examination. The first prompt enforces successful setup before read-only `examine-issue`. It asks for interfaces, ownership, data flow, and relevant library conventions, leaving incidental implementation choices open.
+The wrapper's first prompt invokes read-only `examine-issue`, asking for interfaces, ownership, data flow, and relevant library conventions while leaving incidental implementation choices open.
 
 ## 4. Update Linear and report
 
@@ -100,4 +63,4 @@ Only after verified `created`, list the issue team's workflow states in the same
 
 Never change Linear for preview, blocked, existing, failed, or unverified results. On a status-update failure retain the thread and report the mismatch.
 
-Report the selector, workspace, profile/model, and counts, then one row per selected issue: ID, title, T3 thread ID/worktree, setup status, verified Linear transition, and result. Account for every selected issue, including blocked, failed, and unattempted results; include named blockers and concrete failures. Do not claim setup or examination completed from a launch receipt.
+Report the selector, workspace, profile/model, and counts, then one row per selected issue: ID, title, T3 thread ID/worktree, setup status, verified Linear transition, and result. Account for every selected issue, including blocked, failed, and unattempted results; include named blockers and concrete failures.

@@ -1,7 +1,7 @@
 interface:
   display_name: "Release"
-  short_description: "Bump and release to main"
-  default_prompt: "Use $release to bump the patch version and release the default branch to main with a concise change summary."
+  short_description: "Prepare a versioned release PR with release notes"
+  default_prompt: "Use $release to prepare the patch version bump and a release PR to main explaining the actual changes, deployment requirements, and validation."
 
 policy:
   allow_implicit_invocation: false
