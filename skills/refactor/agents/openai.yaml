@@ -1,4 +1,4 @@
 interface:
   display_name: "Refactor"
-  short_description: "Simplify existing code with tested behavior preservation"
-  default_prompt: "Use $refactor to simplify the scoped code, establish regression tests before restructuring, and verify that observable behavior stays unchanged."
+  short_description: "Simplify code while preserving behavior"
+  default_prompt: "Use $refactor to simplify the code we’re discussing while preserving its behavior."

@@ -4,7 +4,7 @@ Personal agent skills.
 
 `implement` builds an authorized feature, fix, or handoff with minimal, maintainable code and verified behavior. It uses the installed `codebase-design` skill for design decisions and `effect` for Effect v4 work; it does not introduce Effect into other projects. `improve` is a separate refinement pass after implementation.
 
-`refactor` restructures scoped existing code with a tested behavioral baseline and small, verified changes. It preserves observable behavior and works in the current worktree without branch creation, commits, or pushes.
+`refactor` simplifies the code under discussion while preserving observable behavior through small, verified changes.
 
 Install all:
 
@@ -27,6 +27,8 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread lin
 `to-thread` opens a native T3 thread and branch-backed worktree for any title and first prompt, without an issue tracker. It owns authenticated RPC creation, model profiles, automatic setup, and verification. For example: `$to-thread use Codex to investigate CSV export in a new thread`.
 
 `linear2thread` wraps `to-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select its model profile. Install `to-thread` alongside the Linear skills; the Linear adapter delegates creation to it.
+
+`linear-comments` compares implementation decisions with related Linear issues, reads milestone siblings and dependencies, and comments only when an update will help ongoing work.
 
 `examine-work` investigates proposed work from any prompt or supplied brief, with no issue tracker required. It keeps the project read-only and produces an evidence-backed technical foundation followed by a plain-language human review. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 

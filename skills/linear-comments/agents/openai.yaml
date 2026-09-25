@@ -1,0 +1,4 @@
+interface:
+  display_name: "Linear Comments"
+  short_description: "Share implementation decisions with related issues"
+  default_prompt: "Use $linear-comments to check whether implementation decisions should be shared on related Linear issues."
