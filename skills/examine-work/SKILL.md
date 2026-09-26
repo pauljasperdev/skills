@@ -17,7 +17,14 @@ Resolve the project from the prompt or current workspace. If it is unclear, ask 
 
 ## Investigation
 
-Trace the affected behavior, ownership, callers, interfaces, and relevant tests. Use codebase-design and specialist skills when available and relevant. Check repository and installed-version guidance for libraries that shape the proposed solution; report unavailable evidence rather than guessing.
+Trace the affected behavior, ownership, callers, interfaces, and relevant tests. Load these skills only when their branch applies, using them as read-only design guidance:
+- Use $codebase-design for module interfaces, ownership, and seams.
+- If the affected path uses Effect, read $effect and the references for its relevant APIs.
+- If React or Next.js is in scope, read $vercel-react-best-practices.
+- If the work changes UI or visual design, read $frontend-design.
+- If the work changes skills or agent instructions, read $writing-for-agents.
+
+Check repository and installed-version guidance for libraries that shape the solution; report unavailable evidence rather than guessing.
 
 Use fresh read-only scouts when delegation is available. Otherwise make the same two passes locally and say so:
 - **Change surface:** identify the smallest coherent set of affected paths, symbols, interfaces, and owners.
@@ -25,44 +32,51 @@ Use fresh read-only scouts when delegation is available. Otherwise make the same
 
 Verify code claims from source. Do not run tests or setup. Resolve conflicting findings with targeted reads. If scouting or evidence is incomplete, say what remains unknown and how it affects readiness.
 
-Recommend one coherent solution grounded in the evidence. Separate required behavior and existing contracts from design recommendations and flexible implementation details. Explain consequential tradeoffs briefly; leave only material product or scope decisions for the user. Preserve implementation freedom for routine choices.
+Recommend one evidence-backed design and explain how to implement it. Give a short, ordered outline tied to actual modules, files, interfaces, or schemas. State responsibilities and important data/state flow or failure handling; flag unknown paths instead of inventing them. Separate requirements from design choices, explain only material tradeoffs, and leave routine coding details to the implementation agent.
 
 ## Report
 
-Use **Technical foundation** first and **Human review** second. Keep both concise and scannable: use short bullets, avoid repeating details, omit empty sections, and scale detail to the work. A wrapper may supply the title and metadata; preserve them.
+Keep the report short and scannable. Use **Technical foundation** first and **Human review** second. Prefer concrete bullets to narrative; do not repeat the same summary in both sections. Aim for about 500 words total, adding detail only for distinct requirements, implementation decisions, or verification cases. Preserve any title and metadata supplied by a wrapper.
 
 Use this structure:
 
 ```text
 # <work title> examination
 
-Work: <requested outcome and source context>
+<source-specific issue or work metadata>
 Repository: <resolved path or unavailable>
 
 ## Technical foundation
 
-- **Problem:** <what is missing or broken; evidence and affected paths>
-- **Solution:** <recommended behavior and why it solves the problem>
-- **Approach:** <main affected paths, owners, and data flow; enough to guide implementation, not a task checklist>
-- **Requirements:** <acceptance criteria, constraints, non-goals, and their source>
-- **Design choices:** <only consequential choices, rationale, and tradeoff>
-- **Assumptions or gaps:** <material uncertainty and its effect, if any>
+**Problem:** <one or two sentences, with evidence>
+
+**Solution:** <recommended behavior and why it addresses the problem>
+
+### Implementation outline
+1. **<module/file/schema>:** <concrete change and responsibility>
+2. **<module/file/schema>:** <data flow, contract, or important failure behavior>
+3. <continue only for distinct implementation decisions>
+
+### Requirements and decisions
+- **Required:** <acceptance behavior and source; include constraints and non-goals that affect the design>
+- **Chosen:** <material design choice and tradeoff>
+- **Open:** <blocking decision or evidence gap, if any>
 
 ### Verification plan
-- <input/action → observable result or invariant, including important failure behavior>
-- <exact command> from <directory> — <what it verifies; note existing coverage or tests still needed>
+| Scenario | Observable result to verify |
+| --- | --- |
+| <input/action, including important failure case> | <expected behavior or invariant> |
+
+- `<exact command>` from `<directory>` — <what it checks; existing coverage or test still needed>
 
 ## Human review
 
-- **Problem:** <plain-language statement of what is wrong or missing and why it matters>
-- **Solution:** <what should change and the expected result>
-- **Scope:** <what stays unchanged and any important example>
-- **Decision needed:** <only a blocking question and recommendation, or “None.”>
+- **In plain language:** <problem and proposed fix in one or two short bullets>
+- **Scope:** <what stays unchanged>
+- **Decision:** <blocking question and recommendation, or “None.”>
 
-Status: **Ready for handoff** or **Incomplete** — <blocking decision or evidence gap, if any>
+Status: **Ready for handoff** or **Incomplete** — <reason>
 No repository or external-system changes were made.
 ```
 
-Make the verification plan behavioral: each scenario must name an action or input and the outcome it protects. Include exact commands only when verified in repository configuration. Distinguish existing coverage from tests the implementation still needs. Validation is proposed, not run during examination.
-
-The human review should be understandable without reading source references. Use everyday language and explain jargon briefly. Readiness describes the brief, not permission to implement.
+Each implementation step must name an evidenced location or owner and say what it changes; do not write a chronological investigation story or generic best-practice list. Each verification row must name an action or input and a result that could fail for a plausible regression. Include commands only when verified from repository configuration. Validation is proposed, not run. Keep the Human review understandable without source references. Readiness is not permission to implement.
