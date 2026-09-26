@@ -28,9 +28,9 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread lin
 
 `linear2thread` wraps `to-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select its model profile. Install `to-thread` alongside the Linear skills; the Linear adapter delegates creation to it.
 
-`linear-comments` compares implementation decisions with related Linear issues, reads milestone siblings and dependencies, and comments only when an update will help ongoing work.
+`linear-comments` compares implementation decisions with related Linear issues, reads milestone siblings and dependencies, and updates comments or blocking relations when needed.
 
-`examine-work` investigates proposed work from any prompt or supplied brief, with no issue tracker required. It keeps the project read-only and produces an evidence-backed technical foundation followed by a plain-language human review. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
+`examine-work` investigates prompts or supplied briefs read-only without requiring a tracker and produces a concise, scannable technical foundation and plain-language review, including acceptance scenarios and a proposed verification plan. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 
 `examine-issue` wraps `examine-work` with Linear workspace verification, issue retrieval, and milestone context. Install both together (`--skill examine-issue examine-work`), including when using the Linear dispatchers. The dispatcher owns workflow-state changes. After either examination in Fable, `handoff2codex` can start implementation on the same T3 worktree.
 
