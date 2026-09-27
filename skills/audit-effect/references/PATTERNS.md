@@ -30,7 +30,12 @@ operation.
 ## Workflows and execution
 
 Search repeated `runPromise`/`runSync` calls, large framework callbacks, nested
-runtimes, and multi-operation `async` functions wrapped in one `tryPromise`.
+runtimes, `tryPromise`, `Effect.try`, and broad `try`/`catch` blocks.
+
+Inspect wrapper callbacks and called helpers for application sequencing, branching,
+retries, or recovery hidden outside Effect. A one-line wrapper around an application
+`async` workflow is the same candidate. Apply `$effect`'s minimal foreign-call
+boundary rule; judge the operations enclosed, not a line-count threshold.
 
 Follow a complete operation. Look for business policy fragmented across Promise
 bridges, hardwired implementations, lost typed errors, or ambiguous resource
