@@ -15,7 +15,7 @@ npx skills add pauljasperdev/skills -g --agent <invoking-agent> --skill to-threa
 
 ## 1. Resolve Linear context and select issues
 
-Invocation authorizes thread creation and moving each newly verified issue to its team's entry `started` state. Preview is read-only. `examine-issue` never changes Linear.
+Invocation authorizes thread creation and moving each newly verified issue to its team's entry `started` state. Preview is read-only. Invoke `examine-issue` with an explicit read-only instruction so this dispatcher owns the Linear transition.
 
 Resolve the Git root and read `workspace` and optional default `team_id` from `.linear.toml` or `.config/linear.toml`. Require a workspace and verify it with `linear auth whoami --workspace <slug>`. Pass this workspace on **every** Linear command. Never infer it from a directory name or issue prefix. Stop on a conflicting Linear URL unless the user explicitly requests that workspace override. Missing credentials require plain `linear auth login` with a key belonging to the intended workspace.
 
