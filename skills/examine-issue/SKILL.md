@@ -55,6 +55,6 @@ Issue: <link> | Workspace: <slug> | State: <current state>
 Milestone: <goal and this issue's role; omit when unassigned>
 ```
 
-Retain `examine-work`'s **Technical foundation first, Human review second** report body. Use the verified resulting state in the header. Replace its generic no-changes closing statement with the actual Linear transition or the reason it was skipped, and confirm that no repository or other external-system changes were made. When running in the Fable workflow, note that `handoff2codex` can transfer this foundation into a separate implementation session once blocking decisions are resolved.
+Use `examine-work`'s report structure and the verified resulting state in the header. In its change disclosure, report the actual Linear transition or why it was skipped, and confirm that no repository or other external-system changes were made. When running in the Fable workflow, note in the handoff status that `handoff2codex` can transfer this foundation into a separate implementation session once blocking decisions are resolved.
 
 Completion criterion: the shared examination report preserves the verified issue context and scope, and states whether the foundation is ready or what decisions or evidence remain missing. Readiness describes the analysis, not permission to implement.
