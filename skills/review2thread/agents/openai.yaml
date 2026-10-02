@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review to Thread"
+  short_description: "Open a review thread with problem and solution context"
+  default_prompt: "Use $review2thread to summarize the original problem and implemented solution, then delegate a review thread to $to-thread with my requested model."
+policy:
+  allow_implicit_invocation: false

@@ -7,7 +7,7 @@ import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
-import { resolveProfile, validateProvider, modelMatches } from "./profiles.mjs";
+import { validateModelSelection, resolveModelSelection, modelMatches } from "./model-selection.mjs";
 
 const execFile = promisify(execFileCallback);
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -386,7 +386,24 @@ async function gitCommonDirectory(cwd) {
   }
 }
 
+async function threadUsesWorktree(thread, cwd) {
+  return typeof thread?.worktreePath === "string" &&
+    await realpath(thread.worktreePath).catch(() => null) === cwd;
+}
+
 async function resolveProject(shell, cwd) {
+  const projectIds = new Set();
+  for (const thread of shell.threads ?? []) {
+    if (await threadUsesWorktree(thread, cwd)) projectIds.add(thread.projectId);
+  }
+  if (projectIds.size > 1) {
+    fail("T3_PROJECT_AMBIGUOUS", "Threads on this worktree disagree about the saved T3 project.", { projectIds: [...projectIds] });
+  }
+  if (projectIds.size === 1) {
+    const project = (shell.projects ?? []).find((candidate) => projectIds.has(candidate.id));
+    if (!project) fail("T3_PROJECT_NOT_FOUND", "The worktree's saved T3 project is unavailable.");
+    return { project, matchedBy: "worktree-thread" };
+  }
   const exactMatches = [];
   for (const project of shell.projects ?? []) {
     if (typeof project?.workspaceRoot !== "string") continue;
@@ -432,14 +449,12 @@ async function resolveProject(shell, cwd) {
   });
 }
 
-function findExistingThread(shell, projectId, spec) {
-  return (shell.threads ?? []).find(
-    (thread) =>
-      thread?.projectId === projectId &&
-      thread?.archivedAt == null &&
-      typeof thread?.title === "string" &&
-      (spec.dedupeKey === undefined ? thread.title === spec.title : thread.title.includes(spec.dedupeKey)),
-  );
+async function findExistingThread(shell, projectId, spec) {
+  for (const thread of shell.threads ?? []) {
+    if (thread?.projectId !== projectId || thread?.archivedAt != null || typeof thread?.title !== "string") continue;
+    const matchesTitle = spec.dedupeKey === undefined ? thread.title === spec.title : thread.title.includes(spec.dedupeKey);
+    if (matchesTitle && (spec.reuseWorktree !== true || await threadUsesWorktree(thread, spec.cwd))) return thread;
+  }
 }
 
 async function runGit(cwd, args, code, message) {
@@ -525,16 +540,18 @@ function validateThreadSpec(spec) {
       fail(code, `${field} must be a non-empty string when supplied.`);
     }
   }
+  if (spec.reuseWorktree !== undefined && typeof spec.reuseWorktree !== "boolean") {
+    fail("REUSE_WORKTREE_INVALID", "reuseWorktree must be a boolean when supplied.");
+  }
   return { ...spec, title: spec.title.trim() };
 }
 
-export function makeBootstrapCommand({ profile, project, baseBranch, worktreeBranch, startFromOrigin, title, prompt: taskPrompt }) {
+export function makeBootstrapCommand({ modelSelection, project, baseBranch, worktreeBranch, startFromOrigin, worktreePath = null, title, prompt: taskPrompt }) {
   const createdAt = new Date().toISOString();
   const threadId = randomUUID();
   const messageId = randomUUID();
   const threadTitle = title;
-  const prompt = `T3 owns this worktree and runs any configured worktree setup automatically. Wait for setup to finish successfully before starting the task; if no setup is configured, proceed. If setup fails, stop and report the failure. Do not run setup again.\n\n${taskPrompt}`;
-  const modelSelection = profile.modelSelection;
+  const prompt = worktreePath !== null ? taskPrompt : `T3 owns this worktree and runs any configured worktree setup automatically. Wait for setup to finish successfully before starting the task; if no setup is configured, proceed. If setup fails, stop and report the failure. Do not run setup again.\n\n${taskPrompt}`;
   const runtimeMode = "full-access";
   const interactionMode = "default";
 
@@ -543,7 +560,8 @@ export function makeBootstrapCommand({ profile, project, baseBranch, worktreeBra
     messageId,
     modelSelection,
     worktreeBranch,
-    expectedWorktreeName: worktreeBranch.replaceAll("/", "-"),
+    worktreePath,
+    expectedWorktreeName: worktreePath === null ? worktreeBranch.replaceAll("/", "-") : path.basename(worktreePath),
     threadTitle,
     prompt,
     command: {
@@ -566,17 +584,17 @@ export function makeBootstrapCommand({ profile, project, baseBranch, worktreeBra
           modelSelection,
           runtimeMode,
           interactionMode,
-          branch: baseBranch,
-          worktreePath: null,
+          branch: worktreePath === null ? baseBranch : worktreeBranch,
+          worktreePath,
           createdAt,
         },
-        prepareWorktree: {
+        ...(worktreePath === null ? { prepareWorktree: {
           projectCwd: project.workspaceRoot,
           baseBranch,
           branch: worktreeBranch,
           ...(startFromOrigin ? { startFromOrigin: true } : {}),
-        },
-        runSetupScript: true,
+        } } : {}),
+        runSetupScript: worktreePath === null,
       },
       createdAt,
     },
@@ -665,7 +683,10 @@ async function verifyCreated(runtime, token, expected, project) {
     const setupStarted = (body?.activities ?? []).some(
       (activity) => activity?.kind === "setup-script.started",
     );
-    const setupExpected = (project.scripts ?? []).some(
+    if (expected.worktreePath !== null && setupStarted) {
+      fail("T3_SETUP_UNEXPECTED", "T3 started setup while reusing an existing worktree.", { threadId: expected.threadId });
+    }
+    const setupExpected = expected.worktreePath === null && (project.scripts ?? []).some(
       (script) => script?.runOnWorktreeCreate === true,
     );
     const registered = await worktreeIsRegistered(project.workspaceRoot, thread.worktreePath);
@@ -688,7 +709,8 @@ async function verifyCreated(runtime, token, expected, project) {
       typeof branch === "string" &&
       branch === thread.branch &&
       branch === expected.worktreeBranch;
-    const worktreeNameMatches = path.basename(thread.worktreePath) === expected.expectedWorktreeName;
+    const worktreeNameMatches = path.basename(thread.worktreePath) === expected.expectedWorktreeName &&
+      (expected.worktreePath === null || await realpath(thread.worktreePath) === expected.worktreePath);
     const selectedModelMatches = modelMatches(thread.modelSelection, expected.modelSelection);
     if (
       messagePresent &&
@@ -706,7 +728,7 @@ async function verifyCreated(runtime, token, expected, project) {
         worktreePath: thread.worktreePath,
         modelSelection: thread.modelSelection,
         turnState,
-        setup: setupExpected ? "started" : "not-configured",
+        setup: expected.worktreePath !== null ? "not-run" : setupExpected ? "started" : "not-configured",
       };
     }
     lastObserved = {
@@ -733,20 +755,36 @@ async function verifyCreated(runtime, token, expected, project) {
   });
 }
 
-function summarizeProject(project, profile) {
+function summarizeProject(project, modelSelection) {
   return {
     id: project.id,
     title: project.title,
     workspaceRoot: project.workspaceRoot,
     configuredDefaultModelSelection: project.defaultModelSelection,
-    modelSelection: profile.modelSelection,
+    modelSelection,
     setupScripts: (project.scripts ?? [])
       .filter((script) => script?.runOnWorktreeCreate === true)
       .map((script) => ({ id: script.id, name: script.name, command: script.command })),
   };
 }
 
-async function doctor(cwd, t3Home, profile) {
+function existingReceipt(project, thread) {
+  return {
+    ok: true,
+    action: "existing",
+    project: summarizeProject(project, thread.modelSelection),
+    thread: {
+      id: thread.id,
+      title: thread.title,
+      branch: thread.branch,
+      worktreePath: thread.worktreePath,
+      archivedAt: thread.archivedAt,
+      modelSelection: thread.modelSelection,
+    },
+  };
+}
+
+async function doctor(cwd, t3Home, requestedModel) {
   const canonicalCwd = await canonicalPath(cwd);
   const runtime = await discoverRuntime(t3Home);
   return await withSession(runtime, async (token) => {
@@ -757,8 +795,15 @@ async function doctor(cwd, t3Home, profile) {
     const rpcState = await withRpc(runtime, token, async (rpc) => {
       const config = await rpc.call("server.getConfig", {});
       const settings = await rpc.call("server.getSettings", {});
-      return { settings, provider: validateProvider(config, profile) };
+      const modelSelection = requestedModel === undefined ? undefined : resolveModelSelection(config, requestedModel);
+      return { settings, modelSelection, providers: (config.providers ?? []).map((provider) => ({
+        instanceId: provider.instanceId,
+        driver: provider.driver,
+        status: provider.status,
+        models: (provider.models ?? []).map((model) => ({ slug: model.slug, capabilities: model.capabilities })),
+      })) };
     });
+    const modelSelection = rpcState.modelSelection;
     return {
       ok: true,
       action: "doctor",
@@ -772,74 +817,51 @@ async function doctor(cwd, t3Home, profile) {
         projectPath: projectCwd,
         matchedBy,
       },
-      project: summarizeProject(project, profile),
+      project: summarizeProject(project, modelSelection),
       worktreeDefaults: {
         baseBranch,
         startFromOrigin: rpcState.settings?.newWorktreesStartFromOrigin === true,
         branchPattern: "t3code/<branch-label-or-title-slug>",
       },
-      provider: rpcState.provider,
+      providers: rpcState.providers,
       nativeBootstrapRpc: true,
     };
   });
 }
 
-export async function openThread(input, t3Home, dryRun, profile) {
+export async function openThread(input, t3Home, dryRun, requestedModel) {
   const spec = validateThreadSpec(input);
+  let modelSelection = validateModelSelection(requestedModel ?? spec.modelSelection);
   const { title, prompt } = spec;
   const cwd = await canonicalPath(spec.cwd ?? process.cwd());
+  spec.cwd = cwd;
   const runtime = await discoverRuntime(t3Home);
 
   return await withSession(runtime, async (token) => {
     let shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
     const { project } = await resolveProject(shell, cwd);
     const projectCwd = await canonicalPath(project.workspaceRoot);
-    const existing = findExistingThread(shell, project.id, spec);
-    if (existing && spec.allowDuplicate !== true) {
-      return {
-        ok: true,
-        action: "existing",
-        project: summarizeProject(project, profile),
-        thread: {
-          id: existing.id,
-          title: existing.title,
-          branch: existing.branch,
-          worktreePath: existing.worktreePath,
-          archivedAt: existing.archivedAt,
-        },
-      };
-    }
+    const existing = await findExistingThread(shell, project.id, spec);
+    if (existing && spec.allowDuplicate !== true) return existingReceipt(project, existing);
 
-    const baseBranch = await resolveBaseBranch(projectCwd, spec.baseBranch);
+    const baseBranch = await resolveBaseBranch(spec.reuseWorktree === true ? cwd : projectCwd, spec.reuseWorktree === true ? undefined : spec.baseBranch);
     return await withRpc(runtime, token, async (rpc) => {
-      validateProvider(await rpc.call("server.getConfig", {}), profile);
+      modelSelection = resolveModelSelection(await rpc.call("server.getConfig", {}), modelSelection);
       const settings = await rpc.call("server.getSettings", {});
-      const startFromOrigin = settings?.newWorktreesStartFromOrigin === true;
+      const startFromOrigin = spec.reuseWorktree !== true && settings?.newWorktreesStartFromOrigin === true;
 
       shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
-      const racedExisting = findExistingThread(shell, project.id, spec);
-      if (racedExisting && spec.allowDuplicate !== true) {
-        return {
-          ok: true,
-          action: "existing",
-          project: summarizeProject(project, profile),
-          thread: {
-            id: racedExisting.id,
-            title: racedExisting.title,
-            branch: racedExisting.branch,
-            worktreePath: racedExisting.worktreePath,
-            archivedAt: racedExisting.archivedAt,
-          },
-        };
-      }
+      const racedExisting = await findExistingThread(shell, project.id, spec);
+      if (racedExisting && spec.allowDuplicate !== true) return existingReceipt(project, racedExisting);
 
-      const worktreeBranch = await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title);
+      const worktreeBranch = spec.reuseWorktree === true ? baseBranch : await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title);
       const prepared = makeBootstrapCommand({
-        profile,
+        modelSelection,
         project,
         baseBranch,
         worktreeBranch,
         startFromOrigin,
+        worktreePath: spec.reuseWorktree === true ? cwd : null,
         title,
         prompt,
       });
@@ -849,17 +871,18 @@ export async function openThread(input, t3Home, dryRun, profile) {
           ok: true,
           action: "dry-run",
           runtime: { origin: runtime.origin, serverVersion: runtime.serverVersion },
-          project: summarizeProject(project, profile),
+          project: summarizeProject(project, modelSelection),
           worktree: {
             baseBranch,
             branch: prepared.worktreeBranch,
             name: prepared.expectedWorktreeName,
             startFromOrigin,
+            ...(spec.reuseWorktree === true ? { path: cwd, reused: true } : {}),
           },
           thread: {
             id: prepared.threadId,
             title: prepared.threadTitle,
-            modelSelection: profile.modelSelection,
+            modelSelection,
             runtimeMode: prepared.command.runtimeMode,
             interactionMode: prepared.command.interactionMode,
             prompt: prepared.prompt,
@@ -876,7 +899,7 @@ export async function openThread(input, t3Home, dryRun, profile) {
       return {
         ok: true,
         action: "created",
-        project: summarizeProject(project, profile),
+        project: summarizeProject(project, modelSelection),
         dispatch,
         thread: verified,
         worktree: {
@@ -885,6 +908,7 @@ export async function openThread(input, t3Home, dryRun, profile) {
           name: path.basename(verified.worktreePath),
           startFromOrigin,
           detached: false,
+          ...(spec.reuseWorktree === true ? { reused: true } : {}),
         },
       };
     });
@@ -900,10 +924,16 @@ function parseArgs(argv) {
       options[argument.slice(2)] = true;
       continue;
     }
-    if (argument === "--cwd" || argument === "--t3-home" || argument === "--profile") {
+    if (["--cwd", "--t3-home", "--provider", "--model", "--option"].includes(argument)) {
       const value = rest[index + 1];
       if (value === undefined) fail("ARGUMENT_INVALID", `${argument} requires a value.`);
-      options[argument.slice(2)] = value;
+      if (argument === "--option") {
+        const separator = value.indexOf("=");
+        if (separator < 1 || separator === value.length - 1) fail("ARGUMENT_INVALID", "--option requires id=value.");
+        (options.modelOptions ??= []).push({ id: value.slice(0, separator), value: value.slice(separator + 1) });
+      } else {
+        options[argument.slice(2)] = value;
+      }
       index += 1;
       continue;
     }
@@ -924,19 +954,20 @@ async function readStdinJson() {
 }
 
 function printHelp(inputExample) {
-  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH]\n  node t3-worktree.mjs open --profile claude|codex --json [--dry-run]\n\nopen JSON: ${inputExample}\n`);
+  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor [--cwd PATH] [--model MODEL] [--provider INSTANCE_ID]\n  node t3-worktree.mjs open --model MODEL [--provider INSTANCE_ID] [--option ID=VALUE] --json [--dry-run]\n\nopen JSON: ${inputExample}\n`);
 }
 
-async function main(open, inputExample) {
-  const { command, options } = parseArgs(process.argv.slice(2));
+async function main(open, inputExample, argv) {
+  const { command, options } = parseArgs(argv);
   const t3Home = path.resolve(options["t3-home"] ?? process.env.T3CODE_HOME ?? path.join(homedir(), ".t3"));
+  const requestedModel = options.model === undefined && options.provider === undefined && options.modelOptions === undefined
+    ? undefined : validateModelSelection({ model: options.model, instanceId: options.provider, options: options.modelOptions });
   if (command === "doctor") {
-    return await doctor(options.cwd ?? process.cwd(), t3Home, resolveProfile(options.profile));
+    return await doctor(options.cwd ?? process.cwd(), t3Home, requestedModel);
   }
   if (command === "open") {
     if (options.json !== true) fail("ARGUMENT_INVALID", "open requires --json.");
-    const profile = resolveProfile(options.profile);
-    return await open(await readStdinJson(), t3Home, options["dry-run"] === true, profile);
+    return await open(await readStdinJson(), t3Home, options["dry-run"] === true, requestedModel);
   }
   if (command === "help" || command === "--help" || command === undefined) {
     printHelp(inputExample);
@@ -945,9 +976,9 @@ async function main(open, inputExample) {
   fail("ARGUMENT_INVALID", `Unknown command: ${command}`);
 }
 
-export async function runCli(open = openThread, inputExample = '{"cwd":"/repo","title":"Task title","prompt":"First task"}') {
+export async function runCli(open = openThread, inputExample = '{"cwd":"/repo","title":"Task title","prompt":"First task"}', argv = process.argv.slice(2)) {
   try {
-    const result = await main(open, inputExample);
+    const result = await main(open, inputExample, argv);
     if (result !== null) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } catch (error) {
     const normalized =

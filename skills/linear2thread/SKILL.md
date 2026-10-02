@@ -43,7 +43,7 @@ Preview stops here: report eligible issues, blockers, failures, and ordering wit
 
 ## 3. Dispatch through to-thread
 
-Run `to-thread`'s health check once per repository/profile. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke this skill's Linear adapter with serialized JSON on stdin:
+Read [`scripts/profiles.mjs`](scripts/profiles.mjs) for this wrapper's target model and options. Run this skill's adapter with `doctor --profile <claude|codex> --cwd <absolute-invoking-checkout>` once per repository/profile; it passes the explicit selection to `to-thread`'s health check. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke this skill's Linear adapter with serialized JSON on stdin:
 
 ```text
 node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> --json < <issue-json-file>

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { prepareIssueSpec } from "./t3-worktree.mjs";
 import { makeBootstrapCommand } from "../../to-thread/scripts/t3-worktree.mjs";
-import { resolveProfile } from "../../to-thread/scripts/profiles.mjs";
+import { resolveProfile } from "./profiles.mjs";
 
 for (const name of ["claude", "codex"]) {
   test(name + " preserves Linear naming and examination when using the generic bootstrap", () => {
@@ -14,7 +14,7 @@ for (const name of ["claude", "codex"]) {
     assert.equal(spec.dedupeKey, "SID-12");
     assert.equal(spec.baseBranch, "pre");
     assert.equal(spec.allowDuplicate, true);
-    const prepared = makeBootstrapCommand({ ...spec, profile,
+    const prepared = makeBootstrapCommand({ ...spec, modelSelection: profile.modelSelection,
       project: { id: "project-1", workspaceRoot: "/repo" }, baseBranch: "pre",
       worktreeBranch: "t3code/sid-12-sample", startFromOrigin: true });
     assert.equal(prepared.command.bootstrap.createThread.title, "SID-12 — Sample");

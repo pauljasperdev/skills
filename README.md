@@ -22,11 +22,11 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread lin
 
 `audit-effect` is manually invoked to audit Effect usage across the current codebase and produce pattern-level findings with standalone refactoring prompts. It uses the installed `effect` and `codebase-design` skills for practices and architecture judgment; the audit leaves code unchanged.
 
-`review2claude` opens a new Fable 5.1 T3 thread on the current worktree and branch that runs `/review`, so the review happens in its own session without touching the implementing thread.
+`review2thread` summarizes the original problem and implemented solution, then delegates to `to-thread` to launch a review on the current branch and worktree. Pass any configured model and optional provider; when no model is supplied, the agent asks.
 
-`to-thread` opens a native T3 thread and branch-backed worktree for any title and first prompt, without an issue tracker. It owns authenticated RPC creation, model profiles, automatic setup, and verification. For example: `$to-thread use Codex to investigate CSV export in a new thread`.
+`to-thread` opens a native T3 thread and branch-backed worktree for any title and first prompt, without an issue tracker. It owns authenticated RPC creation, automatic setup, and verification. Supply a model and optional provider/options; it asks when no model is supplied and has no fixed selection. Set `reuseWorktree: true` when a wrapper needs a separate thread on the current worktree. For example: `$to-thread use model <model> to investigate CSV export in a new thread`.
 
-`linear2thread` wraps `to-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select its model profile. Install `to-thread` alongside the Linear skills; the Linear adapter delegates creation to it.
+`linear2thread` wraps `to-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select profiles owned by `linear2thread`, which passes the explicit provider, model, and options to `to-thread`. Install `to-thread` alongside the Linear skills; the Linear adapter delegates creation to it.
 
 `linear-comments` compares implementation decisions with related Linear issues, reads milestone siblings and dependencies, and updates comments or blocking relations when needed.
 

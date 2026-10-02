@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { resolveProfile, validateProvider, modelMatches } from "./profiles.mjs";
-import { makeBootstrapCommand } from "./t3-worktree.mjs";
+import { resolveProfile } from "./profiles.mjs";
+import { resolveModelSelection, modelMatches } from "../../to-thread/scripts/model-selection.mjs";
+import { makeBootstrapCommand } from "../../to-thread/scripts/t3-worktree.mjs";
 
 const configFor = (selection) => ({
   providers: [{
@@ -30,14 +31,14 @@ for (const [name, instanceId, model, optionId] of [
     const expected = { instanceId, model, options: [{ id: optionId, value: "high" }] };
     assert.deepEqual(profile.modelSelection, expected);
     const config = configFor(expected);
-    assert.equal(validateProvider(config, profile).model, model);
-    assert.throws(() => validateProvider({ providers: [] }, profile),
+    assert.equal(resolveModelSelection(config, profile.modelSelection).model, model);
+    assert.throws(() => resolveModelSelection({ providers: [] }, profile.modelSelection),
       { code: "T3_PROVIDER_UNAVAILABLE" });
     config.providers[0].models[0].capabilities.optionDescriptors[0].options = [{ id: "medium" }];
-    assert.throws(() => validateProvider(config, profile),
+    assert.throws(() => resolveModelSelection(config, profile.modelSelection),
       { code: "T3_OPTIONS_UNAVAILABLE" });
     config.providers[0].models[0].slug = "other";
-    assert.throws(() => validateProvider(config, profile),
+    assert.throws(() => resolveModelSelection(config, profile.modelSelection),
       { code: "T3_MODEL_UNAVAILABLE" });
     assert.equal(modelMatches(expected, profile.modelSelection), true);
     assert.equal(modelMatches({ ...expected, options: [] }, profile.modelSelection), false);
@@ -48,7 +49,7 @@ for (const [name, instanceId, model, optionId] of [
   test(name + " bootstraps a T3 worktree and first turn with one model selection", () => {
     const profile = resolveProfile(name);
     const prepared = makeBootstrapCommand({
-      profile, project: { id: "project-1", workspaceRoot: "/repo" },
+      modelSelection: profile.modelSelection, project: { id: "project-1", workspaceRoot: "/repo" },
       baseBranch: "pre", worktreeBranch: "t3code/sid-12-sample",
       startFromOrigin: true, title: "SID-12 — Sample", prompt: "Examine this task.",
     });

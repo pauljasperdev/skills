@@ -2,6 +2,7 @@
 
 import { realpath } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { resolveProfile } from "./profiles.mjs";
 import { openThread, runCli } from "../../to-thread/scripts/t3-worktree.mjs";
 
 function fail(code, message) {
@@ -55,11 +56,29 @@ export function prepareIssueSpec(spec, profile) {
   };
 }
 
-async function openIssue(spec, t3Home, dryRun, profile) {
-  const result = await openThread(prepareIssueSpec(spec, profile), t3Home, dryRun, profile);
-  return { ...result, issue: spec.issue, workspace: spec.workspace };
-}
-
 if (process.argv[1] && import.meta.url === pathToFileURL(await realpath(process.argv[1])).href) {
-  await runCli(openIssue, '{"cwd":"/repo","workspace":"gemhog","issue":"GEM-61","title":"Issue title"}');
+  const argv = process.argv.slice(2);
+  const example = '{"cwd":"/repo","workspace":"gemhog","issue":"GEM-61","title":"Issue title"}';
+  try {
+    if (argv[0] === "help" || argv[0] === "--help" || argv.length === 0) {
+      process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH]\n  node t3-worktree.mjs open --profile claude|codex --json [--dry-run]\n\nopen JSON: ${example}\n`);
+    } else {
+      const profileIndex = argv.indexOf("--profile");
+      const profile = resolveProfile(profileIndex === -1 ? undefined : argv[profileIndex + 1]);
+      argv.splice(profileIndex, 2);
+      if (argv.some((argument) => ["--provider", "--model", "--option"].includes(argument))) {
+        fail("ARGUMENT_INVALID", "The Linear wrapper uses --profile; pass arbitrary model selections directly to to-thread.");
+      }
+      const { modelSelection } = profile;
+      argv.push("--provider", modelSelection.instanceId, "--model", modelSelection.model);
+      for (const { id, value } of modelSelection.options) argv.push("--option", `${id}=${value}`);
+      await runCli(async (spec, t3Home, dryRun, selection) => {
+        const result = await openThread(prepareIssueSpec(spec, profile), t3Home, dryRun, selection);
+        return { ...result, issue: spec.issue, workspace: spec.workspace };
+      }, example, argv);
+    }
+  } catch (error) {
+    process.stderr.write(JSON.stringify({ ok: false, error: { code: error.code, message: error.message } }) + "\n");
+    process.exitCode = 1;
+  }
 }
