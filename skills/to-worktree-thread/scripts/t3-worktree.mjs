@@ -6,6 +6,7 @@ import { openWorktreeThread, runCli } from "../../to-thread/scripts/t3-worktree.
 
 export { openWorktreeThread };
 
-if (process.argv[1] && import.meta.url === pathToFileURL(await realpath(process.argv[1])).href) {
+const entryPath = process.argv[1] ? await realpath(process.argv[1]).catch(() => null) : null;
+if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
   await runCli(openWorktreeThread);
 }

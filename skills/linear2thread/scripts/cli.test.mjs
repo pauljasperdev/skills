@@ -56,7 +56,7 @@ for (const skill of ["to-thread", "to-worktree-thread"]) {
   });
 }
 
-test("Linear doctor and open enforce the same profile selection", () => {
+test("Linear doctor and open accept explicit selections over profile defaults", () => {
   const script = new URL("./t3-worktree.mjs", import.meta.url).pathname;
   const input = JSON.stringify({ cwd: "/does-not-exist", workspace: "sideberry", issue: "SID-12", title: "Task" });
   for (const command of ["doctor", "open"]) {
@@ -64,9 +64,10 @@ test("Linear doctor and open enforce the same profile selection", () => {
     for (const [selectionFlags, expected] of [
       [[], "PROFILE_INVALID"],
       [["--profile", "codex"], "WORKSPACE_NOT_FOUND"],
-      [["--profile", "codex", "--model", "override"], "ARGUMENT_INVALID"],
-      [["--profile", "codex", "--provider", "override"], "ARGUMENT_INVALID"],
-      [["--profile", "codex", "--option", "reasoningEffort=low"], "ARGUMENT_INVALID"],
+      [["--profile", "codex", "--model", "override"], "WORKSPACE_NOT_FOUND"],
+      [["--profile", "codex", "--provider", "override", "--model", "override"], "WORKSPACE_NOT_FOUND"],
+      [["--profile", "codex", "--option", "reasoningEffort=low"], "WORKSPACE_NOT_FOUND"],
+      [["--profile", "codex", "--model", "gpt-6.1-sol", "--option", "reasoningEffort=high"], "WORKSPACE_NOT_FOUND"],
     ]) {
       const result = spawnSync(process.execPath, [script, command, ...selectionFlags, ...taskFlags], { input, encoding: "utf8" });
       assert.equal(result.status, 1);
@@ -74,3 +75,20 @@ test("Linear doctor and open enforce the same profile selection", () => {
     }
   }
 });
+
+for (const [skill, exported] of [
+  ["to-thread", "openThread"],
+  ["to-worktree-thread", "openWorktreeThread"],
+  ["linear2thread", "prepareIssueSpec"],
+]) {
+  test(skill + " can be imported from a Node stdin module without running its CLI", () => {
+    const moduleUrl = new URL(`../../${skill}/scripts/t3-worktree.mjs`, import.meta.url).href;
+    const result = spawnSync(process.execPath, ["--input-type=module", "-"], {
+      input: `const adapter = await import(${JSON.stringify(moduleUrl)}); console.log(typeof adapter[${JSON.stringify(exported)}]);`,
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "function\n");
+  });
+}

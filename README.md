@@ -28,7 +28,7 @@ npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread to-
 
 `to-worktree-thread` opens a new native T3 thread with a new branch-backed worktree and automatic setup. It uses the shared T3 adapter from `to-thread`. Both accept a supplied model and optional provider/options, and ask when no model is supplied.
 
-`linear2thread` uses `to-worktree-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select profiles owned by `linear2thread`, which passes the explicit provider, model, and options to the worktree dispatcher. Install both dispatch skills alongside the Linear skills.
+`linear2thread` uses `to-worktree-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select default profiles owned by `linear2thread`; an explicit user model, provider, or option overrides those defaults through the Linear adapter CLI. Install both dispatch skills alongside the Linear skills.
 
 `linear-comments` compares implementation decisions with related Linear issues, reads milestone siblings and dependencies, and updates comments or blocking relations when needed.
 

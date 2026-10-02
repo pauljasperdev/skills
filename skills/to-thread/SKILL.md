@@ -27,7 +27,7 @@ The health check lists configured `providers` and their models. Confirm `checkou
 
 The invoking checkout locates its saved T3 project through existing threads on that worktree, then exact path or Git common-directory identity. A missing project requires adding the repository in T3; report unavailable providers/models without substitution.
 
-**T3 owns creation.** Run the adapter before concluding creation tools are unavailable. It uses the matching official CLI to issue and revoke a temporary session, then authenticated WebSocket RPC `orchestration.dispatchCommand` with one `thread.turn.start` bootstrap. For this skill, `createThread` keeps the current branch/path and `runSetupScript` is `false`. Do not substitute manual Git creation, direct database writes, another app's task tools, or a reconstructed RPC sequence.
+**T3 owns creation.** Run the adapter before concluding creation tools are unavailable. The documented Node CLI performs the RPC itself; it needs no separate RPC tool in the agent's tool list. It uses the matching official CLI to issue and revoke a temporary session, then authenticated WebSocket RPC `orchestration.dispatchCommand` with one `thread.turn.start` bootstrap. For this skill, `createThread` keeps the current branch/path and `runSetupScript` is `false`. Do not substitute manual Git creation, direct database writes, another app's task tools, or a reconstructed RPC sequence.
 
 ## 3. Open the thread
 

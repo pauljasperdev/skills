@@ -57,26 +57,29 @@ export function prepareIssueSpec(spec, profile) {
   };
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(await realpath(process.argv[1])).href) {
+const entryPath = process.argv[1] ? await realpath(process.argv[1]).catch(() => null) : null;
+if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
   const argv = process.argv.slice(2);
   const example = '{"cwd":"/repo","workspace":"gemhog","issue":"GEM-61","title":"Issue title"}';
   try {
     if (argv[0] === "help" || argv[0] === "--help" || argv.length === 0) {
-      process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH]\n  node t3-worktree.mjs open --profile claude|codex --json [--dry-run]\n\nopen JSON: ${example}\n`);
+      process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH] [--model MODEL] [--provider INSTANCE_ID] [--option ID=VALUE]\n  node t3-worktree.mjs open --profile claude|codex [--model MODEL] [--provider INSTANCE_ID] [--option ID=VALUE] --json [--dry-run]\n\nProfile defaults apply to omitted model/provider flags. Any explicit selection replaces the default options; --option is repeatable.\nopen JSON: ${example}\n`);
     } else {
       const profileIndex = argv.indexOf("--profile");
       const profile = resolveProfile(profileIndex === -1 ? undefined : argv[profileIndex + 1]);
       argv.splice(profileIndex, 2);
-      if (argv.some((argument) => ["--provider", "--model", "--option"].includes(argument))) {
-        fail("ARGUMENT_INVALID", "The Linear wrapper uses --profile; pass arbitrary model selections directly to to-worktree-thread.");
-      }
+      const hasSelection = argv.some((argument) => ["--provider", "--model", "--option"].includes(argument));
       const { modelSelection } = profile;
-      argv.push("--provider", modelSelection.instanceId, "--model", modelSelection.model);
-      for (const { id, value } of modelSelection.options) argv.push("--option", `${id}=${value}`);
+      const defaults = [];
+      if (!argv.includes("--provider")) defaults.push("--provider", modelSelection.instanceId);
+      if (!argv.includes("--model")) defaults.push("--model", modelSelection.model);
+      if (!hasSelection) {
+        for (const { id, value } of modelSelection.options) defaults.push("--option", `${id}=${value}`);
+      }
       await runCli(async (spec, t3Home, dryRun, selection) => {
         const result = await openWorktreeThread(prepareIssueSpec(spec, profile), t3Home, dryRun, selection);
         return { ...result, issue: spec.issue, workspace: spec.workspace };
-      }, example, argv);
+      }, example, [argv[0], ...defaults, ...argv.slice(1)]);
     }
   } catch (error) {
     process.stderr.write(JSON.stringify({ ok: false, error: { code: error.code, message: error.message } }) + "\n");

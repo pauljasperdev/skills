@@ -43,15 +43,19 @@ Preview stops here: report eligible issues, blockers, failures, and ordering wit
 
 ## 3. Dispatch through to-worktree-thread
 
-Read [`scripts/profiles.mjs`](scripts/profiles.mjs) for this wrapper's target model and options. Run this skill's adapter with `doctor --profile <claude|codex> --cwd <absolute-invoking-checkout>` once per repository/profile; it passes the explicit selection to `to-worktree-thread`'s health check. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke this skill's Linear adapter with serialized JSON on stdin:
+Use the user's requested model, provider, and options; [`scripts/profiles.mjs`](scripts/profiles.mjs) supplies defaults for omitted model/provider flags. With no explicit selection, the profile's default options apply. With any explicit selection, pass only the requested options so model-specific defaults cannot leak into another model.
+
+Run this skill's adapter with `doctor --profile <claude|codex> --cwd <absolute-invoking-checkout>` and the requested selection flags once per repository/selection. It checks the selection through T3 RPC. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke the same Linear adapter with serialized JSON on stdin:
 
 ```text
-node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> --json < <issue-json-file>
+node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> [--model <model>] [--provider <instance-id>] [--option <id=value>] --json < <issue-json-file>
 ```
 
 Input: `{"cwd":"<absolute-invoking-checkout>","workspace":"<verified-slug>","issue":"<ID>","title":"<issue title>"}`. Forward an explicit `baseBranch` or `allowDuplicate: true` only when requested. Write the input with a JSON serializer.
 
-The Linear adapter supplies the title `<ID> — <title>`, issue-derived branch label, cross-profile duplicate key, and `examine-issue` prompt to `to-worktree-thread`. The branch remains `t3code/<issue-id>-<issue-title-slug>`, suffixed only on collision. `--dry-run` prepares the payload without dispatching; the Linear preview in step 2 stops before contacting T3.
+For `$linear2codex 6.1 sol high SIG-2`, use `--profile codex --model gpt-6.1-sol --option reasoningEffort=high` on both `doctor` and `open`.
+
+The Linear adapter builds the title `<ID> — <title>`, issue-derived branch label, cross-profile duplicate key, and `examine-issue` prompt, then calls `to-worktree-thread` internally. This CLI call performs the authenticated native T3 RPC; a separate RPC tool or a script importing the helpers is unnecessary. The branch remains `t3code/<issue-id>-<issue-title-slug>`, suffixed only on collision. `--dry-run` prepares the payload without dispatching; the Linear preview in step 2 stops before contacting T3.
 
 Handle `existing`, verified `created`, and errors under `to-worktree-thread`'s receipt contract. An issue-specific failure leaves that issue unchanged and allows the next clear issue; an authentication, provider, or protocol failure affecting the batch leaves all remaining issues unattempted.
 
