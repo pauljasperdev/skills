@@ -3,7 +3,8 @@
 import { realpath } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { resolveProfile } from "./profiles.mjs";
-import { openThread, runCli } from "../../to-thread/scripts/t3-worktree.mjs";
+import { runCli } from "../../to-thread/scripts/t3-worktree.mjs";
+import { openWorktreeThread } from "../../to-worktree-thread/scripts/t3-worktree.mjs";
 
 function fail(code, message) {
   throw Object.assign(new Error(message), { code });
@@ -67,13 +68,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(await realpath(process.
       const profile = resolveProfile(profileIndex === -1 ? undefined : argv[profileIndex + 1]);
       argv.splice(profileIndex, 2);
       if (argv.some((argument) => ["--provider", "--model", "--option"].includes(argument))) {
-        fail("ARGUMENT_INVALID", "The Linear wrapper uses --profile; pass arbitrary model selections directly to to-thread.");
+        fail("ARGUMENT_INVALID", "The Linear wrapper uses --profile; pass arbitrary model selections directly to to-worktree-thread.");
       }
       const { modelSelection } = profile;
       argv.push("--provider", modelSelection.instanceId, "--model", modelSelection.model);
       for (const { id, value } of modelSelection.options) argv.push("--option", `${id}=${value}`);
       await runCli(async (spec, t3Home, dryRun, selection) => {
-        const result = await openThread(prepareIssueSpec(spec, profile), t3Home, dryRun, selection);
+        const result = await openWorktreeThread(prepareIssueSpec(spec, profile), t3Home, dryRun, selection);
         return { ...result, issue: spec.issue, workspace: spec.workspace };
       }, example, argv);
     }

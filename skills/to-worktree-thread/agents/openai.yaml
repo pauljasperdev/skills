@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Worktree Thread"
+  short_description: "Open a T3 thread with a new worktree"
+  default_prompt: "Use $to-worktree-thread to open this task in a new T3 thread and worktree with my requested model; ask which model to use if I did not supply one."

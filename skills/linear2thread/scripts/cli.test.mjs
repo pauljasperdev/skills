@@ -11,6 +11,8 @@ test("standalone and sibling-installed CLIs preserve their input and error contr
   for (const [skill, files, source, spec] of [
     ["to-thread", ["t3-worktree.mjs", "model-selection.mjs"], "../../to-thread/scripts/",
       { title: "Task", prompt: "Inspect the code." }],
+    ["to-worktree-thread", ["t3-worktree.mjs"], "../../to-worktree-thread/scripts/",
+      { title: "Task", prompt: "Inspect the code." }],
     ["linear2thread", ["t3-worktree.mjs", "profiles.mjs"], "./",
       { title: "Task", issue: "SID-12", workspace: "sideberry" }],
   ]) {
@@ -20,7 +22,7 @@ test("standalone and sibling-installed CLIs preserve their input and error contr
     const script = path.join(directory, "t3-worktree.mjs");
     assert.match(execFileSync(process.execPath, [script, "--help"], { encoding: "utf8" }), /open JSON:/);
     const run = (input) => spawnSync(process.execPath,
-      [script, "open", ...(skill === "to-thread" ? ["--model", "example-model"] : ["--profile", "codex"]), "--json", "--t3-home", root],
+      [script, "open", ...(skill !== "linear2thread" ? ["--model", "example-model"] : ["--profile", "codex"]), "--json", "--t3-home", root],
       { input, encoding: "utf8" });
     for (const [input, code] of [
       ["{", "INPUT_INVALID"],
@@ -35,22 +37,24 @@ test("standalone and sibling-installed CLIs preserve their input and error contr
   }
 });
 
-test("generic CLI asks for a model and accepts arbitrary explicit selections", () => {
-  const script = new URL("../../to-thread/scripts/t3-worktree.mjs", import.meta.url).pathname;
-  const input = JSON.stringify({ cwd: "/does-not-exist", title: "Task", prompt: "Inspect it." });
-  for (const flags of [[], ["--provider", "my-provider"]]) {
-    const result = spawnSync(process.execPath, [script, "open", "--json", ...flags], { input, encoding: "utf8" });
-    assert.equal(JSON.parse(result.stderr).error.code, "MODEL_REQUIRED");
-  }
-  for (const [flags, selection] of [
-    [["--model", "my-model", "--provider", "my-provider", "--option", "effort=medium"], undefined],
-    [[], { instanceId: "my-provider", model: "my-model", options: [] }],
-  ]) {
-    const result = spawnSync(process.execPath, [script, "open", "--json", ...flags],
-      { input: JSON.stringify({ cwd: "/does-not-exist", title: "Task", prompt: "Inspect it.", modelSelection: selection }), encoding: "utf8" });
-    assert.equal(JSON.parse(result.stderr).error.code, "WORKSPACE_NOT_FOUND");
-  }
-});
+for (const skill of ["to-thread", "to-worktree-thread"]) {
+  test(skill + " CLI asks for a model and accepts arbitrary explicit selections", () => {
+    const script = new URL(`../../${skill}/scripts/t3-worktree.mjs`, import.meta.url).pathname;
+    const input = JSON.stringify({ cwd: "/does-not-exist", title: "Task", prompt: "Inspect it." });
+    for (const flags of [[], ["--provider", "my-provider"]]) {
+      const result = spawnSync(process.execPath, [script, "open", "--json", ...flags], { input, encoding: "utf8" });
+      assert.equal(JSON.parse(result.stderr).error.code, "MODEL_REQUIRED");
+    }
+    for (const [flags, selection] of [
+      [["--model", "my-model", "--provider", "my-provider", "--option", "effort=medium"], undefined],
+      [[], { instanceId: "my-provider", model: "my-model", options: [] }],
+    ]) {
+      const result = spawnSync(process.execPath, [script, "open", "--json", ...flags],
+        { input: JSON.stringify({ cwd: "/does-not-exist", title: "Task", prompt: "Inspect it.", modelSelection: selection }), encoding: "utf8" });
+      assert.equal(JSON.parse(result.stderr).error.code, "WORKSPACE_NOT_FOUND");
+    }
+  });
+}
 
 test("Linear doctor and open enforce the same profile selection", () => {
   const script = new URL("./t3-worktree.mjs", import.meta.url).pathname;

@@ -34,7 +34,7 @@ Verify the solution against the original problem and repository standards. Treat
 
 Read the installed `to-thread` skill and follow its model-selection and dispatch workflow. Forward the user's model, optional provider, model options, and preview intent unchanged. When no model is supplied, ask through `to-thread` before dispatching.
 
-Supply the current worktree root as `cwd`, a concise task title ending in ` · review`, the composed `prompt`, and `reuseWorktree: true`. This opens the reviewer on the exact branch and worktree without creating another worktree or running setup. Set `allowDuplicate: true` only for an explicit additional review request.
+Supply the current worktree root as `cwd`, a concise task title ending in ` · review`, and the composed `prompt`. This opens the reviewer on the exact branch and worktree without creating another worktree or running setup. Set `allowDuplicate: true` only for an explicit additional review request.
 
 The `to-thread` and `review` skills must be installed for the selected agent. Use `to-thread`'s adapter and receipt contract.
 

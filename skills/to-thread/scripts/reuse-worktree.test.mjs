@@ -96,7 +96,7 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     }
   };
   const { openThread, runCli } = await import("./t3-worktree.mjs");
-  const spec = { cwd: current, title: "Task · review", prompt: "Use the review skill. Original problem: export.", reuseWorktree: true };
+  const spec = { cwd: current, title: "Task · review", prompt: "Use the review skill. Original problem: export." };
   const selection = { model: "custom-model" };
   const created = await openThread(spec, home, false, selection);
   assert.equal(created.project.id, "owner");

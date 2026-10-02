@@ -91,13 +91,13 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
       })));
     }
   };
-  const { openThread } = await import("../../to-thread/scripts/t3-worktree.mjs");
+  const { openThread, openWorktreeThread } = await import("../../to-thread/scripts/t3-worktree.mjs");
   const { resolveProfile } = await import("./profiles.mjs");
   const { prepareIssueSpec } = await import("./t3-worktree.mjs");
   const profile = resolveProfile("codex");
   const selection = { instanceId: "custom-provider", model: "custom-model", options: [] };
   const spec = { cwd: root, title: "Task", prompt: "Inspect the code." };
-  const generic = await openThread(spec, root, true, selection);
+  const generic = await openWorktreeThread(spec, root, true, selection);
   assert.equal(generic.action, "dry-run");
   assert.equal(generic.thread.title, "Task");
   assert.equal(generic.worktree.branch, "t3code/task-2");
@@ -108,18 +108,18 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   assert.equal(revoked, 1);
 
   const linear = prepareIssueSpec({ cwd: root, issue: "SID-12", title: "Sample", workspace: "sideberry" }, profile);
-  const issue = await openThread(linear, root, true, profile.modelSelection);
+  const issue = await openWorktreeThread(linear, root, true, profile.modelSelection);
   assert.equal(issue.worktree.branch, "t3code/sid-12-sample");
   assert.equal(issue.thread.title, "SID-12 — Sample");
   assert.ok(issue.thread.prompt.includes("$examine-issue"));
   threads = [{ id: "existing", projectId: project.id, title: "SID-12 — Old title" }];
-  assert.equal((await openThread(linear, root, false, profile.modelSelection)).action, "existing");
+  assert.equal((await openWorktreeThread(linear, root, false, profile.modelSelection)).action, "existing");
   assert.equal(dispatched, undefined);
-  assert.equal((await openThread({ ...linear, allowDuplicate: true }, root, true, profile.modelSelection)).action, "dry-run");
+  assert.equal((await openWorktreeThread({ ...linear, allowDuplicate: true }, root, true, profile.modelSelection)).action, "dry-run");
 
   threads = [];
   rejectDispatch = true;
-  await assert.rejects(openThread(spec, root, false, selection), { code: "T3_RPC_COMMAND_FAILED" });
+  await assert.rejects(openWorktreeThread(spec, root, false, selection), { code: "T3_RPC_COMMAND_FAILED" });
   assert.equal(dispatched.bootstrap.createThread.title, "Task");
   assert.equal((dispatched.bootstrap.prepareWorktree?.branch ?? dispatched.bootstrap.createThread.branch), "t3code/task-2");
   assert.equal(dispatched.bootstrap.runSetupScript, true);
@@ -129,11 +129,11 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   const existing = { id: "raced", projectId: project.id, title: spec.title,
     branch: "t3code/task", worktreePath: "/existing", archivedAt: null };
   threads = [existing];
-  const early = await openThread(spec, root, false, selection);
+  const early = await openWorktreeThread(spec, root, false, selection);
   threads = [];
   raceThread = existing;
   dispatched = undefined;
-  assert.deepEqual(await openThread(spec, root, false, selection), early);
+  assert.deepEqual(await openWorktreeThread(spec, root, false, selection), early);
   assert.equal(dispatched, undefined);
   raceThread = undefined;
 
@@ -143,7 +143,7 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   rejectDispatch = false;
   worktreePath = path.join(root, "t3code-task-2");
   await mkdir(worktreePath);
-  const created = await openThread(spec, root, false, selection);
+  const created = await openWorktreeThread(spec, root, false, selection);
   assert.equal(created.action, "created");
   assert.equal(created.thread.id, dispatched.threadId);
   assert.equal(created.thread.worktreePath, worktreePath);
@@ -153,17 +153,17 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
 
   project.scripts = [{ id: "setup", name: "Setup", command: "setup", runOnWorktreeCreate: true }];
   threads = [];
-  assert.equal((await openThread(spec, root, false, selection)).thread.setup, "started");
+  assert.equal((await openWorktreeThread(spec, root, false, selection)).thread.setup, "started");
   threads = [];
   setupFailed = true;
-  await assert.rejects(openThread(spec, root, false, selection), { code: "T3_SETUP_FAILED" });
+  await assert.rejects(openWorktreeThread(spec, root, false, selection), { code: "T3_SETUP_FAILED" });
   assert.equal(threads[0].id, dispatched.threadId, "failed setup retains the created thread");
   assert.equal(revoked, 10, "all sessions are revoked, including failure paths");
 
   threads = [];
   setupFailed = false;
   worktreePath = root;
-  const reviewSpec = { ...spec, title: "Task · review", reuseWorktree: true };
+  const reviewSpec = { ...spec, title: "Task · review" };
   const review = await openThread(reviewSpec, root, false, { model: "custom-model" });
   assert.equal(review.action, "created");
   assert.equal(review.thread.worktreePath, root);

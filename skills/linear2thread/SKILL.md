@@ -1,16 +1,16 @@
 ---
 name: linear2thread
-description: Open or preview Linear issues in T3 worktree threads. Wraps to-thread with workspace verification, issue selection, blocker gating, examination prompts, and Linear status updates.
+description: Open or preview Linear issues in T3 worktree threads. Uses to-worktree-thread with workspace verification, issue selection, blocker gating, examination prompts, and Linear status updates.
 ---
 
 # Linear to T3 thread
 
 Create one native T3 worktree thread per selected unblocked Linear issue. `linear2claude` selects profile `claude`; `linear2codex` selects `codex`. Direct invocation resolves a profile from the user's request; ask if neither is specified.
 
-This skill owns the Linear workflow. For dispatch, read sibling [`to-thread`](../to-thread/SKILL.md), which owns T3 creation and verification. Its scripts must be installed alongside this skill. If missing, install both from the same source:
+This skill owns the Linear workflow. For dispatch, read sibling [`to-worktree-thread`](../to-worktree-thread/SKILL.md), which owns T3 creation and verification. It and its shared `to-thread` dependency must be installed alongside this skill. If missing, install the chain from the same source:
 
 ```sh
-npx skills add pauljasperdev/skills -g --agent <invoking-agent> --skill to-thread linear2thread -y
+npx skills add pauljasperdev/skills -g --agent <invoking-agent> --skill to-thread to-worktree-thread linear2thread -y
 ```
 
 ## 1. Resolve Linear context and select issues
@@ -41,9 +41,9 @@ Selection is complete when every candidate needed to fill the requested selector
 
 Preview stops here: report eligible issues, blockers, failures, and ordering without creating threads or changing Linear.
 
-## 3. Dispatch through to-thread
+## 3. Dispatch through to-worktree-thread
 
-Read [`scripts/profiles.mjs`](scripts/profiles.mjs) for this wrapper's target model and options. Run this skill's adapter with `doctor --profile <claude|codex> --cwd <absolute-invoking-checkout>` once per repository/profile; it passes the explicit selection to `to-thread`'s health check. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke this skill's Linear adapter with serialized JSON on stdin:
+Read [`scripts/profiles.mjs`](scripts/profiles.mjs) for this wrapper's target model and options. Run this skill's adapter with `doctor --profile <claude|codex> --cwd <absolute-invoking-checkout>` once per repository/profile; it passes the explicit selection to `to-worktree-thread`'s health check. For each clear issue, sequentially, recheck blockers immediately before creation, then invoke this skill's Linear adapter with serialized JSON on stdin:
 
 ```text
 node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> --json < <issue-json-file>
@@ -51,9 +51,9 @@ node <linear2thread-dir>/scripts/t3-worktree.mjs open --profile <claude|codex> -
 
 Input: `{"cwd":"<absolute-invoking-checkout>","workspace":"<verified-slug>","issue":"<ID>","title":"<issue title>"}`. Forward an explicit `baseBranch` or `allowDuplicate: true` only when requested. Write the input with a JSON serializer.
 
-The Linear adapter supplies the title `<ID> — <title>`, issue-derived branch label, cross-profile duplicate key, and `examine-issue` prompt to `to-thread`. The branch remains `t3code/<issue-id>-<issue-title-slug>`, suffixed only on collision. `--dry-run` prepares the payload without dispatching; the Linear preview in step 2 stops before contacting T3.
+The Linear adapter supplies the title `<ID> — <title>`, issue-derived branch label, cross-profile duplicate key, and `examine-issue` prompt to `to-worktree-thread`. The branch remains `t3code/<issue-id>-<issue-title-slug>`, suffixed only on collision. `--dry-run` prepares the payload without dispatching; the Linear preview in step 2 stops before contacting T3.
 
-Handle `existing`, verified `created`, and errors under `to-thread`'s receipt contract. An issue-specific failure leaves that issue unchanged and allows the next clear issue; an authentication, provider, or protocol failure affecting the batch leaves all remaining issues unattempted.
+Handle `existing`, verified `created`, and errors under `to-worktree-thread`'s receipt contract. An issue-specific failure leaves that issue unchanged and allows the next clear issue; an authentication, provider, or protocol failure affecting the batch leaves all remaining issues unattempted.
 
 The wrapper's first prompt invokes read-only `examine-issue`, asking for interfaces, ownership, data flow, and relevant library conventions while leaving incidental implementation choices open.
 

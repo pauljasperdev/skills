@@ -449,11 +449,11 @@ async function resolveProject(shell, cwd) {
   });
 }
 
-async function findExistingThread(shell, projectId, spec) {
+async function findExistingThread(shell, projectId, spec, worktreePath) {
   for (const thread of shell.threads ?? []) {
     if (thread?.projectId !== projectId || thread?.archivedAt != null || typeof thread?.title !== "string") continue;
     const matchesTitle = spec.dedupeKey === undefined ? thread.title === spec.title : thread.title.includes(spec.dedupeKey);
-    if (matchesTitle && (spec.reuseWorktree !== true || await threadUsesWorktree(thread, spec.cwd))) return thread;
+    if (matchesTitle && (worktreePath === null || await threadUsesWorktree(thread, worktreePath))) return thread;
   }
 }
 
@@ -540,8 +540,8 @@ function validateThreadSpec(spec) {
       fail(code, `${field} must be a non-empty string when supplied.`);
     }
   }
-  if (spec.reuseWorktree !== undefined && typeof spec.reuseWorktree !== "boolean") {
-    fail("REUSE_WORKTREE_INVALID", "reuseWorktree must be a boolean when supplied.");
+  if ("reuseWorktree" in spec) {
+    fail("INPUT_INVALID", "Choose to-thread for the current worktree or to-worktree-thread for a new worktree; omit reuseWorktree.");
   }
   return { ...spec, title: spec.title.trim() };
 }
@@ -830,7 +830,18 @@ async function doctor(cwd, t3Home, requestedModel) {
 }
 
 export async function openThread(input, t3Home, dryRun, requestedModel) {
+  return await dispatchThread(input, t3Home, dryRun, requestedModel, false);
+}
+
+export async function openWorktreeThread(input, t3Home, dryRun, requestedModel) {
+  return await dispatchThread(input, t3Home, dryRun, requestedModel, true);
+}
+
+async function dispatchThread(input, t3Home, dryRun, requestedModel, newWorktree) {
   const spec = validateThreadSpec(input);
+  if (!newWorktree && (spec.baseBranch !== undefined || spec.branchLabel !== undefined)) {
+    fail("INPUT_INVALID", "baseBranch and branchLabel belong to to-worktree-thread.");
+  }
   let modelSelection = validateModelSelection(requestedModel ?? spec.modelSelection);
   const { title, prompt } = spec;
   const cwd = await canonicalPath(spec.cwd ?? process.cwd());
@@ -841,27 +852,28 @@ export async function openThread(input, t3Home, dryRun, requestedModel) {
     let shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
     const { project } = await resolveProject(shell, cwd);
     const projectCwd = await canonicalPath(project.workspaceRoot);
-    const existing = await findExistingThread(shell, project.id, spec);
+    const worktreePath = newWorktree ? null : cwd;
+    const existing = await findExistingThread(shell, project.id, spec, worktreePath);
     if (existing && spec.allowDuplicate !== true) return existingReceipt(project, existing);
 
-    const baseBranch = await resolveBaseBranch(spec.reuseWorktree === true ? cwd : projectCwd, spec.reuseWorktree === true ? undefined : spec.baseBranch);
+    const baseBranch = await resolveBaseBranch(newWorktree ? projectCwd : cwd, newWorktree ? spec.baseBranch : undefined);
     return await withRpc(runtime, token, async (rpc) => {
       modelSelection = resolveModelSelection(await rpc.call("server.getConfig", {}), modelSelection);
       const settings = await rpc.call("server.getSettings", {});
-      const startFromOrigin = spec.reuseWorktree !== true && settings?.newWorktreesStartFromOrigin === true;
+      const startFromOrigin = newWorktree && settings?.newWorktreesStartFromOrigin === true;
 
       shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
-      const racedExisting = await findExistingThread(shell, project.id, spec);
+      const racedExisting = await findExistingThread(shell, project.id, spec, worktreePath);
       if (racedExisting && spec.allowDuplicate !== true) return existingReceipt(project, racedExisting);
 
-      const worktreeBranch = spec.reuseWorktree === true ? baseBranch : await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title);
+      const worktreeBranch = newWorktree ? await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title) : baseBranch;
       const prepared = makeBootstrapCommand({
         modelSelection,
         project,
         baseBranch,
         worktreeBranch,
         startFromOrigin,
-        worktreePath: spec.reuseWorktree === true ? cwd : null,
+        worktreePath,
         title,
         prompt,
       });
@@ -877,7 +889,7 @@ export async function openThread(input, t3Home, dryRun, requestedModel) {
             branch: prepared.worktreeBranch,
             name: prepared.expectedWorktreeName,
             startFromOrigin,
-            ...(spec.reuseWorktree === true ? { path: cwd, reused: true } : {}),
+            ...(!newWorktree ? { path: cwd, reused: true } : {}),
           },
           thread: {
             id: prepared.threadId,
@@ -908,7 +920,7 @@ export async function openThread(input, t3Home, dryRun, requestedModel) {
           name: path.basename(verified.worktreePath),
           startFromOrigin,
           detached: false,
-          ...(spec.reuseWorktree === true ? { reused: true } : {}),
+          ...(!newWorktree ? { reused: true } : {}),
         },
       };
     });

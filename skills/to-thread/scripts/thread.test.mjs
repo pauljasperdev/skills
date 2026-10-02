@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { makeBootstrapCommand, openThread } from "./t3-worktree.mjs";
+import { makeBootstrapCommand, openThread, openWorktreeThread } from "./t3-worktree.mjs";
 
 test("a standalone task needs no Linear context and retains its full prompt", () => {
   const spec = { title: "Investigate CSV export", prompt: "Investigate CSV export.\nOnly examine the code." };
@@ -24,7 +24,7 @@ test("generic input rejects missing tasks, malformed titles, and empty optional 
   for (const [field, value, code] of [["title", "", "TITLE_INVALID"],
     ["title", "two\nlines", "TITLE_INVALID"], ["prompt", " ", "PROMPT_INVALID"],
     ["prompt", undefined, "PROMPT_INVALID"], ["branchLabel", "", "BRANCH_LABEL_INVALID"],
-    ["dedupeKey", "", "DEDUPE_KEY_INVALID"], ["reuseWorktree", "true", "REUSE_WORKTREE_INVALID"]]) {
+    ["dedupeKey", "", "DEDUPE_KEY_INVALID"], ["reuseWorktree", "true", "INPUT_INVALID"]]) {
     await assert.rejects(openThread({ ...spec, [field]: value }), { code });
   }
 });
@@ -49,4 +49,18 @@ test("reusing a worktree preserves its branch, prompt, and skips setup", () => {
   assert.equal(prepared.command.bootstrap.runSetupScript, false);
   assert.equal(prepared.command.message.text, prepared.prompt);
   assert.equal(prepared.prompt, "Use the review skill. Original problem: fix export.");
+});
+
+test("the selected entry point owns worktree creation", async () => {
+  const spec = { cwd: "/does-not-exist", title: "Task", prompt: "Do the task" };
+  for (const open of [openThread, openWorktreeThread]) {
+    await assert.rejects(open(spec), { code: "MODEL_REQUIRED" });
+    for (const reuseWorktree of [true, false]) {
+      await assert.rejects(open({ ...spec, reuseWorktree }), { code: "INPUT_INVALID" });
+    }
+  }
+  for (const field of ["baseBranch", "branchLabel"]) {
+    await assert.rejects(openThread({ ...spec, [field]: "feature" }), { code: "INPUT_INVALID" });
+    await assert.rejects(openWorktreeThread({ ...spec, [field]: "feature" }), { code: "MODEL_REQUIRED" });
+  }
 });
