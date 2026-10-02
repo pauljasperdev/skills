@@ -13,21 +13,12 @@ Build a review prompt from this conversation, then use [`to-thread`](../to-threa
 
 Resolve the current Git worktree root and branch with read-only Git commands. Keep staged, unstaged, and untracked work available to the reviewer.
 
-Use this conversation to fill the following prompt. Include accepted clarifications, additional review instructions, and any explicit base ref or issue context. Ask for essential problem context when it is missing:
+Start the prompt with literal `$review` for every provider, including Claude. Follow it with concise context from this conversation: the original problem and accepted requirements, implemented solution, checks actually run, known gaps, and any user-supplied review instructions, base ref, or issue. Ask for essential problem context when it is missing.
 
 ```text
-Use the installed review skill to review the current branch and worktree, including committed, staged, unstaged, and untracked changes. Keep the review read-only and report findings in this thread.
+$review
 
-Original problem and requirements:
-<original request, desired behavior, constraints, and accepted clarifications>
-
-Implemented solution:
-<changed areas, consequential design decisions, checks actually run, and known gaps>
-
-Review instructions:
-<the user's additional instructions and explicit base, when supplied>
-
-Verify the solution against the original problem and repository standards. Treat the solution summary as claims to check against the code. Assess the supplied requirements even when no Linear issue owns this branch. Follow the review skill's applicable Linear checks when an issue is supplied or identified.
+<context of the work done>
 ```
 
 ## 2. Delegate to to-thread
