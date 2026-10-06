@@ -1,0 +1,121 @@
+<!doctype html>
+<!-- Starting point for one illustration. Copy to <NNN>/hyperframes/compositions/<id>.html, replace every
+     "ID" with the graphic's id from edit.json, keep what you need and delete the rest. -->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Unbounded;
+          src: url("assets/Unbounded.ttf") format("truetype");
+          font-weight: 200 900;
+          font-display: block;
+        }
+        #ID-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* everything lives in the band: centred on (540, 640), its lower edge above the speaker's eyes */
+        #ID-art {
+          position: absolute;
+          inset: 0;
+          font-family: Unbounded, sans-serif;
+          font-weight: 800;
+          text-transform: uppercase;
+          color: #ffffff;
+          filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+        }
+        /* a logo or icon tile: 180 px, on the y = 640 line */
+        #ID-art .tile {
+          position: absolute;
+          top: 550px;
+          width: 180px;
+          height: 180px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4px solid #ffffff;
+          border-radius: 44px;
+          background: #0d0d0d;
+        }
+        #ID-art .tile .logo {
+          display: block;
+          width: 110px;
+          height: 110px;
+        }
+        /* a short text label under a tile */
+        #ID-art .label {
+          position: absolute;
+          top: 748px;
+          width: 300px;
+          height: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 50px;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        #ID-svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+        /* hand-drawn strokes that draw on: give each path pathLength="1" */
+        #ID-svg .ink {
+          fill: none;
+          stroke: #ffffff;
+          stroke-width: 7;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          opacity: 0;
+        }
+        #ID-svg .accent {
+          stroke: #ffe500;
+        }
+      </style>
+
+      <div id="ID-root" data-composition-id="ID" data-width="1080" data-height="1920" data-duration="4">
+        <div id="ID-art">
+          <!-- inline the official logo SVG here (media-use resolve --type logo); never an <img> -->
+          <div id="ID-tile" class="tile" style="left: 450px"></div>
+          <div id="ID-label" class="label" style="left: 390px">Label</div>
+          <svg id="ID-svg" viewBox="0 0 1080 1920">
+            <path id="ID-arrow" class="ink" pathLength="1" d="M318 646 C 410 606 560 676 676 640" />
+            <path id="ID-arrow-head" class="ink" pathLength="1" d="M644 612 L680 640 L648 672" />
+            <path id="ID-check" class="ink accent" pathLength="1" d="M798 664 L832 698 L896 626" />
+          </svg>
+        </div>
+      </div>
+
+      <script>
+        {
+          // scene-local time = root time - the graphic's start in edit.json
+          const tl = gsap.timeline({ paused: true });
+          const pop = (target, at) => tl.fromTo(target, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2)" }, at);
+          const draw = (target, at, duration) => {
+            tl.set(target, { opacity: 1 }, at);
+            tl.fromTo(target, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration, ease: "power2.out" }, at);
+          };
+          // each cue 0.02 s before the word that names it; say which word in a comment
+          pop("#ID-tile", 0.12); // "<word>"
+          tl.fromTo("#ID-label", { y: -16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.24, ease: "power3.out" }, 0.9); // "<word>"
+          draw("#ID-arrow", 1.6, 0.4);
+          draw("#ID-arrow-head", 1.95, 0.15);
+          draw("#ID-check", 2.4, 0.26);
+          // leave just before the host ends
+          tl.to("#ID-art", { opacity: 0, duration: 0.18, ease: "power1.in" }, 3.8);
+          window.__timelines["ID"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>
