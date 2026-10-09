@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+
+        #neoclouds-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* graphics sit between the top rail (y 265) and the caption box (y 1500) */
+        #neoclouds-art {
+          position: absolute;
+          inset: 0;
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-transform: uppercase;
+          color: #1c1c1c;
+        }
+        #neoclouds-art .in {
+          opacity: 0;
+        }
+        #neoclouds-art .a {
+          color: #0d9488;
+        }
+        #neoclouds-art .h {
+          position: absolute;
+          left: 90px;
+          top: 356px;
+          width: 900px;
+          font-size: 96px;
+          line-height: 0.98;
+          letter-spacing: -0.025em;
+          text-align: center;
+        }
+        #neoclouds-art .h .ln {
+          display: block;
+          white-space: nowrap;
+        }
+        /* a label: place it with left/top/width/height, size it with font-size */
+        #neoclouds-art .lbl {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        #neoclouds-art .sm {
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
+        #neoclouds-art .card,
+        #neoclouds-art .tile {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+        }
+        #neoclouds-art .card img {
+          display: block;
+          height: auto;
+        }
+        #neoclouds-art .tile svg {
+          display: block;
+        }
+        #neoclouds-svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+        /* strokes that draw on */
+        #neoclouds-svg .ink {
+          fill: none;
+          stroke: #1c1c1c;
+          stroke-width: 7;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          opacity: 0;
+        }
+        #neoclouds-svg .accent {
+          stroke: #0d9488;
+        }
+        #neoclouds-svg .warn {
+          stroke: #dc2626;
+        }
+      </style>
+
+      <div id="neoclouds-root" data-composition-id="neoclouds" data-width="1080" data-height="1920" data-duration="9.266667">
+        <div id="neoclouds-art">
+          <div class="h" style="font-size: 116px"><span id="neoclouds-h1" class="ln in">Fokus auf <span class="a">AI</span></span></div>
+          <div id="neoclouds-c1" class="card in" style="left: 90px; top: 540px; width: 426px; height: 150px"><img src="assets/logos/coreweave_logo.png" alt="CoreWeave" style="width: 336px" /></div>
+          <div id="neoclouds-c2" class="card in" style="left: 556px; top: 540px; width: 426px; height: 150px"><img src="assets/logos/nebius_logo.png" alt="Nebius" style="width: 286px" /></div>
+          <svg id="neoclouds-svg" viewBox="0 0 1080 1920">
+            <path id="neoclouds-conv" pathLength="1" class="ink" d="M303 712 C303 770 380 770 427 807 M769 712 C769 770 700 770 653 807" />
+            <circle id="neoclouds-ring2" pathLength="1" class="ink" cx="540" cy="920" r="160" style="stroke-width: 4" />
+            <circle id="neoclouds-ring" pathLength="1" class="ink accent" cx="540" cy="920" r="118" style="stroke-width: 10" />
+            <path id="neoclouds-firm" pathLength="1" class="ink" transform="translate(-5 0)" d="M150 1300 V1152 H270 V1300 M135 1300 H285 M196 1300 V1262 h28 v38 M178 1190 h22 M220 1190 h22 M178 1228 h22 M220 1228 h22" />
+            <path id="neoclouds-a1" pathLength="1" class="ink" d="M324 1228 H430" />
+            <path id="neoclouds-a1h" pathLength="1" class="ink" d="M408 1206 L434 1228 L408 1250" />
+            <path id="neoclouds-gpu" pathLength="1" class="ink" d="M480 1165 h120 v120 h-120 Z M515 1200 h50 v50 h-50 Z M510 1165 v-22 M540 1165 v-22 M570 1165 v-22 M510 1285 v22 M540 1285 v22 M570 1285 v22 M480 1195 h-22 M480 1225 h-22 M480 1255 h-22 M600 1195 h22 M600 1225 h22 M600 1255 h22" />
+            <path id="neoclouds-a2" pathLength="1" class="ink" d="M650 1228 H756" />
+            <path id="neoclouds-a2h" pathLength="1" class="ink" d="M734 1206 L760 1228 L734 1250" />
+            <path id="neoclouds-app" pathLength="1" class="ink" d="M800 1160 h150 v130 h-150 Z M800 1196 H950" />
+            <path id="neoclouds-star" pathLength="1" class="ink accent" d="M875 1206 Q880 1238 908 1243 Q880 1248 875 1280 Q870 1248 842 1243 Q870 1238 875 1206 Z" />
+          </svg>
+          <div id="neoclouds-ai" class="lbl a in" style="left: 440px; top: 860px; width: 200px; height: 120px; font-size: 112px">AI</div>
+          <div id="neoclouds-lfirm" class="lbl sm in" style="left: 55px; top: 1330px; width: 300px; height: 40px; font-size: 28px">Unternehmen</div>
+          <div id="neoclouds-lgpu" class="lbl sm in" style="left: 390px; top: 1330px; width: 300px; height: 40px; font-size: 28px">Rechenpower</div>
+          <div id="neoclouds-lapp" class="lbl sm in" style="left: 725px; top: 1330px; width: 300px; height: 40px; font-size: 28px">AI-App</div>
+        </div>
+      </div>
+
+      <script>
+        {
+          // cues are voiceover seconds (prep/voiceover.words.json); the voiceover plays at RATE, T() gives scene-local time
+          const VO0 = 38.823333;
+          const RATE = 1.1;
+          const DUR = 9.266667;
+          const T = (vo) => Math.max(0, Math.round(((vo - VO0) / RATE) * 1000) / 1000);
+          const tl = gsap.timeline({ paused: true });
+          const pop = (target, vo) => tl.fromTo(target, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2)" }, T(vo));
+          const rise = (target, vo) => tl.fromTo(target, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, T(vo));
+          const slide = (target, vo, x = -60) => tl.fromTo(target, { x, opacity: 0 }, { x: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, T(vo));
+          const draw = (target, vo, duration = 0.4) => {
+            tl.set(target, { opacity: 1 }, T(vo));
+            tl.fromTo(target, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration, ease: "power2.out" }, T(vo));
+          };
+          const fade = (target, vo, to = 0) => tl.to(target, { opacity: to, duration: 0.25, ease: "power1.out" }, T(vo));
+          const leave = () => tl.to("#neoclouds-art", { opacity: 0, duration: 0.18, ease: "power1.in" }, DUR - 0.2);
+
+          pop("#neoclouds-c1", 39.56); // "CoreWeave"
+          pop("#neoclouds-c2", 40.46); // "Nebius"
+          rise("#neoclouds-h1", 40.92); // "konzentrieren sich"
+          draw("#neoclouds-conv", 41.74, 0.4);
+          draw("#neoclouds-ring2", 42.16, 0.5); // "auf diesen"
+          draw("#neoclouds-ring", 42.3, 0.5);
+          pop("#neoclouds-ai", 42.8); // "AI-Bereich"
+          draw("#neoclouds-firm", 43.92, 0.5); // "Unternehmen"
+          rise("#neoclouds-lfirm", 44);
+          draw("#neoclouds-a1", 44.54, 0.3); // "mieten dort"
+          draw("#neoclouds-a1h", 44.8, 0.12);
+          draw("#neoclouds-gpu", 45.82, 0.5); // "Rechenpower"
+          rise("#neoclouds-lgpu", 45.9);
+          draw("#neoclouds-a2", 46.6, 0.3); // "um ihre"
+          draw("#neoclouds-a2h", 46.86, 0.12);
+          draw("#neoclouds-app", 46.9, 0.4); // "AI-Anwendungen"
+          rise("#neoclouds-lapp", 47.24);
+          draw("#neoclouds-star", 47.88, 0.35); // "laufen"
+          leave();
+          window.__timelines["neoclouds"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

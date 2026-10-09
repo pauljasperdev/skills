@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+
+        #vorteile-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* graphics sit between the top rail (y 265) and the caption box (y 1500) */
+        #vorteile-art {
+          position: absolute;
+          inset: 0;
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-transform: uppercase;
+          color: #1c1c1c;
+        }
+        #vorteile-art .in {
+          opacity: 0;
+        }
+        #vorteile-art .a {
+          color: #0d9488;
+        }
+        #vorteile-art .h {
+          position: absolute;
+          left: 90px;
+          top: 356px;
+          width: 900px;
+          font-size: 96px;
+          line-height: 0.98;
+          letter-spacing: -0.025em;
+          text-align: center;
+        }
+        #vorteile-art .h .ln {
+          display: block;
+          white-space: nowrap;
+        }
+        /* a label: place it with left/top/width/height, size it with font-size */
+        #vorteile-art .lbl {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        #vorteile-art .sm {
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
+        #vorteile-art .card,
+        #vorteile-art .tile {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+        }
+        #vorteile-art .card img {
+          display: block;
+          height: auto;
+        }
+        #vorteile-art .tile svg {
+          display: block;
+        }
+        #vorteile-svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+        /* strokes that draw on */
+        #vorteile-svg .ink {
+          fill: none;
+          stroke: #1c1c1c;
+          stroke-width: 7;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          opacity: 0;
+        }
+        #vorteile-svg .accent {
+          stroke: #0d9488;
+        }
+        #vorteile-svg .warn {
+          stroke: #dc2626;
+        }
+
+        #vorteile-art .unit {
+          position: absolute;
+          left: 110px;
+          width: 300px;
+          height: 72px;
+          border: 5px solid #1c1c1c;
+          background: #ffffff;
+        }
+        #vorteile-art .unit::after {
+          content: "";
+          position: absolute;
+          left: 20px;
+          top: 23px;
+          width: 16px;
+          height: 16px;
+          background: #1c1c1c;
+        }
+        #vorteile-art .unit.new {
+          background: #0d9488;
+        }
+        #vorteile-art .unit.new::after {
+          background: #ffffff;
+        }
+        #vorteile-art .site {
+          position: absolute;
+          top: 1010px;
+          width: 160px;
+          height: 130px;
+          border: 5px solid #1c1c1c;
+          background: #ffffff;
+        }
+        #vorteile-art .site::before {
+          content: "";
+          position: absolute;
+          left: 24px;
+          right: 24px;
+          top: 36px;
+          height: 6px;
+          background: #1c1c1c;
+          box-shadow: 0 34px 0 #1c1c1c;
+        }
+        #vorteile-bolt {
+          position: absolute;
+          left: 180px;
+          top: 880px;
+          width: 80px;
+          height: 110px;
+        }
+        #vorteile-pill {
+          border: 4px solid #1c1c1c;
+          background: #0d9488;
+          box-shadow: 8px 8px 0 #1c1c1c;
+          color: #ffffff;
+        }
+      </style>
+
+      <div id="vorteile-root" data-composition-id="vorteile" data-width="1080" data-height="1920" data-duration="10.366667">
+        <div id="vorteile-art">
+          <div class="h"><span id="vorteile-h1" class="ln in">Viele Vorteile</span></div>
+          <div id="vorteile-u1" class="unit in" style="top: 610px"></div>
+          <div id="vorteile-u2" class="unit in" style="top: 700px" data-layout-allow-overflow></div>
+          <div id="vorteile-u2n" class="unit new in" style="top: 700px"></div>
+          <div id="vorteile-u3" class="unit in" style="top: 790px"></div>
+          <div id="vorteile-la1" class="lbl in" style="left: 470px; top: 628px; width: 520px; height: 62px; font-size: 62px; justify-content: flex-start">Ersatz bei</div>
+          <div id="vorteile-la2" class="lbl in" style="left: 470px; top: 692px; width: 520px; height: 62px; font-size: 62px; justify-content: flex-start">Schaden</div>
+          <div id="vorteile-la3" class="lbl sm a in" style="left: 470px; top: 776px; width: 520px; height: 44px; font-size: 32px; justify-content: flex-start">übernimmt der Anbieter</div>
+          <div id="vorteile-s1" class="site in" style="left: 140px"></div>
+          <div id="vorteile-s2" class="site in" style="left: 460px"></div>
+          <div id="vorteile-s3" class="site in" style="left: 780px"></div>
+          <div id="vorteile-ls1" class="lbl sm in" style="left: 120px; top: 1158px; width: 200px; height: 36px; font-size: 26px">Standort 1</div>
+          <div id="vorteile-ls2" class="lbl sm in" style="left: 440px; top: 1158px; width: 200px; height: 36px; font-size: 26px">Standort 2</div>
+          <div id="vorteile-ls3" class="lbl sm in" style="left: 760px; top: 1158px; width: 200px; height: 36px; font-size: 26px">Standort 3</div>
+          <svg id="vorteile-svg" viewBox="0 0 1080 1920">
+            <path id="vorteile-crack" pathLength="1" class="ink warn" d="M190 706 L226 734 L204 748 L246 766" />
+            <path id="vorteile-ok" pathLength="1" class="ink" style="stroke: #ffffff" d="M336 736 L354 754 L388 718" />
+            <path id="vorteile-links" pathLength="1" class="ink" d="M304 1075 H456 M624 1075 H776" />
+          </svg>
+          <div id="vorteile-pill" class="lbl in" style="left: 230px; top: 1250px; width: 620px; height: 92px; font-size: 46px">
+            <span style="display: block; width: 18px; height: 18px; margin-right: 20px; background: #ffffff"></span>Service erreichbar
+          </div>
+          <div id="vorteile-bolt" class="in"><svg width="80" height="110" viewBox="0 0 80 110" style="display: block"><path d="M46 0 L8 62 H36 L28 110 L72 44 H44 Z" fill="#dc2626" /></svg></div>
+        </div>
+      </div>
+
+      <script>
+        {
+          // cues are voiceover seconds (prep/voiceover.words.json); the voiceover plays at RATE, T() gives scene-local time
+          const VO0 = 17.116666;
+          const RATE = 1.1;
+          const DUR = 10.366667;
+          const T = (vo) => Math.max(0, Math.round(((vo - VO0) / RATE) * 1000) / 1000);
+          const tl = gsap.timeline({ paused: true });
+          const pop = (target, vo) => tl.fromTo(target, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2)" }, T(vo));
+          const rise = (target, vo) => tl.fromTo(target, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, T(vo));
+          const slide = (target, vo, x = -60) => tl.fromTo(target, { x, opacity: 0 }, { x: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, T(vo));
+          const draw = (target, vo, duration = 0.4) => {
+            tl.set(target, { opacity: 1 }, T(vo));
+            tl.fromTo(target, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration, ease: "power2.out" }, T(vo));
+          };
+          const fade = (target, vo, to = 0) => tl.to(target, { opacity: to, duration: 0.25, ease: "power1.out" }, T(vo));
+          const leave = () => tl.to("#vorteile-art", { opacity: 0, duration: 0.18, ease: "power1.in" }, DUR - 0.2);
+
+          pop("#vorteile-h1", 17.66); // "viele Vorteile"
+          pop("#vorteile-u1", 18.66); // "Man muss sich ..."
+          pop("#vorteile-u2", 18.78);
+          pop("#vorteile-u3", 18.9);
+          rise("#vorteile-la1", 20.54); // "Ersatz"
+          rise("#vorteile-la2", 20.62);
+          draw("#vorteile-crack", 21.54, 0.2); // "Schaden"
+          tl.to("#vorteile-u2", { x: 9, duration: 0.05, repeat: 5, yoyo: true, ease: "none" }, T(21.54));
+          tl.to("#vorteile-u2", { x: -360, opacity: 0, duration: 0.3, ease: "power2.in" }, T(21.98));
+          fade("#vorteile-crack", 21.98);
+          tl.fromTo("#vorteile-u2n", { x: 360, opacity: 0 }, { x: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, T(22.2));
+          rise("#vorteile-la3", 22.2);
+          draw("#vorteile-ok", 22.5, 0.22);
+          pop("#vorteile-s1", 22.96); // "Server an verschiedenen Standorten"
+          rise("#vorteile-ls1", 23.04);
+          pop("#vorteile-s2", 23.62);
+          rise("#vorteile-ls2", 23.7);
+          pop("#vorteile-s3", 23.96);
+          rise("#vorteile-ls3", 24.04);
+          draw("#vorteile-links", 24.3, 0.4);
+          pop("#vorteile-pill", 25.86); // "weiterhin erreichbar"
+          pop("#vorteile-bolt", 27.62); // "Stromausfall"
+          tl.to("#vorteile-s1", { opacity: 0.3, duration: 0.2 }, T(27.7));
+          tl.to("#vorteile-ls1", { opacity: 0.3, duration: 0.2 }, T(27.7));
+          tl.to("#vorteile-pill", { scale: 1.06, duration: 0.16, repeat: 1, yoyo: true, ease: "sine.inOut" }, T(28));
+          leave();
+          window.__timelines["vorteile"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

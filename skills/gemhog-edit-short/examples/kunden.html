@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+
+        #kunden-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* graphics sit between the top rail (y 265) and the caption box (y 1500) */
+        #kunden-art {
+          position: absolute;
+          inset: 0;
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-transform: uppercase;
+          color: #1c1c1c;
+        }
+        #kunden-art .in {
+          opacity: 0;
+        }
+        #kunden-art .a {
+          color: #0d9488;
+        }
+        #kunden-art .h {
+          position: absolute;
+          left: 90px;
+          top: 356px;
+          width: 900px;
+          font-size: 96px;
+          line-height: 0.98;
+          letter-spacing: -0.025em;
+          text-align: center;
+        }
+        #kunden-art .h .ln {
+          display: block;
+          white-space: nowrap;
+        }
+        /* a label: place it with left/top/width/height, size it with font-size */
+        #kunden-art .lbl {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        #kunden-art .sm {
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
+        #kunden-art .card,
+        #kunden-art .tile {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+        }
+        #kunden-art .card img {
+          display: block;
+          height: auto;
+        }
+        #kunden-art .tile svg {
+          display: block;
+        }
+        #kunden-svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+        /* strokes that draw on */
+        #kunden-svg .ink {
+          fill: none;
+          stroke: #1c1c1c;
+          stroke-width: 7;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          opacity: 0;
+        }
+        #kunden-svg .accent {
+          stroke: #0d9488;
+        }
+        #kunden-svg .warn {
+          stroke: #dc2626;
+        }
+      </style>
+
+      <div id="kunden-root" data-composition-id="kunden" data-width="1080" data-height="1920" data-duration="7.266667">
+        <div id="kunden-art">
+          <div class="h" style="font-size: 92px"><span id="kunden-h1" class="ln in">Rechenkapazität</span><span id="kunden-h2" class="ln a in">gesichert</span></div>
+          <div id="kunden-t1" class="tile in" style="left: 120px; top: 630px; width: 180px; height: 180px"><svg width="116" height="118" viewBox="0 0 256 260"><path fill="#1c1c1c" d="M239.184 106.203a64.716 64.716 0 0 0-5.576-53.103C219.452 28.459 191 15.784 163.213 21.74A65.586 65.586 0 0 0 52.096 45.22a64.716 64.716 0 0 0-43.23 31.36c-14.31 24.602-11.061 55.634 8.033 76.74a64.665 64.665 0 0 0 5.525 53.102c14.174 24.65 42.644 37.324 70.446 31.36a64.72 64.72 0 0 0 48.754 21.744c28.481.025 53.714-18.361 62.414-45.481a64.767 64.767 0 0 0 43.229-31.36c14.137-24.558 10.875-55.423-8.083-76.483Zm-97.56 136.338a48.397 48.397 0 0 1-31.105-11.255l1.535-.87 51.67-29.825a8.595 8.595 0 0 0 4.247-7.367v-72.85l21.845 12.636c.218.111.37.32.409.563v60.367c-.056 26.818-21.783 48.545-48.601 48.601Zm-104.466-44.61a48.345 48.345 0 0 1-5.781-32.589l1.534.921 51.722 29.826a8.339 8.339 0 0 0 8.441 0l63.181-36.425v25.221a.87.87 0 0 1-.358.665l-52.335 30.184c-23.257 13.398-52.97 5.431-66.404-17.803ZM23.549 85.38a48.499 48.499 0 0 1 25.58-21.333v61.39a8.288 8.288 0 0 0 4.195 7.316l62.874 36.272-21.845 12.636a.819.819 0 0 1-.767 0L41.353 151.53c-23.211-13.454-31.171-43.144-17.804-66.405v.256Zm179.466 41.695-63.08-36.63L161.73 77.86a.819.819 0 0 1 .768 0l52.233 30.184a48.6 48.6 0 0 1-7.316 87.635v-61.391a8.544 8.544 0 0 0-4.4-7.213Zm21.742-32.69-1.535-.922-51.619-30.081a8.39 8.39 0 0 0-8.492 0L99.98 99.808V74.587a.716.716 0 0 1 .307-.665l52.233-30.133a48.652 48.652 0 0 1 72.236 50.391v.205ZM88.061 139.097l-21.845-12.585a.87.87 0 0 1-.41-.614V65.685a48.652 48.652 0 0 1 79.757-37.346l-1.535.87-51.67 29.825a8.595 8.595 0 0 0-4.246 7.367l-.051 72.697Zm11.868-25.58 28.138-16.217 28.188 16.218v32.434l-28.086 16.218-28.188-16.218-.052-32.434Z" /></svg></div>
+          <div id="kunden-lt1" class="lbl in" style="left: 60px; top: 834px; width: 300px; height: 50px; font-size: 46px">OpenAI</div>
+          <div id="kunden-t2" class="tile in" style="left: 120px; top: 1010px; width: 180px; height: 180px"><svg width="116" height="116" viewBox="0 0 24 24"><path fill="#1c1c1c" fill-rule="evenodd" d="M13.827 3.52h3.603L24 20h-3.603l-6.57-16.48zm-7.258 0h3.767L16.906 20h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm4.132 9.959L8.453 7.687 6.205 13.48H10.7z" /></svg></div>
+          <div id="kunden-lt2" class="lbl in" style="left: 60px; top: 1214px; width: 300px; height: 50px; font-size: 46px">Anthropic</div>
+          <div id="kunden-lt3" class="lbl sm a in" style="left: 60px; top: 1268px; width: 300px; height: 40px; font-size: 30px">für Claude</div>
+          <div id="kunden-c1" class="card in" style="left: 546px; top: 845px; width: 406px; height: 150px"><img src="assets/logos/coreweave_logo.png" alt="CoreWeave" style="width: 326px" /></div>
+          <svg id="kunden-svg" viewBox="0 0 1080 1920">
+            <g transform="translate(-30 0)">
+            <path id="kunden-a1" pathLength="1" class="ink" d="M356 720 C520 720 720 730 740 818" />
+            <path id="kunden-a1h" pathLength="1" class="ink" d="M714 796 L741 826 L764 792" />
+            <path id="kunden-k1" pathLength="1" class="ink accent" style="stroke-width: 10" d="M470 656 L492 678 L532 632" />
+            <path id="kunden-a2" pathLength="1" class="ink" d="M356 1100 C520 1100 720 1104 740 1030" />
+            <path id="kunden-a2h" pathLength="1" class="ink" d="M714 1052 L741 1022 L764 1056" />
+            <path id="kunden-k2" pathLength="1" class="ink accent" style="stroke-width: 10" d="M470 1170 L492 1192 L532 1146" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <script>
+        {
+          // cues are voiceover seconds (prep/voiceover.words.json); the voiceover plays at RATE, T() gives scene-local time
+          const VO0 = 49.016666;
+          const RATE = 1.1;
+          const DUR = 7.266667;
+          const T = (vo) => Math.max(0, Math.round(((vo - VO0) / RATE) * 1000) / 1000);
+          const tl = gsap.timeline({ paused: true });
+          const pop = (target, vo) => tl.fromTo(target, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2)" }, T(vo));
+          const rise = (target, vo) => tl.fromTo(target, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, T(vo));
+          const slide = (target, vo, x = -60) => tl.fromTo(target, { x, opacity: 0 }, { x: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, T(vo));
+          const draw = (target, vo, duration = 0.4) => {
+            tl.set(target, { opacity: 1 }, T(vo));
+            tl.fromTo(target, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration, ease: "power2.out" }, T(vo));
+          };
+          const fade = (target, vo, to = 0) => tl.to(target, { opacity: to, duration: 0.25, ease: "power1.out" }, T(vo));
+          const leave = () => tl.to("#kunden-art", { opacity: 0, duration: 0.18, ease: "power1.in" }, DUR - 0.2);
+
+          pop("#kunden-t1", 49.1); // "OpenAI"
+          rise("#kunden-lt1", 49.2);
+          rise("#kunden-h1", 50.72); // "Rechenkapazität"
+          draw("#kunden-a1", 51.62, 0.45); // "bei"
+          draw("#kunden-a1h", 52, 0.12);
+          pop("#kunden-c1", 51.84); // "CoreWeave"
+          rise("#kunden-h2", 52.38); // "gesichert"
+          draw("#kunden-k1", 52.38, 0.25);
+          pop("#kunden-t2", 53.48); // "Anthropic"
+          rise("#kunden-lt2", 53.56);
+          draw("#kunden-a2", 54.26, 0.45); // "dort Kapazität"
+          draw("#kunden-a2h", 54.64, 0.12);
+          rise("#kunden-lt3", 55.5); // "für seine AI Claude"
+          draw("#kunden-k2", 56.2, 0.25); // "gebucht"
+          leave();
+          window.__timelines["kunden"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

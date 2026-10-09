@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>__TITLE__</title>
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #0a0a0a;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .take {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .layer {
+        position: absolute;
+        inset: 0;
+        z-index: 100;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="__TOTAL__" data-width="1080" data-height="1920" data-fps="30">
+      <!-- voice: the hook take and the voiceover feed this bus -->
+      <hf-audio-group id="voice" data-label="Stimme" data-volume="1" data-fx-chain="__VOICE_CHAIN__"></hf-audio-group>
+
+      <!-- a-roll: the hook take, the only time the speaker is on screen -->
+      <video id="take-01" class="clip take" src="assets/playback/__TAKE__.mp4" data-label="__HOOK_LABEL__" data-start="0" data-duration="__HOOK_DUR__" data-media-start="__HOOK_IN__" data-track-index="0" playsinline data-has-audio="true" data-volume="1" data-audio-group="voice" data-fx-chain="__HOOK_CHAIN__"></video>
+
+      <!-- board: the backdrop of every graphic scene, cut in when the take ends -->
+      <div id="backdrop" class="clip layer" data-label="Tafel" data-composition-id="backdrop" data-composition-src="compositions/backdrop.html" data-start="__HOOK_DUR__" data-duration="__BACK_DUR__" data-track-index="1" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+
+      <!-- graphics: the text hook on the band, one scene per passage of the voiceover, the closing card -->
+      <div id="hook" class="clip layer" data-label="Hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-start="0" data-duration="__HOOK_DUR__" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+__HOSTS__
+      <div id="outro" class="clip layer" data-label="Gemhog · gemhog.com" data-composition-id="outro" data-composition-src="compositions/outro.html" data-start="__OUTRO_AT__" data-duration="__OUTRO_DUR__" data-track-index="2" data-track-kind="graphics" data-width="1080" data-height="1920"></div>
+
+      <!-- captions: the single caption track -->
+      <div id="captions" class="clip layer" data-label="Captions" data-composition-id="captions" data-composition-src="compositions/captions.html" data-start="0" data-duration="__TOTAL__" data-track-index="3" data-track-kind="captions" data-width="1080" data-height="1920"></div>
+
+      <!-- voiceover: joins after its own copy of the hook question, sped up with the pitch kept -->
+      <audio id="voiceover" class="clip" data-label="Voiceover" src="assets/__VO_FILE__" data-start="__VO_START__" data-duration="__VO_DUR__" data-media-start="__VO_IN__" data-playback-rate="__RATE__" data-track-index="10" data-volume="1" data-audio-group="voice"></audio>
+
+      <!-- sound effects: a pop or swoosh on a few entrances, kept quiet -->
+__SFX__
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

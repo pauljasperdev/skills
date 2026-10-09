@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        #captions-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* caption box: x 100, y 1500, 880 x 180; each phrase sits in a card that hugs it */
+        #captions-box {
+          position: absolute;
+          left: 100px;
+          top: 1500px;
+          width: 880px;
+          height: 180px;
+        }
+        #captions-box .cg {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+        }
+        #captions-box .cb {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          column-gap: 0.26em;
+          max-width: 872px;
+          padding: 12px 34px 16px;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          font-size: 58px;
+          line-height: 1.16;
+          letter-spacing: -0.01em;
+          text-align: center;
+          color: #1c1c1c;
+        }
+        /* a word and the words joined to it with a trailing "-" never wrap apart */
+        #captions-box .nb {
+          display: flex;
+          white-space: nowrap;
+        }
+        #captions-box .cw {
+          display: block;
+          color: #1c1c1c;
+        }
+      </style>
+
+      <div id="captions-root" data-composition-id="captions" data-width="1080" data-height="1920" data-duration="__TOTAL__">
+        <div id="captions-box">
+__MARKUP__
+        </div>
+      </div>
+
+      <script>
+        {
+          // one entry per phrase: s = start, e = end, w = start of each word (root seconds); written by short.py from prep/captions.txt
+          const GROUPS = __GROUPS__;
+          const INK = "#1c1c1c";
+          const TEAL = "#0d9488";
+          const tl = gsap.timeline({ paused: true });
+          GROUPS.forEach((g, gi) => {
+            const el = document.getElementById("cg-" + gi);
+            tl.set(el, { opacity: 1, visibility: "visible" }, g.s);
+            g.w.forEach((t, wi) => {
+              const word = document.getElementById("cw-" + gi + "-" + wi);
+              tl.set(word, { color: TEAL }, t);
+              if (wi + 1 < g.w.length) tl.set(word, { color: INK }, g.w[wi + 1]);
+            });
+            tl.set(el, { opacity: 0, visibility: "hidden" }, g.e);
+          });
+          window.__timelines["captions"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

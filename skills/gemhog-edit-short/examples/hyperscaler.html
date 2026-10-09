@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+
+        #hyperscaler-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* graphics sit between the top rail (y 265) and the caption box (y 1500) */
+        #hyperscaler-art {
+          position: absolute;
+          inset: 0;
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-transform: uppercase;
+          color: #1c1c1c;
+        }
+        #hyperscaler-art .in {
+          opacity: 0;
+        }
+        #hyperscaler-art .a {
+          color: #0d9488;
+        }
+        #hyperscaler-art .h {
+          position: absolute;
+          left: 90px;
+          top: 356px;
+          width: 900px;
+          font-size: 96px;
+          line-height: 0.98;
+          letter-spacing: -0.025em;
+          text-align: center;
+        }
+        #hyperscaler-art .h .ln {
+          display: block;
+          white-space: nowrap;
+        }
+        /* a label: place it with left/top/width/height, size it with font-size */
+        #hyperscaler-art .lbl {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        #hyperscaler-art .sm {
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
+        #hyperscaler-art .card,
+        #hyperscaler-art .tile {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+        }
+        #hyperscaler-art .card img {
+          display: block;
+          height: auto;
+        }
+        #hyperscaler-art .tile svg {
+          display: block;
+        }
+        #hyperscaler-svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+        /* strokes that draw on */
+        #hyperscaler-svg .ink {
+          fill: none;
+          stroke: #1c1c1c;
+          stroke-width: 7;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          opacity: 0;
+        }
+        #hyperscaler-svg .accent {
+          stroke: #0d9488;
+        }
+        #hyperscaler-svg .warn {
+          stroke: #dc2626;
+        }
+
+        #hyperscaler-art .row {
+          position: absolute;
+          left: 90px;
+          width: 892px;
+          height: 116px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 44px;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          font-size: 30px;
+          letter-spacing: 0.14em;
+        }
+        #hyperscaler-art .row img {
+          display: block;
+          width: auto;
+        }
+        #hyperscaler-chips {
+          position: absolute;
+          left: 90px;
+          top: 980px;
+          width: 900px;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 20px 18px;
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          font-size: 44px;
+          letter-spacing: 0.06em;
+        }
+        #hyperscaler-chips .chip {
+          display: block;
+          height: 88px;
+          padding: 0 28px;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          line-height: 78px;
+          white-space: nowrap;
+        }
+        #hyperscaler-chips .ai {
+          padding: 0 36px;
+          background: #0d9488;
+          box-shadow: 8px 8px 0 #1c1c1c;
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          font-size: 50px;
+          letter-spacing: -0.01em;
+          color: #ffffff;
+        }
+      </style>
+
+      <div id="hyperscaler-root" data-composition-id="hyperscaler" data-width="1080" data-height="1920" data-duration="9.366666">
+        <div id="hyperscaler-art">
+          <div id="hyperscaler-r1" class="row in" style="top: 372px"><img src="assets/logos/aws_logo_960.png" alt="AWS" style="height: 74px" /><span>Amazon</span></div>
+          <div id="hyperscaler-r2" class="row in" style="top: 510px"><img src="assets/logos/microsoft_logo_960.png" alt="Microsoft" style="height: 56px" /><span>Microsoft</span></div>
+          <div id="hyperscaler-r3" class="row in" style="top: 648px"><img src="assets/logos/google_cloud_logo_960.png" alt="Google Cloud" style="height: 54px" /><span>Google</span></div>
+          <div class="h" style="top: 816px; font-size: 128px"><span id="hyperscaler-h1" class="ln a in">Hyperscaler</span></div>
+          <div id="hyperscaler-chips">
+            <span class="chip t in">Online-Shops</span>
+            <span class="chip t in">Datenbanken</span>
+            <span class="chip t in">Video-Streaming</span>
+            <span class="chip t in">E-Mail</span>
+            <span class="chip t in">Websites</span>
+            <span class="chip t in">Speicher</span>
+            <span class="chip t in">Apps</span>
+            <span id="hyperscaler-ai" class="chip ai in">AI</span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        {
+          // cues are voiceover seconds (prep/voiceover.words.json); the voiceover plays at RATE, T() gives scene-local time
+          const VO0 = 28.52;
+          const RATE = 1.1;
+          const DUR = 9.366666;
+          const T = (vo) => Math.max(0, Math.round(((vo - VO0) / RATE) * 1000) / 1000);
+          const tl = gsap.timeline({ paused: true });
+          const pop = (target, vo) => tl.fromTo(target, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2)" }, T(vo));
+          const rise = (target, vo) => tl.fromTo(target, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, T(vo));
+          const slide = (target, vo, x = -60) => tl.fromTo(target, { x, opacity: 0 }, { x: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, T(vo));
+          const draw = (target, vo, duration = 0.4) => {
+            tl.set(target, { opacity: 1 }, T(vo));
+            tl.fromTo(target, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration, ease: "power2.out" }, T(vo));
+          };
+          const fade = (target, vo, to = 0) => tl.to(target, { opacity: to, duration: 0.25, ease: "power1.out" }, T(vo));
+          const leave = () => tl.to("#hyperscaler-art", { opacity: 0, duration: 0.18, ease: "power1.in" }, DUR - 0.2);
+
+          slide("#hyperscaler-r1", 30.38); // "Amazon"
+          slide("#hyperscaler-r2", 31.1); // "Microsoft"
+          slide("#hyperscaler-r3", 31.96); // "Google"
+          pop("#hyperscaler-h1", 33.32); // "Hyperscaler"
+          // "für ganz unterschiedliche Aufgaben"
+          tl.fromTo("#hyperscaler-chips .t", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)", stagger: 0.15 }, T(35.04));
+          pop("#hyperscaler-ai", 37.5); // "Auch für AI"
+          tl.to("#hyperscaler-chips .t", { opacity: 0.35, duration: 0.25 }, T(37.5));
+          leave();
+          window.__timelines["hyperscaler"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

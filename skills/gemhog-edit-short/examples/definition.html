@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+
+        #definition-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* graphics sit between the top rail (y 265) and the caption box (y 1500) */
+        #definition-art {
+          position: absolute;
+          inset: 0;
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          text-transform: uppercase;
+          color: #1c1c1c;
+        }
+        #definition-art .in {
+          opacity: 0;
+        }
+        #definition-art .a {
+          color: #0d9488;
+        }
+        #definition-art .h {
+          position: absolute;
+          left: 90px;
+          top: 356px;
+          width: 900px;
+          font-size: 96px;
+          line-height: 0.98;
+          letter-spacing: -0.025em;
+          text-align: center;
+        }
+        #definition-art .h .ln {
+          display: block;
+          white-space: nowrap;
+        }
+        /* a label: place it with left/top/width/height, size it with font-size */
+        #definition-art .lbl {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          white-space: nowrap;
+        }
+        #definition-art .sm {
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
+        #definition-art .card,
+        #definition-art .tile {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4px solid #1c1c1c;
+          background: #ffffff;
+          box-shadow: 8px 8px 0 #1c1c1c;
+        }
+        #definition-art .card img {
+          display: block;
+          height: auto;
+        }
+        #definition-art .tile svg {
+          display: block;
+        }
+        #definition-svg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+        /* strokes that draw on */
+        #definition-svg .ink {
+          fill: none;
+          stroke: #1c1c1c;
+          stroke-width: 7;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          opacity: 0;
+        }
+        #definition-svg .accent {
+          stroke: #0d9488;
+        }
+        #definition-svg .warn {
+          stroke: #dc2626;
+        }
+      </style>
+
+      <div id="definition-root" data-composition-id="definition" data-width="1080" data-height="1920" data-duration="5.6">
+        <div id="definition-art">
+          <div class="h" style="font-size: 150px"><span id="definition-h1" class="ln in">Neo Cloud</span></div>
+          <svg id="definition-svg" viewBox="0 0 1080 1920">
+            <g transform="translate(-11 0)">
+            <path id="definition-cloud" pathLength="1" class="ink" d="M300 1010 C215 1010 170 950 190 885 C205 830 260 800 310 810 C325 730 400 680 480 700 C530 640 650 640 700 715 C790 700 870 760 860 850 C920 870 930 960 880 995 C850 1012 820 1010 790 1010 Z" />
+            <rect id="definition-chip" pathLength="1" class="ink" x="475" y="775" width="150" height="150" />
+            <path id="definition-pins" pathLength="1" class="ink" d="M510 775 V745 M550 775 V745 M590 775 V745 M510 925 V955 M550 925 V955 M590 925 V955 M475 810 H445 M475 850 H445 M475 890 H445 M625 810 H655 M625 850 H655 M625 890 H655" />
+            </g>
+            <path id="definition-line" pathLength="1" class="ink accent" style="stroke-width: 10" d="M356 1340 H724" />
+          </svg>
+          <div id="definition-ki" class="lbl a in" style="left: 464px; top: 775px; width: 150px; height: 150px; font-size: 76px">KI</div>
+          <div id="definition-l1" class="lbl in" style="left: 90px; top: 1086px; width: 900px; height: 78px; font-size: 74px">Rechenleistung</div>
+          <div id="definition-l2" class="lbl a in" style="left: 90px; top: 1168px; width: 900px; height: 78px; font-size: 74px">speziell für KI</div>
+          <div id="definition-l3" class="lbl in" style="left: 90px; top: 1250px; width: 900px; height: 78px; font-size: 74px">zur Miete</div>
+        </div>
+      </div>
+
+      <script>
+        {
+          // cues are voiceover seconds (prep/voiceover.words.json); the voiceover plays at RATE, T() gives scene-local time
+          const VO0 = 2.373;
+          const RATE = 1.1;
+          const DUR = 5.6;
+          const T = (vo) => Math.max(0, Math.round(((vo - VO0) / RATE) * 1000) / 1000);
+          const tl = gsap.timeline({ paused: true });
+          const pop = (target, vo) => tl.fromTo(target, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(2)" }, T(vo));
+          const rise = (target, vo) => tl.fromTo(target, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, T(vo));
+          const slide = (target, vo, x = -60) => tl.fromTo(target, { x, opacity: 0 }, { x: 0, opacity: 1, duration: 0.36, ease: "power3.out" }, T(vo));
+          const draw = (target, vo, duration = 0.4) => {
+            tl.set(target, { opacity: 1 }, T(vo));
+            tl.fromTo(target, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration, ease: "power2.out" }, T(vo));
+          };
+          const fade = (target, vo, to = 0) => tl.to(target, { opacity: to, duration: 0.25, ease: "power1.out" }, T(vo));
+          const leave = () => tl.to("#definition-art", { opacity: 0, duration: 0.18, ease: "power1.in" }, DUR - 0.2);
+
+          pop("#definition-h1", 2.78); // "Neo-Cloud"
+          draw("#definition-cloud", 3.12, 0.9); // "ist ein Anbieter"
+          draw("#definition-chip", 4.74, 0.4); // "Rechenleistung"
+          draw("#definition-pins", 4.9, 0.4);
+          rise("#definition-l1", 4.74);
+          rise("#definition-l2", 5.48); // "speziell"
+          pop("#definition-ki", 6.34); // "künstliche Intelligenz"
+          tl.to("#definition-chip", { stroke: "#0d9488", duration: 0.2 }, T(6.34));
+          rise("#definition-l3", 7.4); // "vermietet"
+          draw("#definition-line", 7.56, 0.3);
+          leave();
+          window.__timelines["definition"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>
