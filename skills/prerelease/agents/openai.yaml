@@ -1,0 +1,7 @@
+interface:
+  display_name: "Prerelease"
+  short_description: "Prepare the dev-to-pre promotion PR"
+  default_prompt: "Use $prerelease to prepare the promotion PR to pre, explaining the actual changes and reporting the dev deployment state."
+
+policy:
+  allow_implicit_invocation: false

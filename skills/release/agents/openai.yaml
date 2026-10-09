@@ -1,7 +1,7 @@
 interface:
   display_name: "Release"
-  short_description: "Prepare a versioned release PR with release notes"
-  default_prompt: "Use $release to prepare the patch version bump and a release PR to main explaining the actual changes, deployment requirements, and validation."
+  short_description: "Prepare the pre-to-main release PR"
+  default_prompt: "Use $release to prepare the release PR to main, explaining the actual changes and reporting the candidate version and pre deployment state."
 
 policy:
   allow_implicit_invocation: false
