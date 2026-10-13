@@ -18,12 +18,13 @@ The Content Backlog is a kanban board. An idea's `Status` names what it **has**,
 | Researched | a reviewed **Report** | `gemhog-research`, on its own |
 | Skript | **Skript**, ElevenLabs-Fassung and Videobeschreibung in wording Paul confirmed | `gemhog-script`, when Paul confirms |
 | Voiceover | `voiceover.mp3` in its folder | `gemhog-voiceover`, on its own |
-| Ready to edit | the hook take in its folder too | Paul |
-| Veröffentlicht | been published | Paul |
+| Ready to post | the exported short in its folder | `gemhog-edit-short`, on export |
+| Queued | its posts in the Buffer queue of the three channels | `gemhog-publish`, when Paul orders it |
 
 - An idea waits in its column until the next one is earned: Videoansätze or a Skript draft that Paul has yet to confirm are still in Researched.
 - Read the board with `query_data_sources` in `mode: "rows"`, filtered on `Status`. Its SQL mode answers from a stale copy.
-- `gemhog-edit-short` takes the ideas in Ready to edit and leaves them there; the exported short waits for publishing.
+- Between Voiceover and Ready to post lies Paul's one step by hand: he records the hook take. `gemhog-edit-short` finds it.
+- Queued is the last column. Buffer publishes from its queue, and nobody keeps a column for what has gone out.
 
 ## Reference
 

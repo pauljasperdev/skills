@@ -57,22 +57,27 @@
         #backdrop-brand span {
           color: #0d9488;
         }
-        /* the voiceover is an AI voice: the notice sits bottom-right, under the caption box, for as long as it speaks */
-        #backdrop-ai {
+        /* two notices at the very top of the frame, left and right: the short explains and does not advise, and its voice is an AI voice */
+        #backdrop-notes {
           position: absolute;
-          left: 590px;
-          top: 1716px;
-          width: 400px;
+          left: 90px;
+          top: 48px;
+          width: 900px;
           height: 34px;
+          display: flex;
+          justify-content: space-between;
           font-family: "DM Sans", sans-serif;
           font-weight: 700;
           font-size: 24px;
           line-height: 34px;
           letter-spacing: 0.16em;
-          text-align: right;
           text-transform: uppercase;
           white-space: nowrap;
           color: #555555;
+        }
+        /* the tracking after the last letter would push the line off the right margin */
+        #backdrop-ai {
+          margin-right: -0.16em;
         }
         #backdrop-rail {
           position: absolute;
@@ -88,7 +93,10 @@
         <div id="backdrop-board">
           <div id="backdrop-glow" data-layout-allow-overflow></div>
           <div id="backdrop-brand">Gemhog<span>.</span></div>
-          <div id="backdrop-ai">KI-generiert</div>
+          <div id="backdrop-notes">
+            <div id="backdrop-legal">Keine Anlageberatung</div>
+            <div id="backdrop-ai">KI-generiert</div>
+          </div>
           <div id="backdrop-rail"></div>
         </div>
       </div>

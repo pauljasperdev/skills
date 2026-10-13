@@ -39,18 +39,24 @@ handoff text, not instructions to execute during the audit.
   leave unassigned work visible without expanding the audit's authority.
 - Read applicable `AGENTS.md`/`CLAUDE.md`, local Effect guidance, and relevant
   domain documentation and ADRs when present. Record the chosen frameworks,
-  persistence adapters, deployment model, and resource lifetimes.
+  persistence adapters, deployment model, resource lifetimes, and any configured
+  Effect language-service or lint diagnostics.
 - Resolve each affected package's installed Effect version, checking manifests
   and lockfiles for declared intent. Read bundled Effect agent guidance once and
   follow relevant examples; settle API questions against that installed source.
   For missing source, seek version-matched upstream evidence read-only and report
   remaining gaps. `$effect` targets v4: recommendations for older majors must use
   available APIs or be explicitly classified as migrations.
+- For the intended semantics and trade-offs of a v4 facility, read the matching
+  official guide: every page under `https://effect.website/docs/v4/` is served
+  as markdown when `.md` is appended to its URL. Cite the guide page alongside
+  the installed source when a finding rests on documented behavior.
 
 Project conventions govern integration and naming; installed source governs API
-availability and semantics. Separate any proposal to revisit a convention or ADR
-from an established violation. Neither the audit nor its prompts imply a library
-upgrade or framework replacement.
+availability and semantics, including where a guide's name differs from it.
+Separate any proposal to revisit a convention or ADR from an established
+violation. Neither the audit nor its prompts imply a library upgrade or framework
+replacement.
 
 **Done when:** scope boundaries, supplied candidates, resolved versions, governing
 guidance, runtime constraints, and evidence gaps are recorded. If Effect usage is

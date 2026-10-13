@@ -13,7 +13,7 @@ Re-read the original request and explicit user decisions, then inspect the imple
 
 Check each addition against the request: does it deliver requested behavior, preserve an affected existing contract, or verify the change? What would fail or remain unsolved without it? Remove clearly unrequested behavior and speculative machinery introduced by this implementation. If intent or necessity is unclear, ask the user before changing that part; do not guess in favor of adding or deleting behavior.
 
-Prefer deletion, straightforward control flow, and existing repository or library capabilities. Extra abstractions, dependencies, options, fallbacks, and future-proofing need demonstrated necessity for the original task. Simplify the scoped implementation; architectural taste or a nearby smell does not authorize adjacent cleanup.
+Prefer deletion, straightforward control flow, and existing repository or library capabilities. Extra abstractions, dependencies, options, fallbacks, and future-proofing need demonstrated necessity for the original task. Simplify the scoped implementation; architectural taste or a nearby smell does not authorize adjacent cleanup. When Effect code shows a practice mismatch that recurs beyond the implementation, leave it in place and name it in the report with a hint to run `$audit-effect`.
 
 Add code only to close a verified gap in the original request or preserve an affected contract. Keep required error handling, validation, compatibility, and tests. Reduce lines by eliminating unnecessary machinery, not by making code cryptic or weakening functional correctness. Leave unrelated user-owned changes alone.
 

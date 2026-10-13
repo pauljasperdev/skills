@@ -30,7 +30,9 @@ The user's latest correction outranks a supplied reference, which outranks the d
 
 `start <NNN> ~/Movies/rec/<take>.mp4 …` creates the folder, copies the takes, scaffolds the HyperFrames project and brief, transcribes, and drafts `prep/cutlist.json` and `prep/edit.json`. A recording that is its own topic gets its own folder; several takes of one piece share a folder.
 
-Done when it has printed the speech regions of every take.
+Then clear the takes out of `~/Movies/rec`, so that folder holds only recordings no short has taken yet: delete each original once `cmp -s` shows its copy in `<NNN>/` is identical. An earlier attempt that goes unused still belongs to the piece: copy it into the folder with the others and delete it from `rec` the same way. Leave every recording that has no identical copy.
+
+Done when it has printed the speech regions of every take and `rec` no longer holds them.
 
 ### 2. Choose the takes
 
@@ -110,10 +112,10 @@ Done when it prints three `PASS` lines. Publishing is the `publish-short` skill.
 
 **The band** is where the hook and every graphic sit: the speaker's forehead, visual centre at x 540, y 640 (the one-third line), up to 940 px wide and about 280 px tall. Its lower edge stays above the eyes for as long as the graphic is on screen. When the speaker sits close and the eyes come up to y 770, raise the block until it ends just above them and no further: it belongs on the face. The user sent it back when it sat on the wall above the head.
 
-**Evidence taller than the band** goes outside it, as large as the frame allows: book covers 400 px wide on either side of the chest (y 850 to 1450, between mouth and caption box), a wide screenshot on the wall above the head with the hook beneath it on the band.
+**Evidence taller than the band** goes outside it, as large as the frame allows: book covers about 330 px wide on either side of the chest (y 850 to 1340, between mouth and caption box), a wide screenshot on the wall above the head with the hook beneath it on the band.
 
 | Element | Default |
 | --- | --- |
 | Hook | Oswald Bold, uppercase, 100 px, white, two lines in one size and colour, visible from the first frame, about 3 s |
 | Type in graphics | Unbounded ExtraBold, uppercase, as large as the band allows and 60 px or more for a heading; its capitals run about 0.85 em wide. Yellow type on skin gets a dark outline (`-webkit-text-stroke: 7px #0d0d0d; paint-order: stroke fill`) |
-| Captions | Inter Bold 64, white, only the spoken word `#FFE500`; box x 100, y 1500, 880 × 180 |
+| Captions | Inter Bold 64, white, only the spoken word `#FFE500`; box x 100, y 1360, 880 × 180, so a two-line caption sits at about y 1415 and 1490. The user raised it from y 1500 on 2026-10-11 against a reference short: lower, the apps' own captions and buttons crowd it |

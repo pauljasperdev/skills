@@ -31,11 +31,15 @@ HyperFrames itself stays in its own skills: `/hyperframes-core` for composition 
 
 ### 1. Start
 
-With no folder named, take the ideas in **Ready to edit** on the board ([gemhog-content](../gemhog-content/SKILL.md) says how to read it); each has its take and `voiceover.mp3` in its folder.
+With no folder named, take the ideas in **Voiceover** on the board ([gemhog-content](../gemhog-content/SKILL.md) says how to read it); each has `voiceover.mp3` in its folder.
+
+**The take** is the folder's one `.mp4`. Paul records the hooks into `~/Movies/rec`, several ideas in a row. For a folder without a take, find the recording, newer than the voiceover, in which he asks that idea's hook question, and copy it in; the recording stays where it is. Name the ideas no recording fits and leave them in Voiceover.
 
 Run `start "<folder>"`. It scaffolds the project, transcribes both files, finds the real edges of the hook from the waveform, finds where the voiceover joins (it usually repeats the hook question first, and joins after that), and drafts `prep/plan.json`, `prep/edit.json` and `prep/captions.txt`. The first `.mp4` by name is the take; `--take STEM --force` picks another.
 
-Done when its first line quotes the hook as spoken in the take, and it has printed the voiceover's sentences.
+A recording often holds the hook twice. `start` then quotes both attempts, cuts across them and misses that the voiceover repeats the hook. Use the last attempt: in `prep/plan.json` set `hook_in` and `hook_dur` to its edges in the waveform, `vo_start` to `hook_dur + 0.25` and `vo_in` to where the voiceover goes on after its own hook question; drop the extra hook lines from `prep/captions.txt`.
+
+Done when its first line quotes the hook as spoken in the take, once, and it has printed the voiceover's sentences.
 
 ### 2. Plan the scenes
 
@@ -81,7 +85,7 @@ A scene keeps the cue times it was written with; the script rewrites only its cl
 
 On request only: `export` renders `<folder>/<folder name>.mp4` and prints the same lines as the draft.
 
-Done when every line says `PASS`, or each `FAIL` is explained to the user.
+Done when every line says `PASS`, or each `FAIL` is explained to the user, and the idea's `Status` is **Ready to post**.
 
 Then bring the **Videobeschreibung** draft on the idea's page up to date when the edit used something that needs a credit, such as music or footage.
 
@@ -92,8 +96,8 @@ Then bring the **Videobeschreibung** draft on the idea's page up to date when th
 | Element | Default |
 | --- | --- |
 | Hook | two boxed Urbanist labels on the speaker's forehead, centre (540, 640): teal on top, white below; lower edge above the eyes |
-| Board | paper `#f5f5f0`, a still teal tint, `GEMHOG.` top-left over an ink rule, `KI-generiert` bottom-right under the caption box; nothing on it moves. The notice is the EU's label for the AI voice and stays in every short |
-| Scenes | heading at y 356, graphic between y 560 and 1400, both centred |
-| Captions | DM Sans Bold 58 in a white card at y 1500–1680, the spoken word teal |
+| Board | paper `#f5f5f0`, a still teal tint, the notices `Keine Anlageberatung` and `KI-generiert` at the very top, left and right, `GEMHOG.` below them over an ink rule; nothing on it moves. The first notice says the short explains and does not advise, the second is the EU's label for the AI voice; both stay in every short. The user wanted them at the very top on 2026-10-11, away from the captions and out of the wordmark's line |
+| Scenes | heading at y 356, graphic between y 560 and 1350, both centred |
+| Captions | DM Sans Bold 58 in a white card at y 1370–1550, the spoken word teal. The user moved them up from y 1500 on 2026-10-11, to where his other shorts carry them |
 | Card | `GEMHOG.` and `gemhog.com` for 0.8 s, right after the last word |
 | Sound | pops at 0.2 and swooshes at 0.35 from `media/sound/`; no music |

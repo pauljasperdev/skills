@@ -452,11 +452,11 @@ def write_captions(prep, hf, total):
           position: absolute;
           inset: 0;
         }}
-        /* caption box: x 100, y 1500, 880 x 180 */
+        /* caption box: x 100, y 1360, 880 x 180 */
         #captions-box {{
           position: absolute;
           left: 100px;
-          top: 1500px;
+          top: 1360px;
           width: 880px;
           height: 180px;
         }}

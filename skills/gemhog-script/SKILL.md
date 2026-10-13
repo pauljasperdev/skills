@@ -58,7 +58,7 @@ Done when a word-by-word comparison with the Skript shows only tags, breaks, `â€
 
 ### 6. Videobeschreibung
 
-A draft, one text for YouTube, Instagram and TikTok, written now while the sources are at hand:
+A draft, one text for YouTube, Instagram and TikTok, written now while the sources are at hand. It stays under 2,200 characters, Instagram's limit, with every source in it: Paul calls the sources the most important part (2026-10-10), so a text that runs long is cut in the market-data paragraph, never in the source list.
 
 - the title question and two or three sentences on what the video explains;
 - for a spoken market figure, its Stichtag and what it measures and leaves out;
@@ -68,7 +68,7 @@ A draft, one text for YouTube, Instagram and TikTok, written now while the sourc
 
 It stays a draft: the edit adds credits for music or footage it used.
 
-Done when every factual sentence of the Skript finds its source in the list.
+Done when every factual sentence of the Skript finds its source in the list and the text counts under 2,200 characters.
 
 ### 7. Check
 

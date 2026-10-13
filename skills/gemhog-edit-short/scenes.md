@@ -8,11 +8,11 @@ A scene illustrates one passage of the voiceover on the board. Each element ente
 
 | Zone | y | Holds |
 | --- | --- | --- |
+| Notices | 48–82 | `Keine Anlageberatung` left and `KI-generiert` right, at the very top; drawn by the board |
 | Header | 196–265 | wordmark and rule, drawn by the board |
 | Heading | from 356 | `.h`, one or two lines, centred |
-| Graphic | 560–1400 | the diagram, centred on x 540 |
-| Captions | 1500–1680 | the caption card |
-| Notice | 1716–1750 | `KI-generiert`, right-aligned, drawn by the board |
+| Graphic | 560–1350 | the diagram, centred on x 540 |
+| Captions | 1370–1550 | the caption card, centred at three quarters of the height |
 
 Centre every group on x 540: add up its left and right edges, including an 8 px card shadow. Text stays left-set only where it sits beside an object (a label right of a server stack) or names a chart axis.
 
