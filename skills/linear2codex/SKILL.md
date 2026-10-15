@@ -1,6 +1,6 @@
 ---
 name: linear2codex
-description: Open or preview Linear issue examinations in Codex T3 worktree threads, using a requested model or the GPT-6 Astra/high default. Use when dispatching Linear work to Codex; handoff2codex handles an already examined worktree.
+description: Open or preview Linear issue examinations in Codex T3 worktree threads, using a requested model or the GPT-6 Astra/high default. Use when dispatching Linear work to Codex.
 ---
 
 # Linear to Codex

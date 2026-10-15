@@ -1,4 +1,4 @@
 interface:
   display_name: "Examine Work"
   short_description: "Read-only work design and plain-language review"
-  default_prompt: "Use $examine-work to investigate the work described in my prompt read-only and report the problem, proposed solution, core approach with key code, verification, and a brief plain-language summary."
+  default_prompt: "Use $examine-work to investigate the work described in my prompt read-only and report the problem, proposed solution, decisions to discuss, core approach with key code and diagrams, verification, and a brief plain-language summary."

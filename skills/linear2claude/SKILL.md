@@ -1,6 +1,6 @@
 ---
 name: linear2claude
-description: Open or preview Linear issue examinations in Claude T3 worktree threads, using a requested model or the Claude Fable/high default. Use when dispatching Linear work to Claude; handoff2codex handles an already examined worktree.
+description: Open or preview Linear issue examinations in Claude T3 worktree threads, using a requested model or the Claude Fable/high default. Use when dispatching Linear work to Claude.
 ---
 
 # Linear to Claude
