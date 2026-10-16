@@ -1,6 +1,7 @@
 ---
 name: improve
-description: Second pass over a just-completed implementation that re-solves the problem with fresh eyes and cuts what the solution doesn't need. Use after implementing; not for read-only review or repository-wide cleanup.
+description: Second pass with fresh eyes over code just implemented, re-solving the problem and cutting what the solution doesn't need.
+disable-model-invocation: true
 metadata:
   opencode/autoinvoke: "false"
 ---
@@ -13,24 +14,26 @@ A second pass with fresh eyes. The first pass made it work; this one asks whethe
 
 Restate the human's goal and each problem the implementation addresses, as outcomes. For each, sketch the smallest solution you would write today, knowing what you now know about the codebase, before reopening the diff. Lean on what already exists: for every safeguard, check whether an existing mechanism, rule, or library capability already covers that risk. For a ten-line fix this takes a minute; for a large change, have a subagent that has not seen the implementation write the sketch from the request alone.
 
-Then compare the sketch with what was built. Every material difference (an extra mechanism, column, option, retry path, or hand-written version of something generated) is a cut candidate. A large diff for a few problems is a signal in itself.
+Then compare the sketch with what was built. Every material difference (an extra mechanism, column, option, retry path, or hand-written version of something generated) is a cut candidate. A large diff for a few problems is a signal in itself. The step is done when every problem has a sketch and every difference is listed as a candidate.
 
 ## 2. Cut
 
 Agreed designs are cut candidates too: the human approved an outcome, not every mechanism serving it.
 
-- **Apply** cuts that keep the behavior the human asked for: unrequested or speculative additions, a smaller mechanism with the same outcome, code the change superseded or orphaned, and redundant tests or docs.
-- **Propose** cuts that change agreed behavior, drop something the human explicitly asked for, or whose necessity is unclear. Give each its trade-off and let the human decide.
+- **Apply** cuts to what the human never agreed to: unrequested or speculative additions, smaller equivalents of mechanisms you chose on your own, code the change superseded or orphaned, and redundant tests or docs.
+- **Propose** cuts to anything the human agreed to, whether behavior or mechanism, and to anything whose necessity is unclear. Give each its trade-off and let the human decide.
 
 Apply these lenses where they fit:
 
-- **Superseded code:** trace what the change replaced or disconnected. Before deleting, verify nothing still needs it, including dynamic loading, framework discovery, and external consumers. Keep uncertain candidates and say why.
+- **Superseded code:** trace what the change replaced or disconnected. Before deleting, verify nothing still needs it, including dynamic loading, framework discovery, and external consumers.
 - **UI:** read `$frontend-design` and aim for the smallest interface that makes the task self-explanatory.
 - **Effect:** name practice mismatches that recur beyond the change, leave them in place, and hint at `$audit-effect`.
 
+The step is done when every candidate is applied, proposed, or kept for a stated reason.
+
 ## Guardrails
 
-Keep public contracts, compatibility, historical migrations, and required error handling; when an existing mechanism already provides one, rely on it. Reach fewer lines through less machinery, with code that stays plain and correct. Stay within the implementation and what it supersedes, leaving unrelated user changes as they are. Keep tests for behavior that remains, and rerun the relevant tests, type checks, lint, and build after the pass.
+Keep public contracts, compatibility, historical migrations, and required error handling. Reach fewer lines through less machinery, with code that stays plain and correct. Stay within the implementation and what it supersedes, leaving unrelated user changes as they are. Keep tests for behavior that remains, and rerun the relevant tests, type checks, lint, and build after the pass.
 
 ## Report
 
