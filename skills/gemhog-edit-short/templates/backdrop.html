@@ -39,23 +39,25 @@
           border-radius: 50%;
           background: radial-gradient(circle, rgba(213, 240, 238, 0.95) 0%, rgba(213, 240, 238, 0.55) 40%, rgba(213, 240, 238, 0) 70%);
         }
+        /* the lockup of the media kit: the app mark and the lowercase wordmark */
         #backdrop-brand {
           position: absolute;
           left: 90px;
-          top: 196px;
-          width: 300px;
-          height: 44px;
-          font-family: Urbanist, sans-serif;
-          font-weight: 800;
-          font-size: 40px;
-          line-height: 44px;
-          letter-spacing: -0.02em;
-          text-transform: uppercase;
-          white-space: nowrap;
-          color: #1c1c1c;
+          top: 190px;
+          height: 56px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
         }
-        #backdrop-brand span {
-          color: #0d9488;
+        #backdrop-brand .mark {
+          display: block;
+          width: 56px;
+          height: 56px;
+        }
+        #backdrop-brand .word {
+          display: block;
+          height: 43px;
+          margin-top: 8px;
         }
         /* two notices at the very top of the frame, left and right: the short explains and does not advise, and its voice is an AI voice */
         #backdrop-notes {
@@ -73,31 +75,22 @@
           letter-spacing: 0.16em;
           text-transform: uppercase;
           white-space: nowrap;
-          color: #555555;
+          color: #5b5b55;
         }
         /* the tracking after the last letter would push the line off the right margin */
         #backdrop-ai {
           margin-right: -0.16em;
-        }
-        #backdrop-rail {
-          position: absolute;
-          left: 90px;
-          top: 262px;
-          width: 900px;
-          height: 3px;
-          background: #1c1c1c;
         }
       </style>
 
       <div id="backdrop-root" data-composition-id="backdrop" data-width="1080" data-height="1920" data-duration="__DUR__">
         <div id="backdrop-board">
           <div id="backdrop-glow" data-layout-allow-overflow></div>
-          <div id="backdrop-brand">Gemhog<span>.</span></div>
+          <div id="backdrop-brand"><img class="mark" src="assets/brand/gemhog-app-mark.png" alt="" /><img class="word" src="assets/brand/wordmark-ink.png" alt="gemhog" /></div>
           <div id="backdrop-notes">
             <div id="backdrop-legal">Keine Anlageberatung</div>
             <div id="backdrop-ai">KI-generiert</div>
           </div>
-          <div id="backdrop-rail"></div>
         </div>
       </div>
 

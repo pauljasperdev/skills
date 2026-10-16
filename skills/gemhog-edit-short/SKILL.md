@@ -5,7 +5,7 @@ description: Edit a Gemhog short. Turns one hook take and one voiceover file int
 
 # Edit a Gemhog short
 
-A short is one HyperFrames project at `<folder>/hyperframes/`, built from two files in `<folder>/`: the **take**, an `.mp4` in which the speaker says the hook, and the **voiceover**, one audio file that reads the whole script. The speaker is on screen for the hook only. At the cut the **board** takes over, a page in the gemhog.com look, and one **scene** per passage of the voiceover is drawn on it. A closing **card** with the wordmark and URL ends it.
+A short is one HyperFrames project at `<folder>/hyperframes/`, built from two files in `<folder>/`: the **take**, an `.mp4` in which the speaker says the hook, and the **voiceover**, one audio file that reads the whole script. The speaker is on screen for the hook only. At the cut the **board** takes over, a page in the gemhog.com look, and one **scene** per passage of the voiceover is drawn on it. The **call to action** ends it: a fixed endcard on teal over a fixed recording of the CTA line, the same in every short.
 
 `examples/` holds the eight scenes of the first short, "Was ist eigentlich eine Neo Cloud?". The user approved that look: read two of them before writing a scene.
 
@@ -15,7 +15,7 @@ The mechanics are one script, run from the workspace root. Its docstring lists t
 uv run <this skill's folder>/scripts/short.py <command> "<folder>"
 ```
 
-Every cue (a scene entrance, a sound effect, a caption word) is written in **voiceover seconds**, the times in `prep/voiceover.words.json`. The script maps them onto the timeline through one **clock**, so a trim or a new speed moves scenes, captions, sound effects and the card together.
+Every cue (a scene entrance, a sound effect, a caption word) is written in **voiceover seconds**, the times in `prep/voiceover.words.json`. The script maps them onto the timeline through one **clock**, so a trim or a new speed moves scenes, captions, sound effects and the call to action together.
 
 HyperFrames itself stays in its own skills: `/hyperframes-core` for composition rules and lint gotchas, `/hyperframes-cli` for `check`, `snapshot` and `preview`. `start` writes `BRIEF.md`, which answers the HyperFrames intent interview. Run the CLI at the version `hyperframes/package.json` pins: `npm run check` inside `hyperframes/`.
 
@@ -39,6 +39,8 @@ Run `start "<folder>"`. It scaffolds the project, transcribes both files, finds 
 
 A recording often holds the hook twice. `start` then quotes both attempts, cuts across them and misses that the voiceover repeats the hook. Use the last attempt: in `prep/plan.json` set `hook_in` and `hook_dur` to its edges in the waveform, `vo_start` to `hook_dur + 0.25` and `vo_in` to where the voiceover goes on after its own hook question; drop the extra hook lines from `prep/captions.txt`.
 
+A voiceover from before 2026-10-16 still reads the old call to action at its end. `start` finds it by „Kauf keine Aktien", ends the clip before it (`vo_cut` in `prep/plan.json`), leaves its words out of the scenes and captions, and says so; the fixed call to action follows instead.
+
 Done when its first line quotes the hook as spoken in the take, once, and it has printed the voiceover's sentences.
 
 ### 2. Plan the scenes
@@ -55,7 +57,7 @@ Done when every sentence of the voiceover belongs to a scene and every caption l
 
 ### 3. Assemble
 
-Run `assemble`. It writes `index.html`, the hook, the board, the card and the captions, copies fonts and sounds, and creates a stub in `compositions/` for every scene that has no file yet.
+Run `assemble`. It writes `index.html`, the hook, the board, the call to action and the captions, copies fonts and sounds, and creates a stub in `compositions/` for every scene that has no file yet.
 
 Done when it prints the timeline and names the stubs.
 
@@ -67,7 +69,7 @@ Done when every scene holds a heading and a graphic, and `npm run check` passes.
 
 ### 5. Verify and hand over
 
-1. `sheet` writes contact sheets of the hook, every scene just before it leaves, and the card. Look at each sheet: headings centred, nothing clipped at x 90 or 990, the hook labels above the speaker's eyes, every label readable.
+1. `sheet` writes contact sheets of the hook, every scene just before it leaves, and the call to action twice. Look at each sheet: headings centred, nothing clipped at x 90 or 990, the hook labels above the speaker's eyes, every label readable.
 2. `export --draft` renders `prep/draft.mp4` and prints `PASS` or `FAIL` lines for length, black or dark frames, loudness, and the captions against a transcript of the render. Explain or fix every `FAIL`.
 3. Start Studio with `npx --yes hyperframes@<pinned> preview --background --port 30<NN>` inside `hyperframes/` and give the user the URL.
 
@@ -75,7 +77,7 @@ Report what you looked at and what was only machine-checked. Transcription and l
 
 ### 6. Revise
 
-- **The user trimmed or moved the take or the voiceover in Studio:** `sync`. It reads those clips from `index.html`, keeps every other edit, and moves scenes, captions, sound effects and the card to follow. It also extends the board to the last frame; a board that ends early leaves the card on black.
+- **The user trimmed or moved the take or the voiceover in Studio:** `sync`. It reads those clips from `index.html`, keeps every other edit, and moves scenes, captions, sound effects and the call to action to follow. It also extends the board to the last frame; a board that ends early leaves a gap on black.
 - **A scene boundary, a sound effect or a caption changes:** edit `edit.json` or `captions.txt`, then `sync`.
 - **Anything else** (a label, a position, a level, the speed): edit the HTML, then `sync` when a clip's timing changed. The speed is `data-playback-rate` on `#voiceover`.
 
@@ -95,9 +97,9 @@ Then bring the **Videobeschreibung** draft on the idea's page up to date when th
 
 | Element | Default |
 | --- | --- |
-| Hook | two boxed Urbanist labels on the speaker's forehead, centre (540, 640): teal on top, white below; lower edge above the eyes |
-| Board | paper `#f5f5f0`, a still teal tint, the notices `Keine Anlageberatung` and `KI-generiert` at the very top, left and right, `GEMHOG.` below them over an ink rule; nothing on it moves. The first notice says the short explains and does not advise, the second is the EU's label for the AI voice; both stay in every short. The user wanted them at the very top on 2026-10-11, away from the captions and out of the wordmark's line |
+| Hook | two Urbanist pills on the speaker's forehead, centre (540, 640): teal on top, white below; lower edge above the eyes |
+| Board | paper `#f5f5f0`, a still teal tint, the notices `Keine Anlageberatung` and `KI-generiert` at the very top, left and right, the lockup of the app mark and the lowercase `gemhog` below them, with no rule under it (the user dropped it on 2026-10-16 as clutter); nothing on it moves. The first notice says the short explains and does not advise, the second is the EU's label for the AI voice; both stay in every short. The user wanted them at the very top on 2026-10-11, away from the captions and out of the wordmark's line |
 | Scenes | heading at y 356, graphic between y 560 and 1350, both centred |
-| Captions | DM Sans Bold 58 in a white card at y 1370–1550, the spoken word teal. The user moved them up from y 1500 on 2026-10-11, to where his other shorts carry them |
-| Card | `GEMHOG.` and `gemhog.com` for 0.8 s, right after the last word |
+| Captions | DM Sans Bold 58 in a rounded white card at y 1370–1550, the spoken word teal. The user moved them up from y 1500 on 2026-10-11, to where his other shorts carry them |
+| Call to action | `templates/outro.html` with `assets/cta/cta.mp3`, 9 s, right after the voiceover's last word: on teal, one phone is built from the app's Strong-takes screen (the bullish take, an open „?" slot, then the bearish take), two more screens fan out behind it, and the `gemhog.de` pill stays at the bottom throughout. The user chose it on 2026-10-16 and placed it 80 px below the first draft, clear of the platforms' top bar. Its cues follow the recording, which plays at 1.1x whatever the voiceover's speed; it carries no captions. The screens come from the media kit with the companies' logos put into the letter tiles |
 | Sound | pops at 0.2 and swooshes at 0.35 from `media/sound/`; no music |

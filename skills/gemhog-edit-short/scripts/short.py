@@ -3,20 +3,23 @@
 # requires-python = ">=3.11"
 # dependencies = ["numpy", "mlx-whisper"]
 # ///
-"""Mechanics for the gemhog-edit-short skill: a hook take, a voiceover, graphic scenes, captions, a closing card.
+"""Mechanics for the gemhog-edit-short skill: a hook take, a voiceover, graphic scenes, captions, the call to action.
 
 Run with uv from the workspace root (it installs numpy and mlx-whisper on first use):
 
     uv run <skill>/scripts/short.py <command> "<folder>" [...]
 
     start    FOLDER [--take STEM]  project, transcripts, prep/plan.json, drafts of prep/edit.json and prep/captions.txt
-    assemble FOLDER [--force]      plan.json + edit.json + captions.txt -> index.html, hook, board, card, captions, scene stubs
-    sync     FOLDER                after clips were trimmed or moved in Studio: scenes, captions, card and sfx follow, in place
-    sheet    FOLDER [T,T,...]      snapshots (default: hook, every scene just before it leaves, card) -> prep/sheet-N.jpg
+    assemble FOLDER [--force]      plan.json + edit.json + captions.txt -> index.html, hook, board, call to action, captions, scene stubs
+    sync     FOLDER                after clips were trimmed or moved in Studio: scenes, captions, call to action and sfx follow, in place
+    sheet    FOLDER [T,T,...]      snapshots (default: hook, every scene just before it leaves, call to action) -> prep/sheet-N.jpg
     export   FOLDER [--draft]      render FOLDER/<name>.mp4 (or prep/draft.mp4) and measure it against the captions
 
 The clock: root seconds = vo_start + (voiceover seconds - vo_in) / rate. Scene cues, sfx and captions are written in
 voiceover seconds and mapped through it, so a trim or a new rate moves all of them together.
+
+The call to action is fixed: templates/outro.html over assets/cta/cta.mp3, appended after the voiceover's last word. A voiceover
+that still reads the old call to action („Kauf keine Aktien …") is cut before it.
 """
 import difflib
 import html
@@ -39,8 +42,10 @@ RATE = 1.1  # voiceover speed, pitch kept
 PRE, POST = 0.12, 0.28  # room kept before the hook's first sound and after its last
 GAP = 0.25  # pause between the cut to the board and the voiceover
 VO_PRE = 0.07  # room kept before the voiceover's first sound
-OUTRO_DUR = 0.8
-RESERVED = {"main", "root", "voice", "take-01", "backdrop", "hook", "outro", "captions", "voiceover"}
+OUTRO_DUR = 9.0  # the call to action, templates/outro.html
+CTA_LEAD, CTA_LEN, CTA_URL = 0.3, 7.706, 5.44  # cta.mp3 (already at 1.1x) starts 0.3 s into the card; „gemhog.de" lands at 5.44 s
+CTA_WORDS = ["kauf", "keine", "aktien"]  # how the call to action begins, in voiceovers that still read it
+RESERVED = {"main", "root", "voice", "take-01", "backdrop", "hook", "outro", "cta", "captions", "voiceover"}
 SOUNDS = {  # file in <workspace>/media/sound, lead-in to skip, duration, volume
     "pop": ("dragon-studio-pop-402324.mp3", 0.18, 0.35, 0.2),
     "swoosh": ("universfield-fast-swoosh-383967.mp3", 0.07, 0.45, 0.35),
@@ -166,7 +171,7 @@ def sfx_times(plan, edit, lay):
         if s.get("at") == "cut":
             at, label = plan["hook_dur"] - 0.1, "Schnitt zur Tafel"
         elif s.get("at") == "outro":
-            at, label = lay["outro_at"], "Gemhog-Karte"
+            at, label = lay["outro_at"] + CTA_URL, "gemhog.de"
         else:
             at, label = lay["root"](s["vo"]), s.get("label", "")
         out.append((s["sound"], round(at, 3), s.get("label", label)))
@@ -247,6 +252,13 @@ def write_captions(prep, hf, plan, lay):
     return groups
 
 
+def vo_clip_dur(folder, plan):
+    """The voiceover clip runs to the file's end, or to vo_cut when the file still reads the old call to action."""
+    end = plan.get("vo_cut") or float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                                                        str(folder / plan["voiceover"])], capture_output=True, text=True).stdout) - 0.01
+    return int((end - plan["vo_in"]) / plan["rate"] * 1000) / 1000
+
+
 # --- files ---------------------------------------------------------------------------
 def set_duration(path, comp_id, dur):
     text = path.read_text()
@@ -285,8 +297,8 @@ def write_parts(hf, plan, edit, lay, force):
             path.write_text((templates / f"{name}.html").read_text().replace("__DUR__", num(dur)))
         set_duration(path, name, dur)
     said = re.search(r"\b(\d+)\s*Sek", " ".join(re.findall(r'<p id="hook-line-\d">([^<]*)</p>', hook.read_text())))
-    if said and abs(int(said.group(1)) - lay["total"]) > 1.5:
-        print(f'! the hook says {said.group(1)} Sek., the video runs {lay["total"]:.1f} s: correct the line in compositions/hook.html')
+    if said and abs(int(said.group(1)) - lay["outro_at"]) > 1.5:
+        print(f'! the hook says {said.group(1)} Sek., the explanation runs {lay["outro_at"]:.1f} s before the call to action: correct the line in compositions/hook.html')
     return stubs
 
 
@@ -298,6 +310,8 @@ def copy_assets(folder, hf, plan, edit):
     shutil.copy(SKILL / "assets" / "gsap.min.js", assets / "gsap.min.js")
     for font in (SKILL / "assets" / "fonts").iterdir():
         shutil.copy(font, assets / "fonts" / font.name)
+    for part in ("brand", "cta"):  # the lockup on the board and the call to action's screens and recording
+        shutil.copytree(SKILL / "assets" / part, assets / part, dirs_exist_ok=True)
     if not (hf / "design.md").exists():
         shutil.copy(SKILL / "assets" / "design.md", hf / "design.md")
     voiceover = folder / plan["voiceover"]
@@ -336,14 +350,14 @@ def write_index(folder, hf, plan, edit, lay):
     ]}
     hook_chain = {"version": 1, "nodes": [{"id": "h1", "type": "gain", "label": "Match the voiceover", "params": {"gain": plan["hook_gain"]}}]}
     voiceover = folder / plan["voiceover"]
-    length = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(voiceover)], capture_output=True, text=True).stdout)
     values = {
         "__TITLE__": html.escape(edit.get("title", folder.name)), "__TOTAL__": num(lay["total"]), "__VOICE_CHAIN__": attr(voice_chain),
         "__TAKE__": plan["take"], "__HOOK_LABEL__": html.escape(plan.get("hook_text", "Hook"), quote=True), "__HOOK_DUR__": num(plan["hook_dur"]),
         "__HOOK_IN__": num(plan["hook_in"]), "__HOOK_CHAIN__": attr(hook_chain), "__BACK_DUR__": num(lay["total"] - on_frame(plan["hook_dur"])),
         "__HOSTS__": "\n".join(host_tag(s) for s in lay["scenes"]), "__OUTRO_AT__": num(lay["outro_at"]), "__OUTRO_DUR__": num(OUTRO_DUR),
+        "__CTA_AT__": num(lay["outro_at"] + CTA_LEAD), "__CTA_LEN__": num(CTA_LEN),
         "__VO_FILE__": f"voiceover{voiceover.suffix.lower()}", "__VO_START__": num(plan["vo_start"]),
-        "__VO_DUR__": num(int((length - plan["vo_in"] - 0.01) / plan["rate"] * 1000) / 1000), "__VO_IN__": num(plan["vo_in"]), "__RATE__": num(plan["rate"]),
+        "__VO_DUR__": num(vo_clip_dur(folder, plan)), "__VO_IN__": num(plan["vo_in"]), "__RATE__": num(plan["rate"]),
         "__SFX__": "\n".join(sfx_tag(i, *s) for i, s in enumerate(sfx_times(plan, edit, lay), 1)),
     }
     text = (SKILL / "templates" / "index.html").read_text()
@@ -354,7 +368,7 @@ def write_index(folder, hf, plan, edit, lay):
 
 def report(prep, hf, plan, lay, stubs):
     shutil.copy(hf / "index.html", prep / "index.built.html")
-    print(f'hook 0-{plan["hook_dur"]:g} s | voiceover from {plan["vo_start"]:g} s (source {plan["vo_in"]:g} s) at {plan["rate"]:g}x | card {lay["outro_at"]:.2f} s | total {lay["total"]:.2f} s')
+    print(f'hook 0-{plan["hook_dur"]:g} s | voiceover from {plan["vo_start"]:g} s (source {plan["vo_in"]:g} s) at {plan["rate"]:g}x | call to action {lay["outro_at"]:.2f} s | total {lay["total"]:.2f} s')
     for s in lay["scenes"]:
         print(f'  {s["id"]:14s} {s["start"]:6.2f}-{s["start"] + s["dur"]:6.2f} s   voiceover {s["vo0"]:6.2f}-{s["vo0"] + s["dur"] * plan["rate"]:6.2f}')
     if stubs:
@@ -401,10 +415,20 @@ def start(folder, prep, hf, args):
         quiet = next((k for k in range(i, len(loud) - 30) if not loud[k:k + 30].any()), None)  # 0.15 s of silence
         first = quiet + int(np.argmax(loud[quiet:])) if quiet is not None else first
     body = vo_words[n:] if repeats else vo_words
+    # the old call to action read at the end of the voiceover: the clip stops before it, the fixed one follows
+    said_words = [norm(w["word"]) for w in body]
+    cta = next((i for i in range(len(body) - 2, 0, -1) if said_words[i:i + 3] == CTA_WORDS), None)
+    vo_end = float(t[len(loud) - 1 - int(np.argmax(loud[::-1]))])
+    vo_cut = None
+    if cta is not None:
+        before = np.nonzero(loud & (t < body[cta]["start"] - 0.05))[0]
+        vo_end = float(t[before[-1]]) if len(before) else body[cta - 1]["end"]
+        vo_cut = round(min(vo_end + 0.15, body[cta]["start"] - 0.02), 3)
+        body = body[:cta]
     plan = {
         "take": take.stem, "voiceover": audio[0].name, "hook_text": " ".join(w["word"] for w in hook_words),
         "hook_in": round(hook_in, 6), "hook_dur": hook_dur, "vo_in": round(max(0.0, float(t[first]) - VO_PRE), 3), "vo_start": round(hook_dur + GAP, 3),
-        "vo_end": round(float(t[len(loud) - 1 - int(np.argmax(loud[::-1]))]), 2), "rate": RATE,
+        "vo_end": round(vo_end, 2), "vo_cut": vo_cut, "rate": RATE,
         "hook_gain": round(min(12.0, max(0.0, speech_level(vo_wav, float(t[first]), 1e9) - speech_level(take_wav, float(active[0]), float(active[-1])))), 1),
     }
     if (prep / "plan.json").exists() and "--force" not in args:
@@ -420,7 +444,7 @@ def start(folder, prep, hf, args):
             cur = []
     if cur:
         sentences.append(cur)
-    total = plan["vo_start"] + (plan["vo_end"] - plan["vo_in"]) / plan["rate"] + OUTRO_DUR
+    total = plan["vo_start"] + (plan["vo_end"] - plan["vo_in"]) / plan["rate"]  # the explanation, without the call to action
     if not (prep / "edit.json").exists():
         save(prep / "edit.json", {
             "title": folder.name, "hook": ["HOOK ZEILE 1", f"In {round(total)} Sek. erklärt"],
@@ -429,7 +453,10 @@ def start(folder, prep, hf, args):
     if not (prep / "captions.txt").exists():
         draft_captions(prep, plan, hook_words, body)
     print(f'hook take {take.name}: "{plan["hook_text"]}", source {plan["hook_in"]:.2f}-{plan["hook_in"] + plan["hook_dur"]:.2f} s, +{plan["hook_gain"]} dB to match the voiceover')
-    print(f'voiceover {audio[0].name}: ' + ("repeats the hook, joins" if repeats else "does not repeat the hook, starts") + f' at {plan["vo_in"]:.2f} s, last sound {plan["vo_end"]:.2f} s; about {total:.0f} s in total at {plan["rate"]}x')
+    print(f'voiceover {audio[0].name}: ' + ("repeats the hook, joins" if repeats else "does not repeat the hook, starts") + f' at {plan["vo_in"]:.2f} s, last sound {plan["vo_end"]:.2f} s; '
+          f'about {total:.0f} s at {plan["rate"]}x, then {OUTRO_DUR:g} s call to action')
+    if plan.get("vo_cut"):
+        print(f'  it still reads the old call to action: the clip stops at {plan["vo_cut"]:.2f} s, the fixed one follows')
     if wanted is None and len(takes) > 1:
         print(f"! {len(takes)} takes in the folder, used the first; pass --take STEM --force for another")
     print("\nvoiceover sentences (seconds in the voiceover file):")
@@ -500,10 +527,10 @@ def sync(folder, prep, hf, args):
         if gone not in wanted:  # a scene taken out of edit.json; its file stays in compositions/
             text = re.sub(rf'\n[ \t]*<div id="{re.escape(gone)}" class="clip layer"[^>]*></div>', "", text, count=1)
     put("outro", data_start=num(lay["outro_at"]))
-    if abs(was["rate"] - plan["rate"]) > 1e-6:  # a new speed: the clip still plays the file to its end
-        length = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(folder / plan["voiceover"])],
-                                      capture_output=True, text=True).stdout)
-        put("voiceover", data_duration=num(int((length - plan["vo_in"] - 0.01) / plan["rate"] * 1000) / 1000))
+    if tag("cta"):
+        put("cta", data_start=num(lay["outro_at"] + CTA_LEAD))
+    if abs(was["rate"] - plan["rate"]) > 1e-6 or abs(was["vo_in"] - plan["vo_in"]) > 1e-6:  # the clip still ends where the voiceover's own text ends
+        put("voiceover", data_duration=num(vo_clip_dur(folder, plan)))
     # sound effects follow edit.json: existing clips keep their other attributes, new ones are added, dropped ones go
     sounds = sfx_times(plan, edit, lay)
     for i, (sound, at, label) in enumerate(sounds, 1):
@@ -531,7 +558,7 @@ def sheet(folder, prep, hf, args):
     plan, edit = load(prep / "plan.json"), load(prep / "edit.json")
     lay = layout(plan, edit)
     times = [float(x) for x in args[0].split(",")] if args and not args[0].startswith("-") else (
-        [min(1.0, plan["hook_dur"] / 2)] + [round(s["start"] + s["dur"] - 0.45, 2) for s in lay["scenes"]] + [round(lay["outro_at"] + 0.5, 2)])
+        [min(1.0, plan["hook_dur"] / 2)] + [round(s["start"] + s["dur"] - 0.45, 2) for s in lay["scenes"]] + [round(lay["outro_at"] + 2.0, 2), round(lay["outro_at"] + 6.0, 2)])
     snaps = prep / "snaps"
     shutil.rmtree(snaps, ignore_errors=True)
     for old in prep.glob("sheet-*.jpg"):
@@ -553,7 +580,7 @@ def export(folder, prep, hf, args):
     got = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(out)], capture_output=True, text=True).stdout)
     probe = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(out), "-vf", "blackdetect=d=0.02:pix_th=0.08,signalstats,metadata=print:key=lavfi.signalstats.YAVG",
                             "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True).stderr
-    luma = [float(x) for x in re.findall(r"signalstats\.YAVG=([\d.]+)", probe)][int((plan["hook_dur"] + 0.1) * FPS):]
+    luma = [float(x) for x in re.findall(r"signalstats\.YAVG=([\d.]+)", probe)][int((plan["hook_dur"] + 0.1) * FPS):int(lay["outro_at"] * FPS)]  # the teal card is darker on purpose
     dark, black = sum(y < 150 for y in luma), probe.count("black_start")
     lufs = float(re.findall(r"I:\s+(-?[\d.]+) LUFS", probe)[-1])
     ok = lambda good: "PASS" if good else "FAIL"  # noqa: E731
@@ -566,7 +593,7 @@ def export(folder, prep, hf, args):
     # what the render says against what the captions show: an audio check, not listening
     wav = prep / ("draft.wav" if draft else "export.wav")
     run(["ffmpeg", "-v", "error", "-y", "-i", out, "-ac", "1", "-ar", "16000", wav])
-    heard = [(norm(w["word"]), w["start"]) for w in transcribe(wav, fresh=True) if norm(w["word"])]
+    heard = [(norm(w["word"]), w["start"]) for w in transcribe(wav, fresh=True) if norm(w["word"]) and w["start"] < lay["outro_at"]]  # the call to action has no captions
     wav.unlink()
     shown = [(norm(w), t) for g in caption_groups(prep, plan, lay) for w, t in zip(g["words"], g["w"]) if norm(w)]
     h, c = "".join(w for w, _ in heard), "".join(w for w, _ in shown)

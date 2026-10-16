@@ -18,65 +18,232 @@
           font-weight: 400 900;
           font-display: block;
         }
+        /* the call to action that ends every short: one phone is built from the app's own screens, then two more fan out
+           behind it; the address stays on screen the whole time. Its cues follow assets/cta/cta.mp3, which starts at 0.3 s */
         #outro-root {
           position: absolute;
           inset: 0;
+          overflow: hidden;
+          background: #0d9488;
+          color: #ffffff;
+          font-family: "DM Sans", sans-serif;
         }
-        /* closing card: the wordmark and the URL as the site's button, centred above the caption box */
-        #outro-art {
+        #outro-notes {
           position: absolute;
           left: 90px;
-          top: 680px;
+          top: 160px;
           width: 900px;
-          height: 440px;
           display: flex;
-          flex-direction: column;
+          justify-content: space-between;
+          font-weight: 700;
+          font-size: 24px;
+          line-height: 34px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+        #outro-top {
+          position: absolute;
+          left: 0;
+          top: 220px;
+          width: 1080px;
+          height: 72px;
+          display: flex;
           align-items: center;
           justify-content: center;
-          gap: 48px;
+          gap: 18px;
         }
-        #outro-brand {
+        #outro-top .mark {
+          width: 72px;
+          height: 72px;
+          border-radius: 30%;
+          box-shadow: 0 0 0 4px #ffffff;
+        }
+        #outro-top .word {
+          height: 56px;
+          margin-top: 10px;
+        }
+        #outro-fan {
+          position: absolute;
+          left: 0;
+          top: 370px;
+          width: 1080px;
+          height: 1071px;
+        }
+        #outro-fan .ph {
+          position: absolute;
+        }
+        #outro-fan .ph > img {
           display: block;
+          width: 100%;
+          height: 100%;
+        }
+        #outro-st {
+          left: 280px;
+          top: 0;
+          width: 520px;
+          height: 1071px;
+        }
+        #outro-hu {
+          left: 10px;
+          top: 120px;
+          width: 440px;
+          height: 906px;
+        }
+        #outro-cp {
+          left: 630px;
+          top: 120px;
+          width: 440px;
+          height: 906px;
+        }
+        /* the two takes and the open slot sit where the Strong-takes screen has them */
+        #outro-st .card {
+          position: absolute;
+          left: 46px;
+          width: 428px;
+          border-radius: 18px;
+          overflow: hidden;
+        }
+        #outro-st .card img {
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
+        #outro-bull {
+          top: 287px;
+          height: 285px;
+        }
+        #outro-bear {
+          top: 588px;
+          height: 286px;
+        }
+        #outro-slot {
+          position: absolute;
+          left: 46px;
+          top: 588px;
+          width: 428px;
+          height: 286px;
+          border-radius: 18px;
+          border: 4px dashed #0d9488;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-family: Urbanist, sans-serif;
           font-weight: 800;
-          font-size: 200px;
-          line-height: 1;
-          letter-spacing: -0.03em;
-          text-transform: uppercase;
-          white-space: nowrap;
-          color: #1c1c1c;
-        }
-        #outro-brand span {
+          font-size: 130px;
           color: #0d9488;
         }
-        #outro-url {
+        #outro-q {
           display: block;
-          padding: 18px 44px 24px;
-          border: 4px solid #1c1c1c;
-          background: #0d9488;
-          box-shadow: 8px 8px 0 #1c1c1c;
-          font-family: "DM Sans", sans-serif;
+        }
+        #outro-flash {
+          position: absolute;
+          left: 20px;
+          top: 20px;
+          width: 480px;
+          height: 1031px;
+          border-radius: 60px;
+          background: #ffffff;
+        }
+        #outro-cta {
+          position: absolute;
+          left: 0;
+          top: 1490px;
+          width: 1080px;
+          height: 120px;
+          display: flex;
+          justify-content: center;
+        }
+        #outro-pill {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 22px;
+          height: 120px;
+          padding: 0 26px 0 60px;
+          border-radius: 60px;
+          background: #ffffff;
+          color: #0b5f59;
           font-weight: 700;
-          font-size: 62px;
+          font-size: 66px;
           line-height: 1;
-          letter-spacing: 0.03em;
-          white-space: nowrap;
-          color: #ffffff;
+        }
+        #outro-pill .go {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: #1c1c1c;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #outro-pill .go svg {
+          width: 40px;
+          height: 40px;
+        }
+        #outro-ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 60px;
+          border: 5px solid #ffffff;
         }
       </style>
 
       <div id="outro-root" data-composition-id="outro" data-width="1080" data-height="1920" data-duration="__DUR__">
-        <div id="outro-art">
-          <p id="outro-brand">Gemhog<span>.</span></p>
-          <p id="outro-url">gemhog.com</p>
+        <div id="outro-notes"><div>Keine Anlageberatung</div><div>KI-generiert</div></div>
+        <div id="outro-top"><img class="mark" src="assets/brand/gemhog-app-mark.png" alt="" /><img class="word" src="assets/brand/wordmark-white.png" alt="gemhog" /></div>
+        <div id="outro-fan">
+          <div class="ph" id="outro-hu" data-layout-allow-overlap><img src="assets/cta/gemhog-heating-up.png" alt="" /></div>
+          <div class="ph" id="outro-cp" data-layout-allow-overlap><img src="assets/cta/gemhog-company-page.png" alt="" /></div>
+          <div class="ph" id="outro-st" data-layout-allow-overlap>
+            <img src="assets/cta/st-empty.png" alt="" />
+            <div id="outro-slot" data-layout-allow-overlap><span id="outro-q">?</span></div>
+            <div class="card" id="outro-bull" data-layout-allow-overlap><img src="assets/cta/st-bull.png" alt="" /></div>
+            <div class="card" id="outro-bear" data-layout-allow-overlap><img src="assets/cta/st-bear.png" alt="" /></div>
+            <div id="outro-flash" data-layout-allow-overlap></div>
+          </div>
+        </div>
+        <div id="outro-cta">
+          <div id="outro-pill">
+            <div id="outro-ring"></div>
+            gemhog.de
+            <div class="go"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></div>
+          </div>
         </div>
       </div>
 
       <script>
         {
+          // seconds from the start of the card, the words of cta.mp3 played from 0.3 s
+          const HALB = 1.75, KENNST = 2.5, BEI = 3.38, GEH = 5.38, URL = 5.44, MEHR = 6.43;
           const tl = gsap.timeline({ paused: true });
-          // short card: it lands at once and holds
-          tl.fromTo("#outro-art", { scale: 0.92, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.16, ease: "back.out(2)" }, 0);
+          const lift = "0 36px 70px rgba(0,0,0,0.32)", flat = "0 0px 0px rgba(0,0,0,0)";
+          tl.fromTo("#outro-top", { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, 0.05);
+          tl.fromTo("#outro-pill", { y: 220 }, { y: 0, duration: 0.4, ease: "back.out(1.6)" }, 0.1);
+          tl.set(["#outro-ring", "#outro-slot", "#outro-flash", "#outro-hu", "#outro-cp"], { opacity: 0 }, 0);
+          // one phone, built fast: the bullish take lands first
+          tl.fromTo("#outro-st", { y: 760, rotation: 7 }, { y: 0, rotation: 0, duration: 0.32, ease: "back.out(1.2)" }, 0);
+          tl.fromTo("#outro-bull", { x: -120, y: 900, rotation: -8, scale: 1.55, boxShadow: lift }, { x: -60, y: -170, rotation: -4, scale: 1.55, boxShadow: lift, duration: 0.28, ease: "back.out(1.3)" }, 0.12);
+          tl.to("#outro-bull", { x: 0, y: 0, rotation: 0, scale: 1, boxShadow: flat, duration: 0.24, ease: "back.out(1.6)" }, 0.55);
+          // half the story: the other slot stays open
+          tl.fromTo("#outro-slot", { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: "back.out(2.4)" }, 0.75);
+          tl.to("#outro-slot", { scale: 1.07, duration: 0.16, yoyo: true, repeat: 1, ease: "power2.out" }, HALB);
+          tl.to("#outro-q", { rotation: 12, duration: 0.09, yoyo: true, repeat: 3, ease: "sine.inOut" }, KENNST);
+          // the bearish take completes the screen
+          tl.set("#outro-bear", { x: 1300, y: 60, rotation: 10, scale: 1.55, boxShadow: lift }, 0);
+          tl.to("#outro-bear", { x: 60, y: 60, rotation: 4, duration: 0.25, ease: "back.out(1.3)" }, BEI - 0.1);
+          tl.to("#outro-bear", { x: 0, y: 0, rotation: 0, scale: 1, boxShadow: flat, duration: 0.24, ease: "back.out(1.6)" }, BEI + 0.25);
+          tl.to("#outro-slot", { opacity: 0, duration: 0.1 }, BEI + 0.35);
+          tl.fromTo("#outro-flash", { opacity: 0.65 }, { opacity: 0, duration: 0.35, ease: "power2.out" }, BEI + 0.5);
+          // the whole story: the other screens fan out behind it
+          tl.fromTo("#outro-hu", { x: 280, y: 80, rotation: 0, opacity: 0 }, { x: 0, y: 0, rotation: -9, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, BEI + 0.6);
+          tl.fromTo("#outro-cp", { x: -280, y: 80, rotation: 0, opacity: 0 }, { x: 0, y: 0, rotation: 9, opacity: 1, duration: 0.5, ease: "back.out(1.4)" }, BEI + 0.68);
+          tl.to("#outro-hu", { y: -18, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: 2 }, BEI + 1.15);
+          tl.to("#outro-cp", { y: 18, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: 2 }, BEI + 1.2);
+          tl.to("#outro-st", { y: -12, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 2 }, GEH);
+          // the address
+          tl.to("#outro-pill", { scale: 1.14, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, URL);
+          tl.fromTo("#outro-ring", { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.6, ease: "power2.out" }, URL + 0.05);
+          tl.fromTo("#outro-ring", { scale: 1, opacity: 1 }, { scale: 1.35, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, MEHR);
           window.__timelines["outro"] = tl;
         }
       </script>

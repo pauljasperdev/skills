@@ -79,6 +79,7 @@ Copy `templates/graphic.html` to `compositions/<id>.html` for each graphic in `e
 - A real process gets a progressive diagram. Other topics get a different form each time.
 - The real logo when a company is named, inline in a tile; OpenAI and Claude are in `047`'s `versus.html`, GitHub in `058`'s `skill.html`. No logo found: a plain labelled tile.
 - Evidence is shown as itself: the book's cover, the tweet, the photo, sourced at 800 px or more and saved under `assets/broll/`.
+- Every mention of Gemhog shows the product big, so viewers see what is being built: a full-frame scene of 3 to 4 app screens from `~/Documents/gemhog/wireframes/png` (phone-framed, 866 × 1784) swiping through on brand teal `#0D9488`, the phone about 700 px wide, `gemhog.de` on screen, held for the whole sentence (3 to 5 s). The landing page (`00-landing.png` or gemhog.de) fits when the speech is about the website; the media kit (`~/Documents/gemhog/gemhog-media-kit`) has the logo.
 - A pop or swoosh on a meaningful entrance; three to six per short.
 - Labels state what was said: outreach is not validation.
 
@@ -104,7 +105,7 @@ Report what was looked at and what was only machine-checked. Transcription and w
 
 ### 8. Export
 
-On request only: `export <NNN>` renders `<NNN>/<NNN>.mp4` and checks length, black frames and loudness (about −16 LUFS). When loudness fails low, a few speech peaks cap the level, as the clip-on microphone used since `054` does: on the `voice` bus set the limiter's `attack` to 0.1 and its `limit` 2 to 3 dB lower, add a gain node of the same amount after it, and export again. The effect is not linear, so measure each try.
+On request only: `export <NNN>` renders `<NNN>/<NNN>.mp4` and checks length, black frames and loudness (about −16 LUFS). When loudness fails low, a few speech peaks cap the level, as the clip-on microphone used since `054` does: on the `voice` bus set the limiter's `attack` to 0.1, lower its `limit` (to about −6.5) and raise its `level_out` by the same amount minus 1 dB, and export again. That one limiter is the only level control: no extra gain nodes, no per-clip levels, and more "Voice boost" makes it quieter, since the renderer pulls the mix down to its loudest peak. The effect is not linear, so measure each try.
 
 Done when it prints three `PASS` lines. Publishing is the `publish-short` skill.
 

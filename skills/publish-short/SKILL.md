@@ -40,6 +40,8 @@ German, in the speaker's voice, drawn from what the short says: one or two sente
 
 **Layout:** the caption is plain text broken into short lines. The opening sentence stands alone; each further sentence starts its own line; a blank line separates the text, the music credit and the hashtags.
 
+**Gemhog:** a short that names Gemhog carries `Mehr zu Gemhog: gemhog.de` on its own line after the text, on every channel.
+
 **Music credit:** a short with music carries it on every channel. Music means an `<audio id="music">` in `<NNN>/hyperframes/index.html` with a `data-volume` above 0. The credit is `Musik: „<title>“ von <artist>`, read from that element's file name (`<artist>-<title>-<id>.mp3`); the house track gives `Musik: „Boom Bap Old School Groove“ von Alex Morgan`.
 
 ### 3. Queue

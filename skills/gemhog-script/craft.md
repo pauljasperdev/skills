@@ -14,6 +14,7 @@ A short starts in its third act. The title question is asked and answered at onc
 4. **A layer** answers exactly that question, with one example. Then the next Rehook, the next layer. Two or three layers carry a short.
 5. **Börsenbefund:** the last layer, the Zweite Belohnung, with its one reason.
 6. **Close:** one sentence.
+7. **Call to action:** the fixed recording below, which the edit appends; the Skript does not contain it.
 
 Each layer rests only on what was already said, adds **one** new thing, and leaves the viewer able to stop there with something understood. A layer that needs two new terms is two layers, or too much for this short.
 
@@ -60,7 +61,15 @@ Give the edit something to show. It draws one scene per layer from what the sent
 
 ## Close
 
-The Börsenbefund answers what its Rehook asked and says what it means. One sentence closes: a takeaway or an open thought that follows from the finding. A closing question never stands in for the finding. An ending Paul left open stays open, and a call to action appears only when he asks for one.
+The Börsenbefund answers what its Rehook asked and says what it means. One sentence closes: a takeaway or an open thought that follows from the finding. A closing question never stands in for the finding. An ending Paul left open stays open.
+
+## Call to action
+
+Every short ends with this text, Paul's wording from 2026-10-16:
+
+> Kauf keine Aktien, wenn du nur die halbe Geschichte kennst. Bei Gemhog hörst du die ganze. Geh auf gemhog.de, um mehr zu erfahren.
+
+It is recorded once and appended by the edit together with its endcard ([gemhog-edit-short](../gemhog-edit-short/SKILL.md)), so the Skript and the ElevenLabs-Fassung end with the close and leave it out. The close needs no bridge to it. Paul changed it from „Trag dich jetzt auf gemhog.de ein": the short sells the product, not a waitlist.
 
 ## Check
 
@@ -70,6 +79,7 @@ The Börsenbefund answers what its Rehook asked and says what it means. One sent
 - Count the numbers, names and terms. Could one more go?
 - Say every sentence aloud without looking at it. One that only works on the page gets rebuilt. Look at every colon, dash and bracket again.
 - Does every line move, prove or pay off?
+- Does the Skript end with the close, with no call to action of its own?
 
 ## A confirmed script
 

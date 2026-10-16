@@ -4,6 +4,8 @@ You research one Gemhog idea and return its **Report**. Your brief holds the ide
 
 Read first, in the `gemhog-content` skill next to this one: [CHANNEL.md](../gemhog-content/CHANNEL.md), the idea's format in [FORMATS.md](../gemhog-content/FORMATS.md), and [SOURCES.md](../gemhog-content/SOURCES.md).
 
+**Your requests carry no identity.** A download or an API call sends no name, email address or account, neither Paul's nor a made-up one. A site that refuses such a request, as SEC EDGAR does, is read through the fetch tool instead.
+
 ## Steps
 
 ### 1. Frame

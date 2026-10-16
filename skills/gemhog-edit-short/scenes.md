@@ -9,7 +9,7 @@ A scene illustrates one passage of the voiceover on the board. Each element ente
 | Zone | y | Holds |
 | --- | --- | --- |
 | Notices | 48–82 | `Keine Anlageberatung` left and `KI-generiert` right, at the very top; drawn by the board |
-| Header | 196–265 | wordmark and rule, drawn by the board |
+| Header | 190–266 | the lockup (app mark and wordmark), drawn by the board |
 | Heading | from 356 | `.h`, one or two lines, centred |
 | Graphic | 560–1350 | the diagram, centred on x 540 |
 | Captions | 1370–1550 | the caption card, centred at three quarters of the height |
@@ -18,7 +18,7 @@ Centre every group on x 540: add up its left and right edges, including an 8 px 
 
 ## Type
 
-- **Headings** `.h`: Urbanist 800, uppercase. A capital runs about 0.55 em wide, so 900 px holds 16 letters at 96 px and 10 at 150 px. Take the largest size that fits the longest line; the second line in `.a` (teal) carries the point.
+- **Headings** `.h`: Urbanist 800 in sentence case. A letter runs about 0.5 em wide, so 900 px holds about 19 characters at 92 px. Take the largest size that fits the longest line; the second line in `.a` (teal) carries the point.
 - **Labels** `.lbl`: place with `left`, `top`, `width`, `height` and size with `font-size`; 44 to 74 px in Urbanist. `.sm` switches to DM Sans Bold with wide tracking for small notes, 26 to 32 px; `#555555` for a secondary note.
 - The fonts hold Latin letters, digits, `×`, `~`, `=`, `%`. Draw any other sign as SVG, as the `≠` in `examples/boerse.html`.
 
@@ -28,11 +28,12 @@ Centre every group on x 540: add up its left and right edges, including an 8 px 
 | --- | --- |
 | `.in` | hidden until a helper brings it in; give it to every element that enters |
 | `.a` | teal text |
-| `.card` | white box, 4 px ink border, hard 8 px shadow: logos and anything quoted |
-| `.tile` | the same box, square, for an icon or an inline SVG mark |
+| `.card` | white rounded box with a soft border and shadow, as the app's cards: logos and anything quoted |
+| `.tile` | the same box, square with rounder corners, for an icon or an inline SVG mark |
+| `.pill` | an ink pill with white text, as the site's buttons: a tag, a status, a short claim |
 | `.ink` | a stroke that draws on, inside `<svg id="<scene>-svg" viewBox="0 0 1080 1920">`; `.accent` teal, `.warn` red |
 
-Prefix every `id` with the scene id. Square corners everywhere.
+Prefix every `id` with the scene id. Rounded corners everywhere (`assets/design.md`).
 
 ## Motion
 
@@ -62,6 +63,8 @@ For anything else use `tl` with `T(vo)` as the position, as the count-up and the
 In `edit.json`: `{"sound": "pop", "vo": 33.32, "label": "Hyperscaler"}`, with `vo` the cue of the element it belongs to. A pop for something that lands, a swoosh for something that moves. About one every eight seconds, on the moments that matter; the draft already holds the swoosh at the cut and the pop on the card.
 
 ## Where to find a pattern
+
+The examples show the motion patterns the user approved; their square boxes with hard shadows are the look before 2026-10-16. Build their shapes from the stub's classes instead.
 
 | Example | Shows |
 | --- | --- |

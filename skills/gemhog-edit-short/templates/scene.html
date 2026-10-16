@@ -23,14 +23,13 @@
           position: absolute;
           inset: 0;
         }
-        /* graphics sit between the top rail (y 265) and the caption box (y 1370) */
+        /* graphics sit between the lockup (bottom y 265) and the caption box (y 1370) */
         #@@-art {
           position: absolute;
           inset: 0;
           font-family: Urbanist, sans-serif;
           font-weight: 800;
           letter-spacing: -0.02em;
-          text-transform: uppercase;
           color: #1c1c1c;
         }
         #@@-art .in {
@@ -44,9 +43,9 @@
           left: 90px;
           top: 356px;
           width: 900px;
-          font-size: 96px;
-          line-height: 0.98;
-          letter-spacing: -0.025em;
+          font-size: 100px;
+          line-height: 1;
+          letter-spacing: -0.035em;
           text-align: center;
         }
         #@@-art .h .ln {
@@ -66,16 +65,34 @@
           font-family: "DM Sans", sans-serif;
           font-weight: 700;
           letter-spacing: 0.1em;
+          text-transform: uppercase;
         }
+        /* cards and tiles as in the app: white, rounded, a soft border and a soft shadow */
         #@@-art .card,
         #@@-art .tile {
           position: absolute;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 4px solid #1c1c1c;
+          border: 2px solid #e4e2d8;
+          border-radius: 28px;
           background: #ffffff;
-          box-shadow: 8px 8px 0 #1c1c1c;
+          box-shadow: 0 14px 36px rgba(28, 28, 28, 0.08);
+        }
+        #@@-art .tile {
+          border-radius: 26%;
+        }
+        /* a pill: a status, a tag, a short claim */
+        #@@-art .pill {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          background: #1c1c1c;
+          color: #ffffff;
+          line-height: 1;
+          white-space: nowrap;
         }
         #@@-art .card img {
           display: block;

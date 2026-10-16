@@ -33,4 +33,4 @@ Companies, business models, decisions, supply chains and bottlenecks: how does t
 
 - No buy or sell recommendation, no promised return. A reasoned assessment is fine; a fair-value verdict is never required.
 - Facts, other people's opinions, own conclusions and assumptions stay distinguishable. Uncertainty is named where it changes the statement.
-- The Gemhog podcast app is mentioned only when Paul asks for it.
+- Gemhog itself appears in the fixed call to action that the edit appends to every short ([craft.md](../gemhog-script/craft.md)); elsewhere in a script only when Paul asks for it.

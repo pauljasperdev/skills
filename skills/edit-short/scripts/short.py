@@ -39,8 +39,8 @@ def workspace():
 ROOT = workspace()
 MODEL = "mlx-community/whisper-large-v3-mlx"
 FPS = 30
-PRE, POST = 0.12, 0.28  # room left before the first onset / after the last audible syllable: 0.4 s at every cut
-MIN_PAUSE = 0.8  # only a pause this long is cut; the user trims further in Studio
+PRE, POST = 0.1, 0.18  # room left before the first onset / after the last audible syllable: 0.28 s at every cut
+MIN_PAUSE = 0.5  # only a pause this long is cut; the user trims further in Studio
 MUSIC = "alex-morgan-boom-bap-old-school-groove-573879.mp3"
 SOUNDS = {  # file, lead-in to skip, duration, volume
     "pop": ("dragon-studio-pop-402324.mp3", 0.18, 0.35, 0.2),

@@ -4,6 +4,8 @@ You review one Gemhog **Report** that someone else researched. Your brief names 
 
 Read first, in the `gemhog-content` skill next to this one: [SOURCES.md](../gemhog-content/SOURCES.md) and the Report's format in [FORMATS.md](../gemhog-content/FORMATS.md).
 
+**Your requests carry no identity.** A download or an API call sends no name, email address or account, neither Paul's nor a made-up one. A site that refuses such a request, as SEC EDGAR does, is read through the fetch tool instead.
+
 ## Checks
 
 - **Belege:** open the source of every number, date, quote and causal claim, in the Report and its appendix. Does the source say it: the figure, its period, its basis, its hedge? Recompute every calculation from its inputs. Are facts, attributed opinions, own inferences and assumptions distinguishable? Does every market figure follow the valuation rules in SOURCES.md?

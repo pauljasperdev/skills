@@ -45,7 +45,8 @@ Write the chosen Ansatz as **Sprech-Bullets**: complete sentences Paul can read 
 - The first bullet is the hook, the title question. Paul says it on camera; everything after it becomes the voiceover.
 - The second bullet is the first Pay-off, the plain answer. The Ansatz's finding arrives later, behind a Rehook.
 - Every factual statement comes from the Report. A new fact is researched and added there before it is spoken.
-- 150 to 200 words give 60 to 90 seconds. State the duration above the text, as estimated.
+- The last bullet is the close. The call to action is not written; the edit appends it (craft.md).
+- 150 to 200 words give 60 to 90 seconds; the call to action adds 9 seconds in the edit. State the duration above the text, as estimated.
 - When Paul rewrites a line, his wording stands. An order to restructure keeps his sentences.
 
 Done when the chosen insight is delivered and the check in step 7 passes.

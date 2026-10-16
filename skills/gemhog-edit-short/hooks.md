@@ -14,7 +14,7 @@ Make the value more immediate, never the wording more dramatic. Every claim stay
 
 ## The two lines
 
-`hook` in `edit.json` is two lines, each at most 18 characters, set as two boxed labels on the speaker's forehead: the first on teal, the second on white.
+`hook` in `edit.json` is two lines, each at most 18 characters, set as two pills on the speaker's forehead: the first on teal, the second on white.
 
 - Line 1 carries the question or the claim in two or three words.
 - Line 2 carries the payoff. The draft offers "In NN Sek. erklärt" with the video's real length; `assemble` and `sync` warn when the number and the length drift apart.
