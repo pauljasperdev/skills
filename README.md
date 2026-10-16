@@ -2,7 +2,7 @@
 
 Personal agent skills.
 
-`implement` builds an authorized feature, fix, or handoff with minimal, maintainable code and verified behavior. It uses the installed `codebase-design` skill for design decisions and `effect` for Effect v4 work; it does not introduce Effect into other projects. `improve` is a separate refinement pass after implementation; it hints at `audit-effect` for Effect mismatches that recur beyond the change.
+`implement` builds an authorized feature, fix, or handoff with minimal, maintainable code and verified behavior. It uses the installed `codebase-design` skill for design decisions and `effect` for Effect v4 work; it does not introduce Effect into other projects. `improve` is a fresh-eyes second pass after implementation: it re-solves the problem, cuts what the solution doesn't need, proposes cuts that change agreed behavior, and hints at `audit-effect` for Effect mismatches that recur beyond the change.
 
 `refactor` simplifies the code under discussion while preserving observable behavior through small, verified changes.
 

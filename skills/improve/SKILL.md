@@ -1,54 +1,43 @@
 ---
 name: improve
-description: Improve an implementation just completed in this conversation through focused, evidence-backed refactoring and verification. Use for a post-implementation refinement pass, not a read-only review or repository-wide cleanup.
+description: Second pass over a just-completed implementation: re-solve the problem with fresh eyes and cut what the solution doesn't need. Use after implementing; not for read-only review or repository-wide cleanup.
 metadata:
   opencode/autoinvoke: "false"
 ---
 
 # Improve
 
-Reduce unnecessary code and complexity in the implementation just completed and the code it supersedes. Every line is a maintenance liability. The goal is the smallest clear, maintainable solution to the human's original request, not a broader or more ambitious implementation.
+A second pass with fresh eyes. The first pass made it work; this one asks whether what was built is the smallest clear solution to what the human actually wanted. Treat the existing code as one draft, not the answer: you hold a reason for every line you wrote, so question those reasons instead of defending them.
 
-Re-read the original request and explicit user decisions, then inspect the implementation's diff, callers, and tests. Use conversation and edit history to separate this implementation from unrelated or pre-existing changes. If the target cannot be identified, ask before editing.
+## 1. Re-solve before you re-read
 
-Check each addition against the request: does it deliver requested behavior, preserve an affected existing contract, or verify the change? What would fail or remain unsolved without it? Remove clearly unrequested behavior and speculative machinery introduced by this implementation. If intent or necessity is unclear, ask the user before changing that part; do not guess in favor of adding or deleting behavior.
+Restate the human's goal and each problem the implementation addresses, as outcomes. For each, sketch the smallest solution you would write today, knowing what you now know about the codebase, before reopening the diff. Lean on what already exists: for every safeguard, check whether an existing mechanism, rule, or library capability already covers that risk. For a ten-line fix this takes a minute; for a large change, have a subagent that has not seen the implementation write the sketch from the request alone.
 
-Prefer deletion, straightforward control flow, and existing repository or library capabilities. Extra abstractions, dependencies, options, fallbacks, and future-proofing need demonstrated necessity for the original task. Simplify the scoped implementation; architectural taste or a nearby smell does not authorize adjacent cleanup. When Effect code shows a practice mismatch that recurs beyond the implementation, leave it in place and name it in the report with a hint to run `$audit-effect`.
+Then compare the sketch with what was built. Every material difference (an extra mechanism, column, option, retry path, or hand-written version of something generated) is a cut candidate. A large diff for a few problems is a signal in itself.
 
-Add code only to close a verified gap in the original request or preserve an affected contract. Keep required error handling, validation, compatibility, and tests. Reduce lines by eliminating unnecessary machinery, not by making code cryptic or weakening functional correctness. Leave unrelated user-owned changes alone.
+## 2. Cut
 
-When docs need changing, read `$writing-for-agents`. Retain only necessary, durable guidance for future agents in existing authoritative docs where possible. Remove redundant task documentation introduced by this implementation; keep completion summaries in the conversation.
+Agreed designs are cut candidates too: the human approved an outcome, not every mechanism serving it.
 
-## Test the change before simplifying
+- **Apply** cuts that keep the behavior the human asked for: unrequested or speculative additions, a smaller mechanism with the same outcome, code the change superseded or orphaned, and redundant tests or docs.
+- **Propose** cuts that change agreed behavior, drop something the human explicitly asked for, or whose necessity is unclear. Give each its trade-off and let the human decide.
 
-Treat the original contract, changed runtime paths, and superseded behavior as a coverage matrix. Account for each applicable success case, boundary and empty value, malformed input, invalid transition, dependency or infrastructure failure, retry/timeout/cancellation, duplicate or out-of-order request, authorization, persistence/serialization, and concurrency case. Existing green tests are evidence only for the behavior they assert.
+Apply these lenses where they fit:
 
-For every verified gap, use red-green development: add the smallest failing regression test, make the minimal correctness change, then refactor with the suite green. Check all real layers—unit rules and boundaries, integration seams and wiring, and end-to-end critical user-visible/runtime flows. Prefer deterministic fixtures and controlled failures, while keeping integration and end-to-end tests on real wiring so mocks cannot conceal configuration, serialization, lifecycle, or registration defects. Use coverage or mutation reports when available to locate untested branches; the matrix and observable assertions are the completeness bar, and exclusions need a concrete reason.
+- **Superseded code:** trace what the change replaced or disconnected. Before deleting, verify nothing still needs it, including dynamic loading, framework discovery, and external consumers. Keep uncertain candidates and say why.
+- **UI:** read `$frontend-design` and aim for the smallest interface that makes the task self-explanatory.
+- **Effect:** name practice mismatches that recur beyond the change, leave them in place, and hint at `$audit-effect`.
 
-Make every retained or added test meaningful: identify its input or action, assert an observable result or invariant, and confirm it would fail for a plausible regression. Tests that only execute lines, mirror implementation details, check mock calls without a contract consequence, accept any result, or add snapshots without semantic assertions do not establish coverage. Prefer fewer strong tests over test count or percentage inflation.
+## Guardrails
 
-Run focused tests during the pass and the complete relevant unit, integration, and end-to-end suites plus repository-native type, lint, build, and coverage checks afterward. If a required layer or check is unavailable, record the exact blocker and affected unverified behavior. Completion requires every applicable matrix case to be covered by a passing test or an explicitly documented verification gap.
+Keep public contracts, compatibility, historical migrations, and required error handling; when an existing mechanism already provides one, rely on it. Reach fewer lines through less machinery, with code that stays plain and correct. Stay within the implementation and what it supersedes, leaving unrelated user changes as they are. Keep tests for behavior that remains, and rerun the relevant tests, type checks, lint, and build after the pass.
 
-## Dead code and superseded behavior
+## Report
 
-Trace what the implementation replaces or disconnects, including existing code outside the diff. Look for unused symbols and files, unreachable branches, obsolete state, duplicate paths, and adapters or fallbacks whose purpose the new implementation has removed. Follow their imports, callers, runtime registration, configuration, and dependencies to find anything newly orphaned. Keep this scan tied to the implementation's effects.
+Fit it on one screen:
 
-Before deleting a candidate, verify that no supported path or contract still needs it. Use repository-wide reference searches and relevant entry points; account for dynamic loading, framework discovery, side effects, and external consumers where applicable. A missing text reference or unused-code warning is a lead, not proof. Preserve required compatibility and historical migrations; retain uncertain candidates and report the evidence gap.
-
-Remove confirmed dead code together with its exclusive wiring, configuration, dependencies, and obsolete tests or fixtures. Preserve coverage of behavior that remains required. Continue through anything those deletions orphan, using the same evidence standard. The scan is complete when affected replacement paths have been traced and identified candidates are either removed or retained for a stated reason.
-
-## UI: clarity through subtraction
-
-When the completed implementation changes UI, read `$frontend-design` within the original scope and established visual language. Aim for the smallest, cleanest interface that makes the task self-explanatory.
-
-Make the primary action, available choices, and current state clear through hierarchy, grouping, spacing, familiar controls, and feedback. Fix confusing interactions before adding explanatory prose. Remove redundant headings and descriptions, narration of obvious controls, filler, implementation details, and decoration without a purpose.
-
-Keep concise labels and action names, plus guidance needed for consequential choices, valid input, and error recovery. Prefer visible labels to ambiguous icons or help hidden in tooltips. Preserve accessibility, discoverability, and necessary feedback.
-
-During verification, inspect the rendered result and exercise affected interactions when the environment permits. Check whether a first-time user can identify the next action and understand its outcome without explanatory narration.
-
-## Verify and finish
-
-Make one focused pass, run the full applicable test and quality checks, and inspect the final diff for regressions, dead paths, and scope drift. Resolve problems introduced by the pass, then stop when the original request is satisfied without unsupported additions. If no justified simplification or correctness fix is found, leave the implementation unchanged.
-
-Report what was removed or simplified and why, any necessary additions, checks actually run, and unresolved questions or verification gaps. Do not claim completion when a required behavior remains blocked or unverified.
+- Diff size before and after (lines and files), per area when large.
+- Cuts applied, one line each.
+- Proposed cuts as a table: cut, what it saves, trade-off.
+- Each remaining large piece and why it is the minimum.
+- Checks run and any gaps.
