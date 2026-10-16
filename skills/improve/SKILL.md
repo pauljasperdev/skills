@@ -1,6 +1,6 @@
 ---
 name: improve
-description: Second pass over a just-completed implementation: re-solve the problem with fresh eyes and cut what the solution doesn't need. Use after implementing; not for read-only review or repository-wide cleanup.
+description: Second pass over a just-completed implementation that re-solves the problem with fresh eyes and cuts what the solution doesn't need. Use after implementing; not for read-only review or repository-wide cleanup.
 metadata:
   opencode/autoinvoke: "false"
 ---
