@@ -10,12 +10,12 @@ Why someone follows, in Paul's words:
 
 A video pays the viewer twice:
 
-1. **Erste Belohnung:** the title question, answered simply. It gets the room it needs; it is a benefit, not a hurdle before the analysis.
-2. **Zweite Belohnung:** one concrete **Börsenbefund** with its main reason. A rounded figure, a fitting comparison and one supported reason can be enough.
+1. **Erste Belohnung:** who the company is and what it sells, or what the term means, in plain words, enough to follow the rest. It is the setup, not the point.
+2. **Zweite Belohnung:** the answer to the hook's question, with its deshalb ([QUESTIONS.md](QUESTIONS.md)): what it means for the business, or how to read the next news about it. It is the last thing said.
 
 A scenario video sets one stated assumption and follows one economic consequence instead. [FORMATS.md](FORMATS.md) says what each format makes of this.
 
-One connection per short. Other interesting finds stay in the Report.
+One question per short. Other interesting finds stay in the Report.
 
 ## The viewer
 
@@ -24,6 +24,7 @@ Someone interested in investing who is **no specialist in this topic**. Some hol
 - Assume interest, not knowledge. Use everyday language; replace a technical term where you can, explain it in passing where you cannot.
 - The viewer wants to understand companies, not to buy their products or run their IT. A company's customers are characters in the story.
 - A technical detail enters the video only when the chosen insight needs it.
+- What the viewer asks about a company is in [QUESTIONS.md](QUESTIONS.md); every Report answers it.
 
 ## Topics
 
@@ -31,6 +32,6 @@ Companies, business models, decisions, supply chains and bottlenecks: how does t
 
 ## Limits
 
-- No buy or sell recommendation, no promised return. A reasoned assessment is fine; a fair-value verdict is never required.
-- Facts, other people's opinions, own conclusions and assumptions stay distinguishable. Uncertainty is named where it changes the statement.
+- **Gemhog summarizes and judges nothing.** It says what happened, what the company and named sources report and expect, and what could influence the business. Whether a share is worth owning, cheap or expensive, early or late, and where its price goes stays unsaid, in Gemhog's own words and in quotes alike: analysts' ratings and price targets stay out. The viewer draws the conclusion, and a video that steers it there is outside too: a short on how a valuation number misleads, or on how far the share fell, leaves the viewer at „billig oder teuer“, „riskant oder sicher“, though no sentence says it. Paul set this on 2026-10-17, as a line Gemhog stays far away from.
+- Facts, reported causes, other people's expectations and Gemhog's own inferences stay distinguishable; an own inference is only ever a „könnte“. Uncertainty is named where it changes the statement.
 - Gemhog itself appears in the fixed call to action that the edit appends to every short ([craft.md](../gemhog-script/craft.md)); elsewhere in a script only when Paul asks for it.

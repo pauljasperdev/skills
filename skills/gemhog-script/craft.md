@@ -6,38 +6,35 @@ Every line does one of three things: it **moves** the explanation forward, **pro
 
 ## Layers
 
-A short starts in its third act. The title question is asked and answered at once; the viewer gets the first **Pay-off** before any build-up, and a **Rehook** then opens the next question. There is no long arc towards one resolution at the end.
+Paul's **[Short-Form Script Guide: Everything After the Hook](https://app.notion.com/p/3cdb424e54608069b5b5f99ea31fb863)** in Notion is the craft for the body: the hook contract, the bridge, minimum context, beats in causal progression, progressive value, real tension, proof, payoff and a close with one job. Fetch it and follow its Explainer structure, question, direct answer, mechanism, example, implication. This section says how it maps onto a Gemhog short.
 
-1. **Hook:** the title question, with nothing before it.
-2. **First Pay-off:** the plain answer, in the very next sentence. For a company: what it makes or sells, said so that someone who never heard the name can repeat it. This is the Erste Belohnung, and it is never the clever angle. „Was macht eigentlich Broadcom?" is answered by what Broadcom sells, and only then by what is surprising about it.
-3. **Rehook:** one sentence that makes the plain answer strange or bigger, so the viewer asks the next question themselves: *how does that work?*, *why would they?*
-4. **A layer** answers exactly that question, with one example. Then the next Rehook, the next layer. Two or three layers carry a short.
-5. **Börsenbefund:** the last layer, the Zweite Belohnung, with its one reason.
-6. **Close:** one sentence.
-7. **Call to action:** the fixed recording below, which the edit appends; the Skript does not contain it.
+1. **Hook:** the chosen hook ([hook-writing.md](hook-writing.md)), with nothing before it. Fill in the guide's hook contract from it before the first body line.
+2. **Bridge:** the next sentence begins answering. It continues the hook without echoing its words, because Paul will reword the hook when he records it.
+3. **Erste Belohnung:** who the company is and what it sells, in one or two plain sentences, as the minimum context the answer needs. The winners on company topics compress it this far; it is the setup, never the point.
+4. **Beats:** new information, its consequence, the next question, joined by *aber* and *deshalb*, never by *und dann*. Each beat gives something on its own: delay the complete answer, not all the value. A Rehook between beats is a real gap in the facts, never an announcement that something exciting is coming.
+5. **Payoff:** the complete answer to the hook, with its proof, and its meaning, the deshalb (see Close).
+6. **Call to action:** the fixed recording below, which the edit appends; the Skript does not contain it.
 
-Each layer rests only on what was already said, adds **one** new thing, and leaves the viewer able to stop there with something understood. A layer that needs two new terms is two layers, or too much for this short.
-
-A Rehook is a real gap: a contradiction, a surprise in the facts, the question the last sentence raised („Und wie verdient man daran?"). Announcing that something exciting is coming is not a Rehook.
+Each beat rests only on what was already said, adds **one** new thing, and leaves the viewer able to stop there with something understood. A beat that needs two new terms is two beats, or too much for this short. Every number arrives with its deshalb; a figure that answers no question on the way to the payoff stays in the Report.
 
 ### A sketch
 
-The opening of „Was macht eigentlich Broadcom?", built this way. It shows the beats; the wording of a real script is Paul's.
+The beats of one possible short, from the Micron Report of 17.10.2026. It shows the build; it is no template for the angle, and the wording of a real script is Paul's.
 
 | Beat | Line |
 | --- | --- |
-| Hook | Was macht eigentlich Broadcom? |
-| First Pay-off | Broadcom verkauft Chips für Rechenzentren. Zum Beispiel die Chips, über die Tausende Rechner miteinander verbunden sind. |
-| Rehook | Und Broadcom verdient sogar mit, wenn Google seine eigenen KI-Chips baut. |
-| Layer | Eigene Chips heißt nämlich nicht, dass Google alles selbst macht. Der Kern kommt von Google, und Broadcom liefert das Drumherum. |
-| Rehook | Aber Broadcom ist gar kein reiner Chipkonzern. |
-| Börsenbefund | Ungefähr ein Drittel vom Umsatz kommt aus Software. Und die wirft pro Dollar deutlich mehr Gewinn ab als die Chips. |
+| Hook | Micron verkauft kaum mehr und verdient viel mehr. |
+| Bridge | Das liegt am Preis, denn Speicher ist gerade knapp. |
+| Erste Belohnung | Micron baut Speicherchips, zum Beispiel den Arbeitsspeicher in Handys, PCs und KI-Rechenzentren. |
+| Beat | Und die KI-Rechenzentren brauchen so viel davon, dass Speicher laut Micron überall knapp wird. |
+| Proof | Im letzten Quartal ist die Menge nur um ein paar Prozent gestiegen, der Preis um ein Vielfaches davon. |
+| Payoff | Wenn du also liest, dass Speicher billiger wird, geht es direkt um Microns Gewinn. |
 
 ## Load
 
 The viewer keeps little. A script that is correct and complete but too full has failed.
 
-- **One connection per short**, carried by two or three numbers. Every further number, name, date and caveat stays in the Report.
+- **One question per short**, carried by two or three numbers. Every further number, name, date and caveat stays in the Report.
 - **One number per sentence**, rounded, set against something: „ungefähr ein Drittel", „fast doppelt so viel wie". A second number waits for the next sentence.
 - **A term is explained where it is first needed**, through something the viewer knows (an online shop, a power cut), or it is replaced.
 - **The hedge is spoken, the fine print is written.** „Ungefähr" and „könnte erklären" belong in the script. What a figure measures and leaves out belongs in the Videobeschreibung. When a statement is only true with its fine print, say a simpler statement that is true without it.
@@ -45,7 +42,7 @@ The viewer keeps little. A script that is correct and complete but too full has 
 
 ## For the ear
 
-Write what Paul would say to a friend across a table who asked the title question. The tone is relaxed and plain: he explains, he does not present. Slang, youth language and jokes stay out; the relaxed sound comes from how the sentences are built.
+Write what Paul would say to a friend across a table who asked the hook's question. The tone is relaxed and plain: he explains, he does not present. Slang, youth language and jokes stay out; the relaxed sound comes from how the sentences are built.
 
 - **Main clauses.** One thought per sentence, the verb early. A subordinate clause hangs at the end; nothing is wedged into the middle of a sentence.
 - **Punctuation is the test.** A colon, a semicolon, a dash or a bracket marks a sentence that was written, not said. Rebuild it as two sentences, or join it the way speech does: *nämlich, und zwar, also, das heißt*. A colon stays only where a speaker would audibly announce something, and that is rare.
@@ -57,11 +54,11 @@ Write what Paul would say to a friend across a table who asked the title questio
 - **One chain.** Each sentence follows from the one before: *weil, aber, deshalb, dagegen, das heißt*. „Und dann" is a list.
 - **Quick through the setup, slow at the finding.** The pause belongs before the number that matters.
 
-Give the edit something to show. It draws one scene per layer from what the sentences name: a thing, a company, a number, a contrast. A sentence of pure abstraction becomes a heading over nothing.
+Give the edit something to show. It draws one scene per beat from what the sentences name: a thing, a company, a number, a contrast. A sentence of pure abstraction becomes a heading over nothing.
 
 ## Close
 
-The Börsenbefund answers what its Rehook asked and says what it means. One sentence closes: a takeaway or an open thought that follows from the finding. A closing question never stands in for the finding. An ending Paul left open stays open.
+The payoff ends the short, and its last sentence carries the meaning: what the answer means for the business, or how to read the next news about the company. That is the guide's close with one job, and for Gemhog the job is the deshalb. It is the newest and most useful sentence, so peak and end fall together, and it is said at full speed. A recap adds nothing new, and an open question leaves the gap the viewer stayed to close: an open ending has no memory advantage (meta-analysis 2025). An ending Paul left open stays open.
 
 ## Call to action
 
@@ -73,25 +70,12 @@ It is recorded once and appended by the edit together with its endcard ([gemhog-
 
 ## Check
 
-- Is the sentence after the hook the plain answer, one a newcomer could repeat?
-- Does every layer rest on what was said, add one thing, and end on something understood?
+- Run the guide's final script checklist.
+- Does the hook ask exactly the question the payoff answers, and does the bridge still fit a reworded hook?
+- Is the Erste Belohnung plain enough that a newcomer could repeat it?
+- Does every beat rest on what was said, add one thing, and end on something understood?
 - Is each Rehook a gap in the facts?
-- Count the numbers, names and terms. Could one more go?
+- Does every number arrive with its deshalb? Count the numbers, names and terms. Could one more go?
 - Say every sentence aloud without looking at it. One that only works on the page gets rebuilt. Look at every colon, dash and bracket again.
 - Does every line move, prove or pay off?
-- Does the Skript end with the close, with no call to action of its own?
-
-## A confirmed script
-
-Paul's confirmed text for „Was ist eigentlich eine Neo-Cloud?", about 75 seconds. It answers at once and saves its Börsenbefund for a Rehook near the end. Its wording is from before the rules for the ear above.
-
-- **Was ist eigentlich eine Neocloud?**
-- Eine Neocloud ist ein Anbieter, der Rechenleistung speziell für künstliche Intelligenz vermietet.
-- Bei einer Cloud nutzt eine Firma Rechenleistung über das Internet, statt eigene Server zu kaufen. Zum Beispiel, um einen Onlineshop zu betreiben oder Daten zu speichern.
-- Das hat viele Vorteile: Man muss sich zum Beispiel nicht selbst um Ersatz kümmern, wenn ein Schaden auftritt, oder Server an verschiedenen Standorten haben, damit der Service weiterhin erreichbar ist, wenn es einen Stromausfall gibt.
-- Die großen Cloudanbieter Amazon, Microsoft und Google – die sogenannten Hyperscaler – bieten das für ganz unterschiedliche Aufgaben an. Auch für AI.
-- Neoclouds wie CoreWeave oder Nebius konzentrieren sich dagegen auf diesen AI-Bereich. Unternehmen mieten dort die passende Rechenpower, um ihre AI-Anwendungen laufen zu lassen.
-- OpenAI hat sich zum Beispiel Rechenkapazität bei CoreWeave gesichert. Auch Anthropic hat dort Kapazität für seine AI Claude gebucht.
-- **An der Börse ist aber Neocloud nicht gleich Neocloud.** CoreWeave wird mit ungefähr dem Sechsfachen seines Umsatzes der letzten zwölf Monate bewertet. Bei Nebius ist es das 45-Fache.
-- Nebius ist zuletzt allerdings beim Umsatz prozentual deutlich schneller gewachsen. Das könnte einen Teil des Bewertungsunterschieds erklären.
-- **Ein genauerer Blick lohnt sich hier also.**
+- Does the Skript end with the payoff and its deshalb, with no recap, no open question and no call to action of its own?

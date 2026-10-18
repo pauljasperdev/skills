@@ -1,6 +1,6 @@
 ---
 name: gemhog-publish
-description: Queue a Gemhog short for publishing. Uploads the exported video to the content bucket and adds it to the Buffer queue of the Gemhog YouTube, TikTok and Instagram channels, with texts built from the idea's Videobeschreibung, for one named idea or with no topic for every idea in the board's Ready to post column. Use only when Paul asks to publish, post, queue or schedule a Gemhog short.
+description: Queue a Gemhog short for publishing. Uploads the exported video to the content bucket and adds it to the Buffer queue of the Gemhog YouTube, TikTok and Instagram channels, with texts built from the video's Videobeschreibung, for one named video or with no topic for every video in the Videos board's Ready to post column. Use only when Paul asks to publish, post, queue or schedule a Gemhog short.
 ---
 
 # Publish a Gemhog short
@@ -34,9 +34,9 @@ Publishing leaves the house. His order to publish covers the shorts he named, an
 
 ### 1. Load
 
-With no topic named, take every idea in **Ready to post**, in folder order.
+With no video named, take every video in **Ready to post** on the Videos board, a News one first, then in folder order.
 
-For each, fetch the idea's page and read the **Videobeschreibung**. Then ask Buffer whether the short is already there: `list_posts` over every status, looking for the short's public URL among the assets.
+For each, fetch the video's page and read the **Videobeschreibung**. Then ask Buffer whether the short is already there: `list_posts` over every status, looking for the short's public URL among the assets.
 
 Done when each short has an export newer than every file in its `hyperframes/compositions/`, a Videobeschreibung, and no post in Buffer. Name the shorts that fail one of the three and leave them out.
 
@@ -58,13 +58,13 @@ Both texts are the Videobeschreibung as plain text: the line that marks it a dra
 - **Long,** for YouTube: all of it, with `#Shorts` first among the hashtags.
 - **Short,** for Instagram and TikTok, which take 2,200 characters: the same text. When it is longer, drop whole sentences from the market-data paragraph until it fits, wording untouched: the Stichtag sentence stays, then what the spoken market figures measure, in the order the short says them.
 
-The YouTube title is the idea's title, the hook question.
+The YouTube title is the hook, the Skript's first line.
 
 Done when both texts hold every source of the Videobeschreibung, the short one is under 2,200 characters, and both carry „Keine Anlageberatung." and „Voiceover mit KI-generierter Stimme.".
 
 ### 4. Show Paul
 
-Give him, per short, the title, the slot it would take, and the sentences the short text leaves out; the texts themselves are his Videobeschreibung. Wait for his go; a correction changes the Videobeschreibung on the idea's page first and the texts from it.
+Give him, per short, the title, the slot it would take, and the sentences the short text leaves out; the texts themselves are his Videobeschreibung. Wait for his go; a correction changes the Videobeschreibung on the video's page first and the texts from it.
 
 ### 5. Queue
 
@@ -84,7 +84,7 @@ Done when each `create_post` answer shows the metadata as sent, and `list_posts`
 
 ### 6. Record and report
 
-Set the idea's `Status` to **Queued**. Tell Paul which short goes out when on which channel.
+Set the video's `Status` to **Queued**. Tell Paul which short goes out when on which channel.
 
 ## Other orders
 

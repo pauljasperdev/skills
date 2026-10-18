@@ -9,7 +9,8 @@ Run with uv from the workspace root (it installs numpy and mlx-whisper on first 
 
     uv run <skill>/scripts/short.py <command> "<folder>" [...]
 
-    start    FOLDER [--take STEM]  project, transcripts, prep/plan.json, drafts of prep/edit.json and prep/captions.txt
+    start    FOLDER [--take STEM]  project, transcripts, prep/plan.json, drafts of prep/edit.json and prep/captions.txt;
+                                   without a take, a placeholder hook; with a take after a placeholder, the take goes in
     assemble FOLDER [--force]      plan.json + edit.json + captions.txt -> index.html, hook, board, call to action, captions, scene stubs
     sync     FOLDER                after clips were trimmed or moved in Studio: scenes, captions, call to action and sfx follow, in place
     sheet    FOLDER [T,T,...]      snapshots (default: hook, every scene just before it leaves, call to action) -> prep/sheet-N.jpg
@@ -17,6 +18,10 @@ Run with uv from the workspace root (it installs numpy and mlx-whisper on first 
 
 The clock: root seconds = vo_start + (voiceover seconds - vo_in) / rate. Scene cues, sfx and captions are written in
 voiceover seconds and mapped through it, so a trim or a new rate moves all of them together.
+
+Without a take the short is built around a placeholder: the voiceover reads its own hook from the start over a dark slot where
+the speaker will be, under the hook pills and captions. plan.json keeps "vo_body", where the voiceover's own text begins, so
+the take Paul records later replaces the placeholder however he words it: `start` puts it in, `assemble --force` rebuilds.
 
 The call to action is fixed: templates/outro.html over assets/cta/cta.mp3, appended after the voiceover's last word. A voiceover
 that still reads the old call to action („Kauf keine Aktien …") is cut before it.
@@ -45,7 +50,7 @@ VO_PRE = 0.07  # room kept before the voiceover's first sound
 OUTRO_DUR = 9.0  # the call to action, templates/outro.html
 CTA_LEAD, CTA_LEN, CTA_URL = 0.3, 7.706, 5.44  # cta.mp3 (already at 1.1x) starts 0.3 s into the card; „gemhog.de" lands at 5.44 s
 CTA_WORDS = ["kauf", "keine", "aktien"]  # how the call to action begins, in voiceovers that still read it
-RESERVED = {"main", "root", "voice", "take-01", "backdrop", "hook", "outro", "cta", "captions", "voiceover"}
+RESERVED = {"main", "root", "voice", "take-01", "backdrop", "hook", "outro", "cta", "captions", "voiceover", "placeholder"}
 SOUNDS = {  # file in <workspace>/media/sound, lead-in to skip, duration, volume
     "pop": ("dragon-studio-pop-402324.mp3", 0.18, 0.35, 0.2),
     "swoosh": ("universfield-fast-swoosh-383967.mp3", 0.07, 0.45, 0.35),
@@ -291,7 +296,10 @@ def write_parts(hf, plan, edit, lay, force):
         lines = (edit.get("hook") or ["", ""]) + [""]
         hook.write_text((templates / "hook.html").read_text().replace("__LINE1__", html.escape(lines[0])).replace("__LINE2__", html.escape(lines[1])).replace("__DUR__", num(plan["hook_dur"])))
     set_duration(hook, "hook", plan["hook_dur"])
-    for name, dur in (("backdrop", lay["total"] - on_frame(plan["hook_dur"])), ("outro", OUTRO_DUR)):
+    parts = [("backdrop", lay["total"] - on_frame(plan["hook_dur"])), ("outro", OUTRO_DUR)]
+    if plan.get("placeholder"):
+        parts.append(("placeholder", plan["hook_dur"]))
+    for name, dur in parts:
         path = comps / f"{name}.html"
         if not path.exists() or force:
             path.write_text((templates / f"{name}.html").read_text().replace("__DUR__", num(dur)))
@@ -321,6 +329,8 @@ def copy_assets(folder, hf, plan, edit):
         if not src.exists():
             sys.exit(f"missing {src}: the {sound} sound comes from the workspace's media/sound folder")
         shutil.copy(src, assets / src.name)
+    if plan.get("placeholder"):
+        return
     target = assets / "playback" / f'{plan["take"]}.mp4'
     if not target.exists():  # an H.264 copy with a keyframe where the clip starts, so Studio scrubs it cleanly
         run(["ffmpeg", "-v", "error", "-y", "-i", folder / f'{plan["take"]}.mp4', "-c:v", "libx264", "-preset", "medium", "-crf", "17",
@@ -344,15 +354,16 @@ def write_index(folder, hf, plan, edit, lay):
         {"id": "v1", "type": "highpass", "label": "Rumble cut", "params": {"frequency": 80, "q": 0.707, "poles": "2"}},
         {"id": "v3", "type": "gain", "label": "Voice boost", "params": {"gain": 6.5}},
         {"id": "v4", "type": "compressor", "label": "Even out the voice", "params": {"threshold": -26, "ratio": 4, "attack": 1, "release": 150, "knee": 4, "makeup": 11, "mix": 1}},
-        # the renderer scales the mix to its loudest peak, so a low, fast ceiling with the gain back after it is what makes it loud
-        {"id": "v5", "type": "limiter", "label": "Peak ceiling", "params": {"limit": -6, "attack": 0.1, "release": 60, "level_out": 0}},
-        {"id": "v6", "type": "gain", "label": "Make-up after the ceiling", "params": {"gain": 5}},
+        # the renderer scales the mix to its loudest peak, so a low, fast ceiling with the gain back after it is what makes it loud;
+        # -12/+11 since 2026-10-18: the ElevenLabs voiceovers measured -18.5 LUFS at -6/+5, and short 08 was approved at -12/+11
+        {"id": "v5", "type": "limiter", "label": "Peak ceiling", "params": {"limit": -12, "attack": 0.1, "release": 60, "level_out": 0}},
+        {"id": "v6", "type": "gain", "label": "Make-up after the ceiling", "params": {"gain": 11}},
     ]}
     hook_chain = {"version": 1, "nodes": [{"id": "h1", "type": "gain", "label": "Match the voiceover", "params": {"gain": plan["hook_gain"]}}]}
     voiceover = folder / plan["voiceover"]
     values = {
         "__TITLE__": html.escape(edit.get("title", folder.name)), "__TOTAL__": num(lay["total"]), "__VOICE_CHAIN__": attr(voice_chain),
-        "__TAKE__": plan["take"], "__HOOK_LABEL__": html.escape(plan.get("hook_text", "Hook"), quote=True), "__HOOK_DUR__": num(plan["hook_dur"]),
+        "__TAKE__": plan["take"] or "", "__HOOK_LABEL__": html.escape(plan.get("hook_text", "Hook"), quote=True), "__HOOK_DUR__": num(plan["hook_dur"]),
         "__HOOK_IN__": num(plan["hook_in"]), "__HOOK_CHAIN__": attr(hook_chain), "__BACK_DUR__": num(lay["total"] - on_frame(plan["hook_dur"])),
         "__HOSTS__": "\n".join(host_tag(s) for s in lay["scenes"]), "__OUTRO_AT__": num(lay["outro_at"]), "__OUTRO_DUR__": num(OUTRO_DUR),
         "__CTA_AT__": num(lay["outro_at"] + CTA_LEAD), "__CTA_LEN__": num(CTA_LEN),
@@ -361,6 +372,10 @@ def write_index(folder, hf, plan, edit, lay):
         "__SFX__": "\n".join(sfx_tag(i, *s) for i, s in enumerate(sfx_times(plan, edit, lay), 1)),
     }
     text = (SKILL / "templates" / "index.html").read_text()
+    if plan.get("placeholder"):  # the slot the take will fill; it keeps the take's id, so sync reads it the same way
+        text = re.sub(r'<video id="take-01"[^\n]*</video>', '<div id="take-01" class="clip layer" data-label="Platzhalter · __HOOK_LABEL__" '
+                      'data-composition-id="placeholder" data-composition-src="compositions/placeholder.html" data-start="0" '
+                      'data-duration="__HOOK_DUR__" data-track-index="0" data-track-kind="graphics" data-width="1080" data-height="1920"></div>', text)
     for key, value in values.items():
         text = text.replace(key, value)
     (hf / "index.html").write_text(text)
@@ -384,8 +399,10 @@ def start(folder, prep, hf, args):
     takes = sorted(p for p in folder.glob("*.mp4") if p.stem != export_name(folder))
     wanted = args[args.index("--take") + 1] if "--take" in args else None
     take = next((p for p in takes if p.stem == wanted), None) if wanted else (takes[0] if takes else None)
-    if take is None:
-        sys.exit(f"no hook take: put the .mp4 in {folder.name}/ or name it with --take STEM (found: {[p.stem for p in takes]})")
+    if wanted and take is None:
+        sys.exit(f"no take named {wanted} in {folder.name}/ (found: {[p.stem for p in takes]})")
+    old = load(prep / "plan.json") if (prep / "plan.json").exists() else None
+    swap = take is not None and old is not None and old.get("placeholder")
     if not (hf / "hyperframes.json").exists():
         run(["npx", "--yes", "hyperframes@latest", "init", "hyperframes", "--resolution", "portrait", "--non-interactive", "--skip-transcribe",
              "--skill=general-video"], cwd=folder, env={**HF_ENV, "HYPERFRAMES_SKIP_SKILLS": "1"}, stdout=subprocess.DEVNULL)
@@ -395,10 +412,16 @@ def start(folder, prep, hf, args):
             f"Gemhog short \"{folder.name}\", edited with the `gemhog-edit-short` skill: the speaker is on screen for the hook, the voiceover "
             "runs over graphic scenes in the gemhog.com look (`design.md`). Reviewed in Studio; export on request.\n")
 
-    take_wav, vo_wav = to_wav(take, prep / f"{take.stem}.wav"), to_wav(audio[0], prep / "voiceover.wav")
-    hook_words, vo_words = transcribe(take_wav), transcribe(vo_wav)
-    if not hook_words or not vo_words:
-        sys.exit("the transcriber heard no words in " + (take.name if not hook_words else audio[0].name))
+    vo_wav = to_wav(audio[0], prep / "voiceover.wav")
+    vo_words = transcribe(vo_wav)
+    if not vo_words:
+        sys.exit("the transcriber heard no words in " + audio[0].name)
+    if take is None:
+        return start_placeholder(folder, prep, audio[0], vo_wav, vo_words, args)
+    take_wav = to_wav(take, prep / f"{take.stem}.wav")
+    hook_words = transcribe(take_wav)
+    if not hook_words:
+        sys.exit("the transcriber heard no words in " + take.name)
     # hook: the real edges of its speech, from the waveform
     t, db = envelope(take_wav)
     active = t[(db > -45) & (t > hook_words[0]["start"] - 0.6) & (t < hook_words[-1]["end"] + 0.6)]
@@ -410,7 +433,11 @@ def start(folder, prep, hf, args):
     said = lambda words: norm(" ".join(w["word"] for w in words))  # noqa: E731
     repeats = difflib.SequenceMatcher(None, said(hook_words), said(vo_words[:n])).ratio() >= 0.7 and len(vo_words) > n
     first = int(np.argmax(loud))
-    if repeats:
+    if swap:  # the voiceover's own hook was the placeholder: it now joins where its text begins, whatever the take says
+        repeats = True
+        n = sum(1 for w in vo_words if w["end"] <= old["vo_body"])
+        first = int(np.searchsorted(t, old["vo_body"] + VO_PRE))
+    elif repeats:
         i = int(np.searchsorted(t, vo_words[n - 1]["start"]))
         quiet = next((k for k in range(i, len(loud) - 30) if not loud[k:k + 30].any()), None)  # 0.15 s of silence
         first = quiet + int(np.argmax(loud[quiet:])) if quiet is not None else first
@@ -431,7 +458,12 @@ def start(folder, prep, hf, args):
         "vo_end": round(vo_end, 2), "vo_cut": vo_cut, "rate": RATE,
         "hook_gain": round(min(12.0, max(0.0, speech_level(vo_wav, float(t[first]), 1e9) - speech_level(take_wav, float(active[0]), float(active[-1])))), 1),
     }
-    if (prep / "plan.json").exists() and "--force" not in args:
+    if swap:
+        plan["vo_body"], plan["vo_hook_end"] = old["vo_body"], old.get("vo_hook_end", old["vo_body"])
+        save(prep / "plan.json", plan)
+        swap_hook_captions(prep, plan, hook_words)
+        print(f'the take replaces the placeholder: the voiceover now joins at {plan["vo_in"]:.2f} s; run `assemble --force` to rebuild index.html')
+    elif (prep / "plan.json").exists() and "--force" not in args:
         plan = load(prep / "plan.json")
         print("plan.json kept (--force rewrites it)")
     else:
@@ -464,6 +496,69 @@ def start(folder, prep, hf, args):
         print(f'  {s[0]["start"]:6.2f}-{s[-1]["end"]:6.2f}  ' + " ".join(w["word"] for w in s).replace(" -", "-"))
     print(f"\nReady: {prep / 'edit.json'} drafts one scene per sentence. Merge sentences that share a picture, name the scenes, write the hook, "
           "correct prep/captions.txt, then run `assemble`.")
+
+
+def start_placeholder(folder, prep, audio, vo_wav, vo_words, args):
+    """No take yet: the voiceover's first sentence is the hook, read over a dark slot until Paul's take replaces it."""
+    n = next((i + 1 for i, w in enumerate(vo_words) if w["word"][-1:] in ".?!"), None)
+    if n is None or n >= len(vo_words):
+        sys.exit("the voiceover has no first sentence to stand in for the hook")
+    t, db = envelope(vo_wav)
+    loud = db > -45
+    first = int(np.argmax(loud))
+    i = int(np.searchsorted(t, vo_words[n - 1]["start"]))
+    quiet = next((k for k in range(i, len(loud) - 30) if not loud[k:k + 30].any()), None)  # 0.15 s of silence after the hook
+    body_first = quiet + int(np.argmax(loud[quiet:])) if quiet is not None else int(np.searchsorted(t, vo_words[n]["start"]))
+    vo_in, vo_body = round(max(0.0, float(t[first]) - VO_PRE), 3), round(max(0.0, float(t[body_first]) - VO_PRE), 3)
+    plan = {
+        "take": None, "placeholder": True, "voiceover": audio.name, "hook_text": " ".join(w["word"] for w in vo_words[:n]),
+        "hook_in": 0.0, "hook_dur": round((vo_body - vo_in) / RATE * 10) / 10, "vo_in": vo_in, "vo_start": 0.0, "vo_body": vo_body,
+        "vo_hook_end": vo_words[n - 1]["end"],
+        "vo_end": round(float(t[len(loud) - 1 - int(np.argmax(loud[::-1]))]), 2), "vo_cut": None, "rate": RATE, "hook_gain": 0.0,
+    }
+    if (prep / "plan.json").exists() and "--force" not in args:
+        plan = load(prep / "plan.json")
+        print("plan.json kept (--force rewrites it)")
+    else:
+        save(prep / "plan.json", plan)
+    body = vo_words[n:]
+    sentences, cur = [], []
+    for w in body:
+        cur.append(w)
+        if w["word"][-1:] in ".?!":
+            sentences.append(cur)
+            cur = []
+    if cur:
+        sentences.append(cur)
+    total = plan["vo_start"] + (plan["vo_end"] - plan["vo_in"]) / plan["rate"]
+    if not (prep / "edit.json").exists():
+        save(prep / "edit.json", {
+            "title": folder.name, "hook": ["HOOK ZEILE 1", f"In {round(total)} Sek. erklärt"],
+            "scenes": [{"id": f"s{i:02d}", "label": " ".join(w["word"] for w in s[:4]), "from": s[0]["start"]} for i, s in enumerate(sentences, 1)],
+            "sfx": [{"sound": "swoosh", "at": "cut"}, {"sound": "pop", "at": "outro"}]})
+    if not (prep / "captions.txt").exists():
+        draft_captions(prep, plan, [], vo_words)
+    print(f'no take: placeholder hook "{plan["hook_text"]}", voiceover {plan["vo_in"]:.2f}-{plan["vo_body"]:.2f} s, the board after {plan["hook_dur"]:g} s')
+    print(f'voiceover {audio.name}: its text begins at {plan["vo_body"]:.2f} s, last sound {plan["vo_end"]:.2f} s; '
+          f'about {total:.0f} s at {plan["rate"]}x, then {OUTRO_DUR:g} s call to action')
+    print("\nvoiceover sentences (seconds in the voiceover file):")
+    for s in sentences:
+        print(f'  {s[0]["start"]:6.2f}-{s[-1]["end"]:6.2f}  ' + " ".join(w["word"] for w in s).replace(" -", "-"))
+    print(f"\nReady: {prep / 'edit.json'} drafts one scene per sentence. Merge sentences that share a picture, name the scenes, write the hook, "
+          "correct prep/captions.txt, then run `assemble`.")
+
+
+def swap_hook_captions(prep, plan, hook_words):
+    """The placeholder's caption lines (the voiceover's hook sentence, up to vo_hook_end) give way to the take's words."""
+    path = prep / "captions.txt"
+    if not path.exists():
+        return
+    lines = path.read_text().splitlines()
+    first_code = lambda line: line.split("|")[0].split()[0].rsplit("@", 1)[1]  # noqa: E731
+    keep = [ln for ln in lines if ln.strip() and not (first_code(ln)[0] == "v" and float(first_code(ln)[1:]) < plan["vo_hook_end"])]
+    draft_captions(prep, plan, hook_words, [])
+    hook_lines = [ln for ln in path.read_text().splitlines() if ln.strip()]
+    path.write_text("\n".join(hook_lines + keep) + "\n")
 
 
 def assemble(folder, prep, hf, args):

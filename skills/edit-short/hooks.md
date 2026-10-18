@@ -2,7 +2,7 @@
 
 The first three seconds decide whether anyone sees the rest, and most viewers watch without sound. So the hook is three things that must say the same thing, in this order of weight: the text on screen, what is shown, and the spoken first sentence. A viewer who reads one message and hears another hesitates, and a hesitating viewer swipes.
 
-A topic label is not a hook. "Game Changer / Feste Kamera" names the subject; "Handy aufbauen nervt?" tells one kind of viewer that this is about their problem. The user rejected six label hooks on 2026-10-05 and supplied the rules below.
+A topic label is not a hook. "Game Changer / Feste Kamera" names the subject; "Handy aufbauen nervt?" tells one kind of viewer that this is about their problem.
 
 ## What a hook has to do
 

@@ -1,11 +1,11 @@
 ---
 name: gemhog-edit-short
-description: Edit a Gemhog short. Turns one hook take and one voiceover file into a captioned 1080×1920 HyperFrames project in the gemhog.com look, with the speaker on screen for the hook and graphic scenes over the voiceover; revises it after the user's Studio review, or exports it. Use for any work on a short's folder in the Gemhog content workspace.
+description: Edit a Gemhog short. Turns a voiceover file, and later the hook take that replaces its placeholder, into a captioned 1080×1920 HyperFrames project in the gemhog.com look, with the speaker on screen for the hook and graphic scenes over the voiceover; revises it after the user's Studio review, or exports it. Use for any work on a short's folder in the Gemhog content workspace.
 ---
 
 # Edit a Gemhog short
 
-A short is one HyperFrames project at `<folder>/hyperframes/`, built from two files in `<folder>/`: the **take**, an `.mp4` in which the speaker says the hook, and the **voiceover**, one audio file that reads the whole script. The speaker is on screen for the hook only. At the cut the **board** takes over, a page in the gemhog.com look, and one **scene** per passage of the voiceover is drawn on it. The **call to action** ends it: a fixed endcard on teal over a fixed recording of the CTA line, the same in every short.
+A short is one HyperFrames project at `<folder>/hyperframes/`, built from two files in `<folder>/`: the **take**, an `.mp4` in which the speaker says the hook, and the **voiceover**, one audio file that reads the whole script, its own hook first. The edit is built before the take exists: the **placeholder** is the voiceover reading its hook over a dark slot where the speaker will be, under the hook pills and captions (**Pre-Edit**). The take Paul records after watching it replaces the placeholder (**Edit**). The speaker is on screen for the hook only. At the cut the **board** takes over, a page in the gemhog.com look, and one **scene** per passage of the voiceover is drawn on it. The **call to action** ends it: a fixed endcard on teal over a fixed recording of the CTA line, the same in every short.
 
 `examples/` holds the eight scenes of the first short, "Was ist eigentlich eine Neo Cloud?". The user approved that look: read two of them before writing a scene.
 
@@ -31,17 +31,19 @@ HyperFrames itself stays in its own skills: `/hyperframes-core` for composition 
 
 ### 1. Start
 
-With no folder named, take the ideas in **Voiceover** on the board ([gemhog-content](../gemhog-content/SKILL.md) says how to read it); each has `voiceover.mp3` in its folder.
+With no folder named, take the videos in **Skript** on the Videos board whose folder holds `voiceover.mp3` ([gemhog-content](../gemhog-content/SKILL.md) says how to read it), and the videos in **Pre-Edit** for which a take has come in.
 
-**The take** is the folder's one `.mp4`. Paul records the hooks into `~/Movies/rec`, several ideas in a row. For a folder without a take, find the recording, newer than the voiceover, in which he asks that idea's hook question, and copy it in; the recording stays where it is. Name the ideas no recording fits and leave them in Voiceover.
+**Pre-Edit, no take yet.** Run `start "<folder>"`. It scaffolds the project, transcribes the voiceover, takes its first sentence as the placeholder hook, and drafts `prep/plan.json` (with `"placeholder": true` and `vo_body`, where the voiceover's own text begins), `prep/edit.json` and `prep/captions.txt`. Steps 2 to 5 follow as for any short; the hook pills carry the Text-Hook from the hook package. When step 5 is done, set the card's `Status` to **Pre-Edit**.
 
-Run `start "<folder>"`. It scaffolds the project, transcribes both files, finds the real edges of the hook from the waveform, finds where the voiceover joins (it usually repeats the hook question first, and joins after that), and drafts `prep/plan.json`, `prep/edit.json` and `prep/captions.txt`. The first `.mp4` by name is the take; `--take STEM --force` picks another.
+**The take** is the folder's one `.mp4`. Paul records the hooks into `~/Movies/rec`, several videos in a row, each reworded from its hook package. For a video in Pre-Edit, find the recording, newer than the voiceover, that asks that video's hook question in any wording, and copy it in; the recording stays where it is. Name the videos no recording fits and leave them in Pre-Edit. Then run `start "<folder>"` again: it sees the placeholder, puts the take in front of the voiceover's own text, wherever its wording differs, and replaces the hook's caption lines with the take's words. `assemble --force` rebuilds `index.html` with the take; scenes, body captions and sound effects stay, since they are written in voiceover seconds. Check the hook pills still say what Paul now says, then run step 5 again and set the `Status` to **Edit**.
+
+**A take from the start** (a video edited the old way): `start` finds the real edges of the hook from the waveform, finds where the voiceover joins (it usually repeats the hook question first, and joins after that), and drafts the same files. The first `.mp4` by name is the take; `--take STEM --force` picks another.
 
 A recording often holds the hook twice. `start` then quotes both attempts, cuts across them and misses that the voiceover repeats the hook. Use the last attempt: in `prep/plan.json` set `hook_in` and `hook_dur` to its edges in the waveform, `vo_start` to `hook_dur + 0.25` and `vo_in` to where the voiceover goes on after its own hook question; drop the extra hook lines from `prep/captions.txt`.
 
 A voiceover from before 2026-10-16 still reads the old call to action at its end. `start` finds it by „Kauf keine Aktien", ends the clip before it (`vo_cut` in `prep/plan.json`), leaves its words out of the scenes and captions, and says so; the fixed call to action follows instead.
 
-Done when its first line quotes the hook as spoken in the take, once, and it has printed the voiceover's sentences.
+Done when its first line quotes the hook, as spoken in the take or read by the placeholder, once, and it has printed the voiceover's sentences.
 
 ### 2. Plan the scenes
 
@@ -51,7 +53,7 @@ Edit `prep/edit.json`:
 - `hook`: two lines, written per [hooks.md](hooks.md).
 - `sfx`: [scenes.md](scenes.md) says where sounds belong.
 
-Correct `prep/captions.txt` against the **Skript** on the idea's page in the Content Backlog (where that is: [gemhog-content](../gemhog-content/SKILL.md)). Its spelling and numbers stand; a **Hinweise für den Schnitt** section there holds what Paul asked for in the pictures. One phrase per line. A trailing `-` joins a word to the next (`Neo-@v2.78 Cloud@v3.12` shows "Neo-Cloud"). The transcriber splits compounds, lowercases brand names and hears "Claude" as "Cloud"; a transcript that disagrees with the script on a small word ("den" for "dem") is usually the transcriber.
+Correct `prep/captions.txt` against the **Skript** on the video's page on the Videos board (where that is: [gemhog-content](../gemhog-content/SKILL.md)). Its spelling and numbers stand; a **Hinweise für den Schnitt** section there holds what Paul asked for in the pictures. One phrase per line. A trailing `-` joins a word to the next (`Neo-@v2.78 Cloud@v3.12` shows "Neo-Cloud"). The transcriber splits compounds, lowercases brand names and hears "Claude" as "Cloud"; a transcript that disagrees with the script on a small word ("den" for "dem") is usually the transcriber.
 
 Done when every sentence of the voiceover belongs to a scene and every caption line reads as the script does.
 
@@ -73,7 +75,7 @@ Done when every scene holds a heading and a graphic, and `npm run check` passes.
 2. `export --draft` renders `prep/draft.mp4` and prints `PASS` or `FAIL` lines for length, black or dark frames, loudness, and the captions against a transcript of the render. Explain or fix every `FAIL`.
 3. Start Studio with `npx --yes hyperframes@<pinned> preview --background --port 30<NN>` inside `hyperframes/` and give the user the URL.
 
-Report what you looked at and what was only machine-checked. Transcription and loudness are audio checks; listening is something the user does.
+Report what you looked at and what was only machine-checked. Transcription and loudness are audio checks; listening is something the user does. The card moves to **Pre-Edit** after the first pass with the placeholder, to **Edit** after the pass with the take.
 
 ### 6. Revise
 
@@ -87,9 +89,9 @@ A scene keeps the cue times it was written with; the script rewrites only its cl
 
 On request only: `export` renders `<folder>/<folder name>.mp4` and prints the same lines as the draft.
 
-Done when every line says `PASS`, or each `FAIL` is explained to the user, and the idea's `Status` is **Ready to post**.
+Done when every line says `PASS`, or each `FAIL` is explained to the user, and the video's `Status` is **Ready to post**.
 
-Then bring the **Videobeschreibung** draft on the idea's page up to date when the edit used something that needs a credit, such as music or footage.
+Then bring the **Videobeschreibung** draft on the video's page up to date when the edit used something that needs a credit, such as music or footage.
 
 ## House style
 
@@ -97,7 +99,7 @@ Then bring the **Videobeschreibung** draft on the idea's page up to date when th
 
 | Element | Default |
 | --- | --- |
-| Hook | two Urbanist pills on the speaker's forehead, centre (540, 640): teal on top, white below; lower edge above the eyes |
+| Hook | two Urbanist pills on the speaker's forehead, centre (540, 640): teal on top, white below; lower edge above the eyes. Before the take, the same pills over `templates/placeholder.html`, a dark slot noting „Platzhalter · hier kommt dein Hook“ |
 | Board | paper `#f5f5f0`, a still teal tint, the notices `Keine Anlageberatung` and `KI-generiert` at the very top, left and right, the lockup of the app mark and the lowercase `gemhog` below them, with no rule under it (the user dropped it on 2026-10-16 as clutter); nothing on it moves. The first notice says the short explains and does not advise, the second is the EU's label for the AI voice; both stay in every short. The user wanted them at the very top on 2026-10-11, away from the captions and out of the wordmark's line |
 | Scenes | heading at y 356, graphic between y 560 and 1350, both centred |
 | Captions | DM Sans Bold 58 in a rounded white card at y 1370–1550, the spoken word teal. The user moved them up from y 1500 on 2026-10-11, to where his other shorts carry them |

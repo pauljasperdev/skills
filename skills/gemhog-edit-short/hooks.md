@@ -19,7 +19,7 @@ Make the value more immediate, never the wording more dramatic. Every claim stay
 - Line 1 carries the question or the claim in two or three words.
 - Line 2 carries the payoff. The draft offers "In NN Sek. erklärt" with the video's real length; `assemble` and `sync` warn when the number and the length drift apart.
 
-The spoken hook is fixed by the take. When the take cannot carry the hook, say so; the user can record one.
+The spoken hook is fixed by the take. Before the take exists, the lines come from the **Text-Hook** in the video's hook package, split into the two lines; once the take is in, check them against what Paul now says, since he rewords the hook when he records it. When the take cannot carry the hook, say so; the user can record one.
 
 ## Check before building
 

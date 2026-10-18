@@ -5,9 +5,9 @@ description: Research Gemhog topics. Turns one named Content Backlog idea, or wi
 
 # Research Gemhog topics
 
-The **Report** is the first finished artifact of a short. It is written before anyone decides what the video will say: research finds what is there, and choosing a video angle belongs to `gemhog-script`.
+The **Report** is the first finished artifact of a short. It is written before anyone decides what the video will say: research finds what is there and answers the investor questions, and choosing the video's own question belongs to `gemhog-script`.
 
-Shared rules are in the `gemhog-content` skill next to this one: [CHANNEL.md](../gemhog-content/CHANNEL.md), [FORMATS.md](../gemhog-content/FORMATS.md), [SOURCES.md](../gemhog-content/SOURCES.md), and where things live in Notion in its [SKILL.md](../gemhog-content/SKILL.md).
+Shared rules are in the `gemhog-content` skill next to this one: [CHANNEL.md](../gemhog-content/CHANNEL.md), [QUESTIONS.md](../gemhog-content/QUESTIONS.md), [FORMATS.md](../gemhog-content/FORMATS.md), [SOURCES.md](../gemhog-content/SOURCES.md), and where things live in Notion in its [SKILL.md](../gemhog-content/SKILL.md).
 
 ## Roles
 
@@ -16,7 +16,7 @@ You run the research as its **editor**: you pick the ideas, dispatch the work, a
 - a **researcher**, briefed with [researcher.md](researcher.md), who returns the Report;
 - a **reviewer**, briefed with [reviewer.md](reviewer.md), who gets only the Report's text and checks it against its sources.
 
-In Claude Code the researcher runs on `sonnet` and the reviewer on `opus`; elsewhere give the reviewer the strongest model at hand. Each brief names the absolute path of its file and of the `gemhog-content` folder. In a session without subagents, do each role yourself in turn, the review from the Report's text alone.
+In Claude Code both run on `opus` (Paul's choice of 2026-10-17, after a first `sonnet` Report needed 16 corrections); elsewhere give both the strongest model at hand. Each brief names the absolute path of its file and of the `gemhog-content` folder. In a session without subagents, do each role yourself in turn, the review from the Report's text alone.
 
 ## Steps
 
@@ -49,12 +49,10 @@ Done when every Report has a final verdict.
 
 Write each Report that passed, or whose open findings you will name, to the top of its idea's page, above the original idea entry: the Report, then the appendix collapsed as **Quellen- und Prüfanhang**. Set `Status` to **Researched**. Fetch each page again to confirm.
 
-Tell Paul per idea: the core statement, the strongest findings, the verdict, and the gaps that remain. Then stop: Videoansätze and Skript start on his order, with `gemhog-script`.
-
-The backlog page „Was macht eigentlich Broadcom?" holds a Report in the form that is saved.
+Under a production order (an idea in Up Next, gemhog-content) the script follows at once, with `gemhog-script`; Paul reads the Report when he wants to. Under an order for the Report only, tell him per idea the core statement, the strongest findings, the verdict, the gaps that remain, and until when the Report holds, and stop.
 
 ## Other orders
 
-- **A new idea:** a backlog entry with the question as its title, the format, and in `Notizen` the economic angle and a checkable research lead. A suspected peculiarity is marked as unconfirmed.
+- **A new idea:** a backlog entry with the research question as its title, the format, and in `Notizen` the economic angle and a checkable research lead. A suspected peculiarity is marked as unconfirmed.
 - **A review of a Report:** dispatch a reviewer on it and pass on its findings and verdict.
 - **Material** (logos, photos, existing charts), when asked: an existing original, linked, with publisher, date and known usage terms. Graphics of our own are made in the edit.

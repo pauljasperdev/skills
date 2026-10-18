@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        /* the slot the take will fill: dark, so the hook pills and captions sit on it as they will on the speaker */
+        #placeholder-root {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse at 50% 40%, #3a3a38 0%, #1c1c1c 70%);
+        }
+        /* below the pills (lower edge y 756), above the captions (y 1370) */
+        #placeholder-note {
+          position: absolute;
+          left: 90px;
+          top: 1040px;
+          width: 900px;
+          text-align: center;
+          font-family: "DM Sans", sans-serif;
+          font-weight: 700;
+          font-size: 30px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #8a8a86;
+        }
+      </style>
+
+      <div id="placeholder-root" data-composition-id="placeholder" data-width="1080" data-height="1920" data-duration="__DUR__">
+        <p id="placeholder-note">Platzhalter · hier kommt dein Hook</p>
+      </div>
+
+      <script>
+        {
+          const DUR = __DUR__;
+          const tl = gsap.timeline({ paused: true });
+          tl.set("#placeholder-root", { opacity: 1 }, 0);
+          window.__timelines["placeholder"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

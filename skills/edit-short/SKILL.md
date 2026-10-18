@@ -19,8 +19,7 @@ The user's latest correction outranks a supplied reference, which outranks the d
 
 ## Working with this user
 
-- **One short first.** A change of approach (cut tightness, layout, hook, mix) goes into one short; the user watches it; then the rest follow. Three rounds across five shorts taught this.
-- **One after another.** Several shorts are edited in sequence in the one session. Parallel agents exhausted the user's usage limit mid-task.
+- **One short first.** A change of approach (cut tightness, layout, hook, mix) goes into one short; the user watches it; then the rest follow.
 - **Their Studio edits win.** Before touching a project, read `hyperframes history`. Entries by `You` mean the user edited: run `sync`, never a rebuild.
 - **They trim; you leave room.** Cut only clear dead air. Offer a shortening only when asked for one.
 
@@ -66,7 +65,7 @@ Copy `captions.draft.txt` to `captions.txt` and edit it: one phrase per line, sh
 
 Read [hooks.md](hooks.md) before writing the hook: a topic label is not one. Fill in `prep/edit.json`: `title`, `hook` (the text hook: two lines of at most 19 characters), `graphics` (`id`, `start`, `duration`, `label`, root seconds) and `sfx` (`id`, `sound`: `pop` or `swoosh`, `at`). Run `assemble`. It writes `compositions/hook.html` once; from then on the hook is edited as HTML.
 
-The assembly is plain so the user can adjust it in Studio: every passage is one `<video>` carrying its own sound, all on one track, end to end, and the `voice` bus holds the one gain, compressor and limiter for the whole track. The user chose this over layered tracks, fades and per-clip levels.
+The assembly is plain so the user can adjust it in Studio: every passage is one `<video>` carrying its own sound, all on one track, end to end, and the `voice` bus holds the one gain, compressor and limiter for the whole track: no layered tracks, fades or per-clip levels.
 
 Done when `assemble` prints the clip count and names the graphics still to write.
 
@@ -79,7 +78,7 @@ Copy `templates/graphic.html` to `compositions/<id>.html` for each graphic in `e
 - A real process gets a progressive diagram. Other topics get a different form each time.
 - The real logo when a company is named, inline in a tile; OpenAI and Claude are in `047`'s `versus.html`, GitHub in `058`'s `skill.html`. No logo found: a plain labelled tile.
 - Evidence is shown as itself: the book's cover, the tweet, the photo, sourced at 800 px or more and saved under `assets/broll/`.
-- Every mention of Gemhog shows the product big, so viewers see what is being built: a full-frame scene of 3 to 4 app screens from `~/Documents/gemhog/wireframes/png` (phone-framed, 866 × 1784) swiping through on brand teal `#0D9488`, the phone about 700 px wide, `gemhog.de` on screen, held for the whole sentence (3 to 5 s). The landing page (`00-landing.png` or gemhog.de) fits when the speech is about the website; the media kit (`~/Documents/gemhog/gemhog-media-kit`) has the logo.
+- Every mention of Gemhog shows the product big, so viewers see what is being built: a full-frame scene of 3 to 4 app screens from `~/Documents/gemhog/wireframes/mobile/png` (phone-framed, 866 × 1784) swiping through on brand teal `#0D9488`, the phone about 700 px wide, `gemhog.de` on screen, held for the whole sentence (3 to 5 s). The landing page (`00-landing.png` or gemhog.de) fits when the speech is about the website; the media kit (`~/Documents/gemhog/gemhog-media-kit`) has the logo.
 - A pop or swoosh on a meaningful entrance; three to six per short.
 - Labels state what was said: outreach is not validation.
 
@@ -105,13 +104,13 @@ Report what was looked at and what was only machine-checked. Transcription and w
 
 ### 8. Export
 
-On request only: `export <NNN>` renders `<NNN>/<NNN>.mp4` and checks length, black frames and loudness (about −16 LUFS). When loudness fails low, a few speech peaks cap the level, as the clip-on microphone used since `054` does: on the `voice` bus set the limiter's `attack` to 0.1, lower its `limit` (to about −6.5) and raise its `level_out` by the same amount minus 1 dB, and export again. That one limiter is the only level control: no extra gain nodes, no per-clip levels, and more "Voice boost" makes it quieter, since the renderer pulls the mix down to its loudest peak. The effect is not linear, so measure each try.
+On request only: `export <NNN>` renders `<NNN>/<NNN>.mp4` and checks length, black frames and loudness (about −16 LUFS). When loudness fails low, a few speech peaks from the clip-on microphone cap the level: on the `voice` bus set the limiter's `attack` to 0.1, lower its `limit` (to about −6.5) and raise its `level_out` by the same amount minus 1 dB, and export again. That one limiter is the only level control: no extra gain nodes, no per-clip levels, and more "Voice boost" makes it quieter, since the renderer pulls the mix down to its loudest peak. The effect is not linear, so measure each try.
 
 Done when it prints three `PASS` lines. Publishing is the `publish-short` skill.
 
 ## House style
 
-**The band** is where the hook and every graphic sit: the speaker's forehead, visual centre at x 540, y 640 (the one-third line), up to 940 px wide and about 280 px tall. Its lower edge stays above the eyes for as long as the graphic is on screen. When the speaker sits close and the eyes come up to y 770, raise the block until it ends just above them and no further: it belongs on the face. The user sent it back when it sat on the wall above the head.
+**The band** is where the hook and every graphic sit: the speaker's forehead, visual centre at x 540, y 640 (the one-third line), up to 940 px wide and about 280 px tall. Its lower edge stays above the eyes for as long as the graphic is on screen. When the speaker sits close and the eyes come up to y 770, raise the block until it ends just above them and no further: it belongs on the face, not on the wall above the head.
 
 **Evidence taller than the band** goes outside it, as large as the frame allows: book covers about 330 px wide on either side of the chest (y 850 to 1340, between mouth and caption box), a wide screenshot on the wall above the head with the hook beneath it on the band.
 
@@ -119,4 +118,4 @@ Done when it prints three `PASS` lines. Publishing is the `publish-short` skill.
 | --- | --- |
 | Hook | Oswald Bold, uppercase, 100 px, white, two lines in one size and colour, visible from the first frame, about 3 s |
 | Type in graphics | Unbounded ExtraBold, uppercase, as large as the band allows and 60 px or more for a heading; its capitals run about 0.85 em wide. Yellow type on skin gets a dark outline (`-webkit-text-stroke: 7px #0d0d0d; paint-order: stroke fill`) |
-| Captions | Inter Bold 64, white, only the spoken word `#FFE500`; box x 100, y 1360, 880 × 180, so a two-line caption sits at about y 1415 and 1490. The user raised it from y 1500 on 2026-10-11 against a reference short: lower, the apps' own captions and buttons crowd it |
+| Captions | Inter Bold 64, white, only the spoken word `#FFE500`; box x 100, y 1360, 880 × 180, so a two-line caption sits at about y 1415 and 1490. Any lower, the apps' own captions and buttons crowd it |

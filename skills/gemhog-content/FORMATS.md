@@ -1,22 +1,22 @@
 # Formats
 
-The format decides what is researched and what the viewer takes away. The backlog entry's title names it.
+The backlog entry's title is the research question and names the format; the format decides what is researched and what the viewer takes away. The video asks its own question, which `gemhog-script` draws from the Report.
 
 ## Was ist eigentlich …?
 
 A term, technology, mechanism or business category. Companies are examples; what holds for one does not automatically hold for the category.
 
 - **Erste Belohnung:** „Jetzt verstehe ich, was der Begriff bedeutet." For a business category: who pays whom for what.
-- **Zweite Belohnung:** „Jetzt verstehe ich einen konkreten Börsenbefund dazu und einen wesentlichen Grund dafür." It may be shown on one named company, without becoming a verdict on the category.
-- **Check:** Could a non-specialist explain the term after hearing it once? Is the Börsenbefund concrete, with its reason, and more than „interessant, aber riskant"?
+- **Zweite Belohnung:** the hook's answer may be shown on one named company, without becoming a statement about the whole category.
+- **Check:** Could a non-specialist explain the term after hearing it once? Is the answer concrete, with its deshalb, and more than „interessant, aber riskant"?
 
 ## Was macht eigentlich …?
 
 One company. Industry traits give only the context this company needs.
 
-- **Erste Belohnung:** „Jetzt verstehe ich, was die Firma verkauft und wie sie Geld verdient." Offer, paying customers, revenue model; for a broad group, the chosen part placed in the whole.
-- **Zweite Belohnung:** „Jetzt verstehe ich einen konkreten Teil der Börsendiskussion darüber."
-- **Check:** Does the text say what *this* company does and what sets it apart economically? If it would also work under a term's title, sharpen the company view.
+- **Erste Belohnung:** „Jetzt weiß ich, was die Firma verkauft und an wen." For a broad group, the part the hook is about, placed in the whole.
+- **Zweite Belohnung:** the hook's answer is about *this* company: its business, its share, its next news.
+- **Check:** Does the text say what *this* company does? If the answer would also work under a term's title, sharpen the company view.
 
 „Was ist eine Neocloud?" explains the category, also through CoreWeave. „Was macht CoreWeave?" explains CoreWeave's own contracts, financing and position. Two videos need two different insights.
 

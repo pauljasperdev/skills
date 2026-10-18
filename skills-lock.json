@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "gemhog-content": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "f2fbeb3325a2476b6304e946db5a60e3f56aa114c53383f7200e21c374882053"
+    },
+    "gemhog-research": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "1b4c0fd42a28a7616f385b0965f9036b463aad55e0a0e05657aa7a20927ca1d1"
+    }
+  }
+}

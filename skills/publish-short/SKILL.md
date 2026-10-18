@@ -5,7 +5,7 @@ description: Publish exported shorts. Uploads each export to the content bucket 
 
 # Publish a short
 
-Turns each exported `<NNN>/<NNN>.mp4` into three posts in the Buffer **queue**, one per channel, each on that channel's next free slot. Buffer publishes from there on its own. The user moved here from Publer on 2026-10-15.
+Turns each exported `<NNN>/<NNN>.mp4` into three posts in the Buffer **queue**, one per channel, each on that channel's next free slot. Buffer publishes from there on its own.
 
 ## Buffer
 
@@ -54,7 +54,7 @@ One short after the other, in folder order. Three `create_post` calls per short,
 | Instagram | `instagram: {type: "reel", shouldShareToFeed: true, isAiGenerated: false}` |
 | YouTube | `youtube: {title, categoryId: "22", privacy: "public", madeForKids: false, isAiGenerated: false}` |
 
-Category 22 is People & Blogs. For drafts, when the user asks for them: `saveToDraft: true`.
+Category 22 is People & Blogs. A short with AI-generated voice or footage (a voice clone, generated video) sets `isAiGenerated: true` on all three. For drafts, when the user asks for them: `saveToDraft: true`.
 
 When a call fails, stop there: report the error and which posts are in, and check `list_posts` before sending it again.
 

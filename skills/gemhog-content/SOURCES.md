@@ -7,19 +7,12 @@
 - Paul's thoughts open the search; they are neither evidence nor its limit.
 - When the source does not carry the statement, narrow or correct the statement.
 - „Anders als oft gedacht" needs evidence that it is often thought.
+- An expectation about the future belongs to whoever holds it: the company's guidance, a named analyst consensus, a named expert, each with its date.
+- An accusation against a company or a person (fraud, misconduct, a lawsuit) stays with the source that makes it, with its status: alleged, charged, ruled.
 
 ## Expert and podcast opinions
 
 Keep speaker, show, episode, date, timestamp and main reasoning together, and check the context in the original; a search hit or an automatic transcript does not settle what was meant. An opinion stays with its speaker and its date. Your own inference is never attributed to an expert.
-
-## Börseneinordnung: vier Perspektiven
-
-For a term or a company, test all four for a striking finding and deepen the promising ones. They are a search grid, not four chapters; a perspective without a finding stays empty.
-
-- **Bewertungsaufschlag oder -abschlag:** valuation against suitable peers, and the economic differences that could explain the gap.
-- **Historische Neubewertung:** how the company's own valuation changed, and what changed with it. Price change and multiple change are two things.
-- **Geschäftsentwicklung versus Börsenreaktion:** an apparent contradiction between the numbers and the share price; check expectations, guidance and whatever else happened that day.
-- **Tatsächlicher Gewinnmotor:** which products or segments carry the profit, possibly unlike revenue share or brand suggest.
 
 ## Valuation and price
 

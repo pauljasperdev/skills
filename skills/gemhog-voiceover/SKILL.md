@@ -1,6 +1,6 @@
 ---
 name: gemhog-voiceover
-description: Generate a Gemhog short's voiceover. Reads the ElevenLabs-Fassung from the idea's Notion page, has Eleven v4 speak it in Paul's cloned voice through the ElevenLabs connector, and saves it in the short's folder, for one named idea or with no topic for every idea in the board's Skript column. Use when asked to generate, voice or re-take a voiceover for a Gemhog topic.
+description: Generate a Gemhog short's voiceover. Reads the ElevenLabs-Fassung from the video's Notion page, has Eleven v4 speak it in Paul's cloned voice through the ElevenLabs connector, and saves it in the short's folder, for one named video or with no topic for every video in the Videos board's Skript column. Use when asked to generate, voice or re-take a voiceover for a Gemhog topic.
 ---
 
 # Generate a Gemhog voiceover
@@ -20,17 +20,17 @@ Where things live in Notion is in the `gemhog-content` skill next to this one: [
 
 ## Working with Paul
 
-Every generation spends his credits. His order to generate covers one generation per idea. A further one, also after a failed run, waits for a new order.
+Every generation spends his credits. His order to generate, or a topic in Up Next (a production order, gemhog-content), covers one generation per video. A further one, also after a failed run, waits for a new order.
 
 ## Steps
 
 ### 1. Load
 
-With no topic named, take every idea in **Skript** on the board.
+With no video named, take every video in **Skript** on the Videos board.
 
-Fetch the idea's page and copy the code block under **ElevenLabs-Fassung** character for character: tags, `…`, capitals, the hook question as its first line. When the page's `Status` is still before Skript, tell Paul the wording is unconfirmed before spending credits on it.
+Fetch the video's page and copy the code block under **ElevenLabs-Fassung** character for character: tags, `…`, capitals, the hook as its first line. The voice speaks the hook as the placeholder the edit plays until Paul records his take.
 
-Done when you hold the text, it is under 3,000 characters, and you have told Paul the character count and what the run will cost.
+Done when you hold the text and it is under 3,000 characters.
 
 ### 2. Generate
 
@@ -40,9 +40,9 @@ Done when `all_completed` is true. On `has_failures`, report the failure and wha
 
 ### 3. Save
 
-Create the short's folder when it is missing, named as the `gemhog-content` skill says. Download the generation to `<folder>/voiceover.mp3` with `curl` from its `content_url` in the status; that URL is signed and expires after two hours. A voiceover already there is replaced.
+Create the short's folder when it is missing, named as the `gemhog-content` skill says, and write its name to the card's `Ordner`. Download the generation to `<folder>/voiceover.mp3` with `curl` from its `content_url` in the status; that URL is signed and expires after two hours. A voiceover already there is replaced.
 
-Done when `ffprobe` reads a duration from the file, it is the only audio file in the folder, and the idea's `Status` is **Voiceover**. Tell Paul the duration and the flow's `url`, where he can also listen.
+Done when `ffprobe` reads a duration from the file and it is the only audio file in the folder. The card stays in **Skript**: the board has no voiceover column, and `gemhog-edit-short` moves it on to Pre-Edit. Under a production order the edit follows at once; otherwise tell Paul the duration and the flow's `url`, where he can also listen.
 
 ## Other orders
 
