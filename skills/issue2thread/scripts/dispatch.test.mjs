@@ -7,7 +7,7 @@ import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-test("standalone and Linear dispatch use the shared runtime path", async (t) => {
+test("standalone and issue dispatch use the shared runtime path", async (t) => {
   const root = await mkdtemp(path.join(tmpdir(), "to-thread-test-"));
   const originalExecFile = childProcess.execFile;
   const originalFetch = globalThis.fetch;
@@ -107,15 +107,17 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   assert.equal(dispatched, undefined);
   assert.equal(revoked, 1);
 
-  const linear = prepareIssueSpec({ cwd: root, issue: "SID-12", title: "Sample", workspace: "sideberry" }, profile);
-  const issue = await openWorktreeThread(linear, root, true, profile.modelSelection);
-  assert.equal(issue.worktree.branch, "t3code/sid-12-sample");
-  assert.equal(issue.thread.title, "SID-12 — Sample");
+  const tracked = prepareIssueSpec({ cwd: root, issue: 12, title: "Sample", repo: "konzeptlab/signal" }, profile);
+  const issue = await openWorktreeThread(tracked, root, true, profile.modelSelection);
+  assert.equal(issue.worktree.branch, "t3code/12-sample");
+  assert.equal(issue.thread.title, "#12 — Sample");
   assert.ok(issue.thread.prompt.includes("$examine-issue"));
-  threads = [{ id: "existing", projectId: project.id, title: "SID-12 — Old title" }];
-  assert.equal((await openWorktreeThread(linear, root, false, profile.modelSelection)).action, "existing");
+  threads = [{ id: "other", projectId: project.id, title: "#123 — Other issue" }];
+  assert.equal((await openWorktreeThread(tracked, root, true, profile.modelSelection)).action, "dry-run");
+  threads = [{ id: "existing", projectId: project.id, title: "#12 — Old title" }];
+  assert.equal((await openWorktreeThread(tracked, root, false, profile.modelSelection)).action, "existing");
   assert.equal(dispatched, undefined);
-  assert.equal((await openWorktreeThread({ ...linear, allowDuplicate: true }, root, true, profile.modelSelection)).action, "dry-run");
+  assert.equal((await openWorktreeThread({ ...tracked, allowDuplicate: true }, root, true, profile.modelSelection)).action, "dry-run");
 
   threads = [];
   rejectDispatch = true;
@@ -123,7 +125,7 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   assert.equal(dispatched.bootstrap.createThread.title, "Task");
   assert.equal((dispatched.bootstrap.prepareWorktree?.branch ?? dispatched.bootstrap.createThread.branch), "t3code/task-2");
   assert.equal(dispatched.bootstrap.runSetupScript, true);
-  assert.equal(revoked, 5);
+  assert.equal(revoked, 6);
 
   // A match that appears during connection must return the same receipt as an early match.
   const existing = { id: "raced", projectId: project.id, title: spec.title,
@@ -158,7 +160,7 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   setupFailed = true;
   await assert.rejects(openWorktreeThread(spec, root, false, selection), { code: "T3_SETUP_FAILED" });
   assert.equal(threads[0].id, dispatched.threadId, "failed setup retains the created thread");
-  assert.equal(revoked, 10, "all sessions are revoked, including failure paths");
+  assert.equal(revoked, 11, "all sessions are revoked, including failure paths");
 
   threads = [];
   setupFailed = false;
@@ -173,5 +175,5 @@ test("standalone and Linear dispatch use the shared runtime path", async (t) => 
   assert.equal(dispatched.bootstrap.prepareWorktree, undefined);
   assert.equal(dispatched.bootstrap.runSetupScript, false);
   assert.equal(dispatched.message.text, spec.prompt);
-  assert.equal(revoked, 11);
+  assert.equal(revoked, 12);
 });

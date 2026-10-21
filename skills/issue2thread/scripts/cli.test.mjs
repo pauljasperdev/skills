@@ -13,8 +13,8 @@ test("standalone and sibling-installed CLIs preserve their input and error contr
       { title: "Task", prompt: "Inspect the code." }],
     ["to-worktree-thread", ["t3-worktree.mjs"], "../../to-worktree-thread/scripts/",
       { title: "Task", prompt: "Inspect the code." }],
-    ["linear2thread", ["t3-worktree.mjs", "profiles.mjs"], "./",
-      { title: "Task", issue: "SID-12", workspace: "sideberry" }],
+    ["issue2thread", ["t3-worktree.mjs", "profiles.mjs"], "./",
+      { title: "Task", issue: 12, repo: "konzeptlab/signal" }],
   ]) {
     const directory = path.join(root, skill, "scripts");
     await mkdir(directory, { recursive: true });
@@ -22,7 +22,7 @@ test("standalone and sibling-installed CLIs preserve their input and error contr
     const script = path.join(directory, "t3-worktree.mjs");
     assert.match(execFileSync(process.execPath, [script, "--help"], { encoding: "utf8" }), /open JSON:/);
     const run = (input) => spawnSync(process.execPath,
-      [script, "open", ...(skill !== "linear2thread" ? ["--model", "example-model"] : ["--profile", "codex"]), "--json", "--t3-home", root],
+      [script, "open", ...(skill !== "issue2thread" ? ["--model", "example-model"] : ["--profile", "codex"]), "--json", "--t3-home", root],
       { input, encoding: "utf8" });
     for (const [input, code] of [
       ["{", "INPUT_INVALID"],
@@ -56,9 +56,9 @@ for (const skill of ["to-thread", "to-worktree-thread"]) {
   });
 }
 
-test("Linear doctor and open accept explicit selections over profile defaults", () => {
+test("issue doctor and open accept explicit selections over profile defaults", () => {
   const script = new URL("./t3-worktree.mjs", import.meta.url).pathname;
-  const input = JSON.stringify({ cwd: "/does-not-exist", workspace: "sideberry", issue: "SID-12", title: "Task" });
+  const input = JSON.stringify({ cwd: "/does-not-exist", repo: "konzeptlab/signal", issue: 12, title: "Task" });
   for (const command of ["doctor", "open"]) {
     const taskFlags = command === "doctor" ? ["--cwd", "/does-not-exist"] : ["--json"];
     for (const [selectionFlags, expected] of [
@@ -79,7 +79,7 @@ test("Linear doctor and open accept explicit selections over profile defaults", 
 for (const [skill, exported] of [
   ["to-thread", "openThread"],
   ["to-worktree-thread", "openWorktreeThread"],
-  ["linear2thread", "prepareIssueSpec"],
+  ["issue2thread", "prepareIssueSpec"],
 ]) {
   test(skill + " can be imported from a Node stdin module without running its CLI", () => {
     const moduleUrl = new URL(`../../${skill}/scripts/t3-worktree.mjs`, import.meta.url).href;
