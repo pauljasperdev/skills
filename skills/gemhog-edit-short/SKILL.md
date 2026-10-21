@@ -5,7 +5,7 @@ description: Edit a Gemhog short. Turns a voiceover file, and later the hook tak
 
 # Edit a Gemhog short
 
-A short is one HyperFrames project at `<folder>/hyperframes/`, built from two files in `<folder>/`: the **take**, an `.mp4` in which the speaker says the hook, and the **voiceover**, one audio file that reads the whole script, its own hook first. The edit is built before the take exists: the **placeholder** is the voiceover reading its hook over a dark slot where the speaker will be, under the hook pills and captions (**Pre-Edit**). The take Paul records after watching it replaces the placeholder (**Edit**). The speaker is on screen for the hook only. At the cut the **board** takes over, a page in the gemhog.com look, and one **scene** per passage of the voiceover is drawn on it. The **call to action** ends it: a fixed endcard on teal over a fixed recording of the CTA line, the same in every short.
+A short is one HyperFrames project at `<folder>/hyperframes/`, built from two files in `<folder>/`: the **take**, an `.mp4` in which the speaker says the hook, and the **voiceover**, one audio file that reads the whole script, its own hook first. The edit is built before the take exists: the **placeholder** is the voiceover reading its hook over a dark slot where the speaker will be, under the hook pills and captions (**Pre-Edit**). The take Paul records after watching it replaces the placeholder (**Edit**). The speaker is on screen for the hook only, with the **Beleg** under the face: a card that shows the video's visual hook while the hook is said. At the cut the **board** takes over, a page in the gemhog.com look, and one **scene** per passage of the voiceover is drawn on it. The **call to action** ends it: a fixed endcard on teal over a fixed recording of the CTA line, the same in every short.
 
 `examples/` holds the eight scenes of the first short, "Was ist eigentlich eine Neo Cloud?". The user approved that look: read two of them before writing a scene.
 
@@ -67,12 +67,14 @@ Done when it prints the timeline and names the stubs.
 
 Write each stub following [scenes.md](scenes.md). Logos come from the workspace's `media/` folder into `hyperframes/assets/logos/`.
 
-Done when every scene holds a heading and a graphic, and `npm run check` passes.
+`compositions/proof.html` is the **Beleg**: replace its `BELEG` stub with the card the **Visueller Hook** in the video's Hinweise für den Schnitt names, at a glance: one logo or one small picture, rarely a number the pills do not carry. It has no label line and no caption; what needs explaining belongs in the scenes. The spoken and the written hook carry the message; the card only complements them, and most shorts need none. It earns its place when it opens the curiosity loop further with something the viewer recognises or a picture that raises a question: a well-known company's logo („ah, it's about them“), a struck-through „Crucial“. It never adds information: a fact important enough for the first screen belongs in the pills, and a name or number the pills or the sentence already carry is bloat (the user, 2026-10-19: „ZEISS“ next to „Von der Brille zum KI-Chip“, „Siemens Energy 2029“ next to „Ausverkauft bis 2028“). When it adds nothing of that kind, delete `#proof-card`. The card says what the hook says and nothing the hook does not ([hooks.md](hooks.md)).
+
+Done when every scene holds a heading and a graphic, the Beleg is filled, and `npm run check` passes.
 
 ### 5. Verify and hand over
 
-1. `sheet` writes contact sheets of the hook, every scene just before it leaves, and the call to action twice. Look at each sheet: headings centred, nothing clipped at x 90 or 990, the hook labels above the speaker's eyes, every label readable.
-2. `export --draft` renders `prep/draft.mp4` and prints `PASS` or `FAIL` lines for length, black or dark frames, loudness, and the captions against a transcript of the render. Explain or fix every `FAIL`.
+1. `sheet` writes contact sheets of the hook, every scene just before it leaves, and the call to action twice. Look at each sheet: headings centred, nothing clipped at x 90 or 990, the hook labels above the speaker's eyes, the Beleg left of the head and clear of the face, every label readable.
+2. `export "<folder>" --draft` renders `prep/draft.mp4` and prints `PASS` or `FAIL` lines for length, black or dark frames, loudness, and the captions against a transcript of the render. Explain or fix every `FAIL`.
 3. Start Studio with `npx --yes hyperframes@<pinned> preview --background --port 30<NN>` inside `hyperframes/` and give the user the URL.
 
 Report what you looked at and what was only machine-checked. Transcription and loudness are audio checks; listening is something the user does. The card moves to **Pre-Edit** after the first pass with the placeholder, to **Edit** after the pass with the take.
@@ -99,7 +101,8 @@ Then bring the **Videobeschreibung** draft on the video's page up to date when t
 
 | Element | Default |
 | --- | --- |
-| Hook | two Urbanist pills on the speaker's forehead, centre (540, 640): teal on top, white below; lower edge above the eyes. Before the take, the same pills over `templates/placeholder.html`, a dark slot noting „Platzhalter · hier kommt dein Hook“ |
+| Hook | Urbanist pills, 82 px for every line, white with black text, one colour only (the user, 2026-10-19); the lower edge at y 756 above the eyes, more lines growing upward. Before the take, the same pills over `templates/placeholder.html`, a dark slot noting „Platzhalter · hier kommt dein Hook“ |
+| Beleg | `templates/proof.html`: one small white card left of the speaker's head (x 40, y 800, at most 320 px wide), a recognisable logo or a question-raising picture, no extra information and no label line (the user, 2026-10-19: the card complements the spoken and written hook, the face must stay free, the right side holds the platforms' buttons), in 0.25 s after the hook starts and out with the pills |
 | Board | paper `#f5f5f0`, a still teal tint, the notices `Keine Anlageberatung` and `KI-generiert` at the very top, left and right, the lockup of the app mark and the lowercase `gemhog` below them, with no rule under it (the user dropped it on 2026-10-16 as clutter); nothing on it moves. The first notice says the short explains and does not advise, the second is the EU's label for the AI voice; both stay in every short. The user wanted them at the very top on 2026-10-11, away from the captions and out of the wordmark's line |
 | Scenes | heading at y 356, graphic between y 560 and 1350, both centred |
 | Captions | DM Sans Bold 58 in a rounded white card at y 1370–1550, the spoken word teal. The user moved them up from y 1500 on 2026-10-11, to where his other shorts carry them |

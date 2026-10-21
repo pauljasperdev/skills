@@ -8,7 +8,7 @@ A term, technology, mechanism or business category. Companies are examples; what
 
 - **Erste Belohnung:** „Jetzt verstehe ich, was der Begriff bedeutet." For a business category: who pays whom for what.
 - **Zweite Belohnung:** the hook's answer may be shown on one named company, without becoming a statement about the whole category.
-- **Check:** Could a non-specialist explain the term after hearing it once? Is the answer concrete, with its deshalb, and more than „interessant, aber riskant"?
+- **Check:** Could a non-specialist explain the term after hearing it once? Is the answer concrete, landed by its deshalb or a punchline, and more than „interessant, aber riskant"?
 
 ## Was macht eigentlich …?
 

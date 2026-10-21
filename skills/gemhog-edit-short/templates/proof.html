@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: Urbanist;
+          src: url("assets/fonts/urbanist-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "DM Sans";
+          src: url("assets/fonts/dm-sans-latin-400-700.woff2") format("woff2");
+          font-weight: 400 900;
+          font-display: block;
+        }
+        #proof-root {
+          position: absolute;
+          inset: 0;
+        }
+        /* the Beleg: small, left of the speaker's head at cheek height, clear of the face and of the platforms' buttons on the right (the user, 2026-10-19) */
+        #proof-card {
+          position: absolute;
+          left: 40px;
+          top: 800px;
+          width: max-content;
+          max-width: 380px;
+          padding: 22px 24px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
+          border: 2px solid #e4e2d8;
+          border-radius: 28px;
+          background: #ffffff;
+          box-shadow: 0 18px 44px rgba(28, 28, 28, 0.28);
+          font-family: Urbanist, sans-serif;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          color: #1c1c1c;
+          white-space: nowrap;
+        }
+        /* a recognisable logo or a small picture; at most one number the pills do not carry; no label line */
+        #proof-card .row {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+        /* logos and products: bounded both ways, so a wide wordmark and a square mark both fit */
+        #proof-card img,
+        #proof-card svg {
+          display: block;
+          max-height: 64px;
+          max-width: 220px;
+          width: auto;
+          height: auto;
+        }
+        /* the number */
+        #proof-card .num {
+          font-size: 56px;
+          line-height: 1;
+        }
+        #proof-card .a {
+          color: #0d9488;
+        }
+      </style>
+
+      <div id="proof-root" data-composition-id="proof" data-width="1080" data-height="1920" data-duration="__DUR__">
+        <!-- the Visueller Hook from the video's Hinweise für den Schnitt: what makes the hook believable at a glance -->
+        <div id="proof-card">
+          <div class="row"><span id="proof-stub" class="num">BELEG</span></div>
+        </div>
+      </div>
+
+      <script>
+        {
+          const DUR = __DUR__;
+          const tl = gsap.timeline({ paused: true });
+          // in just after the hook starts, out with the pills before the cut to the board
+          tl.fromTo("#proof-card", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "back.out(1.6)" }, 0.25);
+          tl.to("#proof-card", { opacity: 0, duration: 0.2, ease: "power1.in" }, DUR - 0.42);
+          window.__timelines["proof"] = tl;
+        }
+      </script>
+    </template>
+  </body>
+</html>

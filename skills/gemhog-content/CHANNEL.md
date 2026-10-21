@@ -1,6 +1,6 @@
 # The channel
 
-Gemhog tells short business stories for private investors: interesting companies, how they earn their money, why they do what they do, and what could follow from it. The subject is the business world, not Paul's founder journey. An episode runs 60 to 90 seconds and needs no other episode.
+Gemhog tells short business stories for private investors: interesting companies, how they earn their money, why they do what they do, and what could follow from it. The subject is the business world, not Paul's founder journey. An episode runs as long as its one question needs, from a 20-second punch to about 75 seconds, and needs no other episode.
 
 Why someone follows, in Paul's words:
 
@@ -11,7 +11,7 @@ Why someone follows, in Paul's words:
 A video pays the viewer twice:
 
 1. **Erste Belohnung:** who the company is and what it sells, or what the term means, in plain words, enough to follow the rest. It is the setup, not the point.
-2. **Zweite Belohnung:** the answer to the hook's question, with its deshalb ([QUESTIONS.md](QUESTIONS.md)): what it means for the business, or how to read the next news about it. It is the last thing said.
+2. **Zweite Belohnung:** the answer to the hook's question, landed either by its deshalb ([QUESTIONS.md](QUESTIONS.md)), what it means for the business or how to read the next news about it, or by a punchline: a last fact, contrast or twist that answers the hook and sticks. It is the last thing said.
 
 A scenario video sets one stated assumption and follows one economic consequence instead. [FORMATS.md](FORMATS.md) says what each format makes of this.
 

@@ -12,7 +12,7 @@ Where things live in Notion is in the `gemhog-content` skill next to this one: [
 ## Buffer
 
 - **Connector:** the `claude.ai Buffer` tools. When they are missing from the session, say so; a new session loads them.
-- **Account:** Paul's own, `mail@pauljasper.dev`, with one organisation (since 2026-10-15). `get_account` gives its ID and the plan's limit of scheduled posts, `list_channels` its channels. Gemhog's three are YouTube `Gemhog`, TikTok `gemhog_com` and Instagram `gemhog_com`; the others (`powlymoli`, YouTube `Paul Jasper`) are Paul's personal channels and never get a Gemhog post.
+- **Account:** Paul's own, `mail@pauljasper.dev`, with one organisation (since 2026-10-15). `get_account` gives its ID and the plan's limit of scheduled posts, `list_channels` its channels. Gemhog's three are YouTube `Gemhog`, TikTok `gemhog_com` and Instagram `gemhog_de`; the others (`powlymoli`, YouTube `Paul Jasper`) are Paul's personal channels and never get a Gemhog post.
 - **Slots:** the queue fills each channel's posting schedule, which Paul keeps in Buffer. With equal schedules a short goes out on all three channels at the same time.
 - **The video** reaches Buffer as a public URL only, and Buffer reads it from there. The file stays in the bucket until Paul orders it removed.
 

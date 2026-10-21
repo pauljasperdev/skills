@@ -71,15 +71,15 @@ Done when `assemble` prints the clip count and names the graphics still to write
 
 ### 5. Illustrate
 
-Copy `templates/graphic.html` to `compositions/<id>.html` for each graphic in `edit.json` and build from it. Each graphic illustrates the sentence being spoken: it enters on the word that names it and leaves when that point ends. Empty space between points is fine.
+Copy `templates/graphic.html` to `compositions/<id>.html` for each graphic in `edit.json` and build from it. A graphic goes where seeing adds something: a number, a named company, evidence, a process, Gemhog. A sentence that only talks to the viewer (a question, an invitation, a feeling) stays on the face with its caption. Each graphic enters on the word that names it and leaves when that point ends. Stretches of the speaker alone are welcome.
 
-- An illustration over a heading; few words, since the narration carries the explanation.
+- One idea per graphic: a heading and one drawn element or tile; few words, since the narration carries the explanation.
 - Hand-drawn, playful motion: white strokes that draw on, yellow (`#FFE500`) for the accent.
 - A real process gets a progressive diagram. Other topics get a different form each time.
 - The real logo when a company is named, inline in a tile; OpenAI and Claude are in `047`'s `versus.html`, GitHub in `058`'s `skill.html`. No logo found: a plain labelled tile.
 - Evidence is shown as itself: the book's cover, the tweet, the photo, sourced at 800 px or more and saved under `assets/broll/`.
 - Every mention of Gemhog shows the product big, so viewers see what is being built: a full-frame scene of 3 to 4 app screens from `~/Documents/gemhog/wireframes/mobile/png` (phone-framed, 866 × 1784) swiping through on brand teal `#0D9488`, the phone about 700 px wide, `gemhog.de` on screen, held for the whole sentence (3 to 5 s). The landing page (`00-landing.png` or gemhog.de) fits when the speech is about the website; the media kit (`~/Documents/gemhog/gemhog-media-kit`) has the logo.
-- A pop or swoosh on a meaningful entrance; three to six per short.
+- A pop or swoosh on a meaningful entrance; at most one per graphic.
 - Labels state what was said: outreach is not validation.
 
 Snapshot the hook, the largest graphic and a two-line caption before polishing the rest.

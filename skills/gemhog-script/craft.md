@@ -10,12 +10,12 @@ Paul's **[Short-Form Script Guide: Everything After the Hook](https://app.notion
 
 1. **Hook:** the chosen hook ([hook-writing.md](hook-writing.md)), with nothing before it. Fill in the guide's hook contract from it before the first body line.
 2. **Bridge:** the next sentence begins answering. It continues the hook without echoing its words, because Paul will reword the hook when he records it.
-3. **Erste Belohnung:** who the company is and what it sells, in one or two plain sentences, as the minimum context the answer needs. The winners on company topics compress it this far; it is the setup, never the point.
+3. **Erste Belohnung:** who the company is and what it sells, in one or two plain sentences, as the minimum context the answer needs. The winners on company topics compress it this far; it is the setup, never the point. In a punch short it shrinks to a clause, or goes when the hook already places the company.
 4. **Beats:** new information, its consequence, the next question, joined by *aber* and *deshalb*, never by *und dann*. Each beat gives something on its own: delay the complete answer, not all the value. A Rehook between beats is a real gap in the facts, never an announcement that something exciting is coming.
-5. **Payoff:** the complete answer to the hook, with its proof, and its meaning, the deshalb (see Close).
+5. **Payoff:** the complete answer to the hook, with its proof, landed by its deshalb or a punchline (see Close).
 6. **Call to action:** the fixed recording below, which the edit appends; the Skript does not contain it.
 
-Each beat rests only on what was already said, adds **one** new thing, and leaves the viewer able to stop there with something understood. A beat that needs two new terms is two beats, or too much for this short. Every number arrives with its deshalb; a figure that answers no question on the way to the payoff stays in the Report.
+Each beat rests only on what was already said, adds **one** new thing, and leaves the viewer able to stop there with something understood. A beat that needs two new terms is two beats, or too much for this short. Every number serves the answer; a figure that answers no question on the way to the payoff stays in the Report.
 
 ### A sketch
 
@@ -29,6 +29,15 @@ The beats of one possible short, from the Micron Report of 17.10.2026. It shows 
 | Beat | Und die KI-Rechenzentren brauchen so viel davon, dass Speicher laut Micron überall knapp wird. |
 | Proof | Im letzten Quartal ist die Menge nur um ein paar Prozent gestiegen, der Preis um ein Vielfaches davon. |
 | Payoff | Wenn du also liest, dass Speicher billiger wird, geht es direkt um Microns Gewinn. |
+
+## Length
+
+The writer chooses each video's length (Paul, 2026-10-18): as short as the answer allows. Whether short or long performs better on Gemhog is not known yet, so a Report's videos may differ in length, and the posted shorts will show which works. Two shapes help, neither is a rule:
+
+- **Punch,** about 20 to 35 seconds: the hook, the answer at once, one proof, the punchline. For a question whose answer is one surprising fact.
+- **Erklärt,** about 40 to 75 seconds: the layers above, for an answer that needs a mechanism in steps.
+
+When in doubt, the shorter. Cutting a step the answer does not need makes a short better; cutting one it needs makes the viewer drop out.
 
 ## Load
 
@@ -58,7 +67,7 @@ Give the edit something to show. It draws one scene per beat from what the sente
 
 ## Close
 
-The payoff ends the short, and its last sentence carries the meaning: what the answer means for the business, or how to read the next news about the company. That is the guide's close with one job, and for Gemhog the job is the deshalb. It is the newest and most useful sentence, so peak and end fall together, and it is said at full speed. A recap adds nothing new, and an open question leaves the gap the viewer stayed to close: an open ending has no memory advantage (meta-analysis 2025). An ending Paul left open stays open.
+The payoff ends the short, and its last sentence lands the answer. It does so either by its meaning, the deshalb: what the answer means for the business, or how to read the next news about the company; or by a punchline: a last fact, contrast or twist that answers the hook and that a viewer would repeat to a friend. Take what lands harder. A punchline is carried by the Report and stays inside CHANNEL.md's Limits like every other sentence: it surprises about the business, never about the share. That is the guide's close with one job. It is the newest and most useful sentence, so peak and end fall together, and it is said at full speed. A recap adds nothing new, and an open question leaves the gap the viewer stayed to close: an open ending has no memory advantage (meta-analysis 2025). An ending Paul left open stays open.
 
 ## Call to action
 
@@ -75,7 +84,7 @@ It is recorded once and appended by the edit together with its endcard ([gemhog-
 - Is the Erste Belohnung plain enough that a newcomer could repeat it?
 - Does every beat rest on what was said, add one thing, and end on something understood?
 - Is each Rehook a gap in the facts?
-- Does every number arrive with its deshalb? Count the numbers, names and terms. Could one more go?
+- Does every number serve the answer? Count the numbers, names and terms. Could one more go, and could the short be shorter?
 - Say every sentence aloud without looking at it. One that only works on the page gets rebuilt. Look at every colon, dash and bracket again.
 - Does every line move, prove or pay off?
-- Does the Skript end with the payoff and its deshalb, with no recap, no open question and no call to action of its own?
+- Does the Skript end with the payoff, landed by its deshalb or a punchline, with no recap, no open question and no call to action of its own?

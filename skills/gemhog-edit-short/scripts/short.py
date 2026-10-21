@@ -20,7 +20,7 @@ The clock: root seconds = vo_start + (voiceover seconds - vo_in) / rate. Scene c
 voiceover seconds and mapped through it, so a trim or a new rate moves all of them together.
 
 Without a take the short is built around a placeholder: the voiceover reads its own hook from the start over a dark slot where
-the speaker will be, under the hook pills and captions. plan.json keeps "vo_body", where the voiceover's own text begins, so
+the speaker will be, under the hook pills, the Beleg card and captions. plan.json keeps "vo_body", where the voiceover's own text begins, so
 the take Paul records later replaces the placeholder however he words it: `start` puts it in, `assemble --force` rebuilds.
 
 The call to action is fixed: templates/outro.html over assets/cta/cta.mp3, appended after the voiceover's last word. A voiceover
@@ -50,7 +50,7 @@ VO_PRE = 0.07  # room kept before the voiceover's first sound
 OUTRO_DUR = 9.0  # the call to action, templates/outro.html
 CTA_LEAD, CTA_LEN, CTA_URL = 0.3, 7.706, 5.44  # cta.mp3 (already at 1.1x) starts 0.3 s into the card; „gemhog.de" lands at 5.44 s
 CTA_WORDS = ["kauf", "keine", "aktien"]  # how the call to action begins, in voiceovers that still read it
-RESERVED = {"main", "root", "voice", "take-01", "backdrop", "hook", "outro", "cta", "captions", "voiceover", "placeholder"}
+RESERVED = {"main", "root", "voice", "take-01", "backdrop", "hook", "outro", "cta", "captions", "voiceover", "placeholder", "proof"}
 SOUNDS = {  # file in <workspace>/media/sound, lead-in to skip, duration, volume
     "pop": ("dragon-studio-pop-402324.mp3", 0.18, 0.35, 0.2),
     "swoosh": ("universfield-fast-swoosh-383967.mp3", 0.07, 0.45, 0.35),
@@ -74,6 +74,26 @@ def attr(value):
 
 def norm(text):
     return re.sub(r"[^a-zäöüß0-9]", "", text.lower())
+
+
+def joined(words):
+    """The transcriber splits compounds ("KI", "-Agenten"); a label or quote wants them whole."""
+    text = ""
+    for w in words:
+        text += w["word"] if w["word"].startswith("-") and text else (" " if text else "") + w["word"]
+    return text
+
+
+NUMBER_WORDS = {"null": "0", "ein": "1", "eine": "1", "eins": "1", "zwei": "2", "drei": "3", "vier": "4", "fünf": "5", "sechs": "6",
+                "sieben": "7", "acht": "8", "neun": "9", "zehn": "10", "elf": "11", "zwölf": "12", "zwanzig": "20", "dreißig": "30",
+                "vierzig": "40", "fünfzig": "50", "sechzig": "60", "siebzig": "70", "achtzig": "80", "neunzig": "90", "hundert": "100",
+                "prozent": ""}
+
+
+def spoken_key(word):
+    """How a word is compared in the caption check: captions spell numbers as the Skript does, the transcriber writes digits."""
+    w = norm(word)
+    return NUMBER_WORDS.get(w, w)
 
 
 def export_name(folder):
@@ -134,6 +154,19 @@ def transcribe(wav, fresh=False):
                                     condition_on_previous_text=False, verbose=None)
     words = [{"word": w["word"].strip(), "start": round(float(w["start"]), 3), "end": round(float(w["end"]), 3)}
              for seg in result["segments"] for w in seg["words"] if w["word"].strip()]
+    # after a pause the transcriber starts a word where the silence (or the last word's tail) starts; the waveform
+    # knows where its sound starts: after the last stretch of at least 150 ms of quiet inside the word's span
+    t, db = envelope(wav)
+    for w in words:
+        span = (t >= w["start"]) & (t <= w["end"] - 0.03)
+        ts, quiet = t[span], db[span] < -45
+        onset, run = None, 0
+        for k in range(len(ts)):
+            run = run + 1 if quiet[k] else 0
+            if run >= 30 and k + 1 < len(ts) and not quiet[k + 1]:  # 30 hops of 5 ms
+                onset = ts[k + 1]
+        if onset is not None:
+            w["start"] = round(float(onset) - 0.02, 3)
     save(out, words)
     return words
 
@@ -293,9 +326,16 @@ def write_parts(hf, plan, edit, lay, force):
         set_duration(path, s["id"], s["dur"])
     hook = comps / "hook.html"
     if not hook.exists() or force:
-        lines = (edit.get("hook") or ["", ""]) + [""]
-        hook.write_text((templates / "hook.html").read_text().replace("__LINE1__", html.escape(lines[0])).replace("__LINE2__", html.escape(lines[1])).replace("__DUR__", num(plan["hook_dur"])))
+        lines = [line for line in (edit.get("hook") or []) if line.strip()] or [""]
+        pills = "\n          ".join(f'<p id="hook-line-{i}">{html.escape(line)}</p>' for i, line in enumerate(lines, 1))
+        hook.write_text((templates / "hook.html").read_text().replace("__LINES__", pills).replace("__DUR__", num(plan["hook_dur"])))
     set_duration(hook, "hook", plan["hook_dur"])
+    proof = comps / "proof.html"  # written by hand like a scene, so never rebuilt
+    if not proof.exists():
+        proof.write_text((templates / "proof.html").read_text().replace("__DUR__", num(plan["hook_dur"])))
+    set_duration(proof, "proof", plan["hook_dur"])
+    if 'id="proof-stub"' in proof.read_text():
+        stubs.append("proof")
     parts = [("backdrop", lay["total"] - on_frame(plan["hook_dur"])), ("outro", OUTRO_DUR)]
     if plan.get("placeholder"):
         parts.append(("placeholder", plan["hook_dur"]))
@@ -387,10 +427,15 @@ def report(prep, hf, plan, lay, stubs):
     for s in lay["scenes"]:
         print(f'  {s["id"]:14s} {s["start"]:6.2f}-{s["start"] + s["dur"]:6.2f} s   voiceover {s["vo0"]:6.2f}-{s["vo0"] + s["dur"] * plan["rate"]:6.2f}')
     if stubs:
-        print("scenes still to illustrate in compositions/:", ", ".join(stubs))
+        print("still to illustrate in compositions/:", ", ".join(stubs) + ("  (proof: the Beleg under the speaker during the hook)" if "proof" in stubs else ""))
 
 
 # --- commands ------------------------------------------------------------------------
+def unstudio(text):
+    """index.html as built: Studio stamps a data-hf-id on every element when it opens the project."""
+    return re.sub(r'\s+data-hf-id="[^"]*"', "", text)
+
+
 def start(folder, prep, hf, args):
     prep.mkdir(exist_ok=True)
     audio = sorted(p for p in folder.iterdir() if p.suffix.lower() in (".mp3", ".wav", ".m4a"))
@@ -453,7 +498,7 @@ def start(folder, prep, hf, args):
         vo_cut = round(min(vo_end + 0.15, body[cta]["start"] - 0.02), 3)
         body = body[:cta]
     plan = {
-        "take": take.stem, "voiceover": audio[0].name, "hook_text": " ".join(w["word"] for w in hook_words),
+        "take": take.stem, "voiceover": audio[0].name, "hook_text": joined(hook_words),
         "hook_in": round(hook_in, 6), "hook_dur": hook_dur, "vo_in": round(max(0.0, float(t[first]) - VO_PRE), 3), "vo_start": round(hook_dur + GAP, 3),
         "vo_end": round(vo_end, 2), "vo_cut": vo_cut, "rate": RATE,
         "hook_gain": round(min(12.0, max(0.0, speech_level(vo_wav, float(t[first]), 1e9) - speech_level(take_wav, float(active[0]), float(active[-1])))), 1),
@@ -511,7 +556,7 @@ def start_placeholder(folder, prep, audio, vo_wav, vo_words, args):
     body_first = quiet + int(np.argmax(loud[quiet:])) if quiet is not None else int(np.searchsorted(t, vo_words[n]["start"]))
     vo_in, vo_body = round(max(0.0, float(t[first]) - VO_PRE), 3), round(max(0.0, float(t[body_first]) - VO_PRE), 3)
     plan = {
-        "take": None, "placeholder": True, "voiceover": audio.name, "hook_text": " ".join(w["word"] for w in vo_words[:n]),
+        "take": None, "placeholder": True, "voiceover": audio.name, "hook_text": joined(vo_words[:n]),
         "hook_in": 0.0, "hook_dur": round((vo_body - vo_in) / RATE * 10) / 10, "vo_in": vo_in, "vo_start": 0.0, "vo_body": vo_body,
         "vo_hook_end": vo_words[n - 1]["end"],
         "vo_end": round(float(t[len(loud) - 1 - int(np.argmax(loud[::-1]))]), 2), "vo_cut": None, "rate": RATE, "hook_gain": 0.0,
@@ -564,7 +609,7 @@ def swap_hook_captions(prep, plan, hook_words):
 def assemble(folder, prep, hf, args):
     plan, edit, force = load(prep / "plan.json"), load(prep / "edit.json"), "--force" in args
     index, built = hf / "index.html", prep / "index.built.html"
-    if index.exists() and 'id="take-01"' in index.read_text() and not force and (not built.exists() or built.read_text() != index.read_text()):
+    if index.exists() and 'id="take-01"' in index.read_text() and not force and (not built.exists() or unstudio(built.read_text()) != unstudio(index.read_text())):
         sys.exit("index.html changed since the last build (Studio or by hand). `sync` keeps those edits and moves everything to follow; "
                  "`assemble --force` rebuilds over them.")
     lay = layout(plan, edit)
@@ -609,6 +654,8 @@ def sync(folder, prep, hf, args):
     put("root", data_duration=num(lay["total"]))
     put("captions", data_duration=num(lay["total"]))
     put("hook", data_duration=num(plan["hook_dur"]))
+    if tag("proof"):
+        put("proof", data_duration=num(plan["hook_dur"]))
     board = get(tag("backdrop"), "data-start")
     board = on_frame(plan["hook_dur"]) if abs(board - was["hook_dur"]) < 0.01 else board  # the board follows the cut unless it was moved off it
     put("backdrop", data_start=num(board), data_duration=num(round(lay["total"] - board, 6)))  # and always reaches the last frame
@@ -617,7 +664,7 @@ def sync(folder, prep, hf, args):
             put(s["id"], data_start=num(s["start"]), data_duration=num(s["dur"]))
         else:
             text = text.replace(tag("outro"), host_tag(s).strip() + "\n      " + tag("outro"))
-    wanted = {s["id"] for s in lay["scenes"]} | {"hook", "outro", "backdrop", "captions"}
+    wanted = {s["id"] for s in lay["scenes"]} | {"hook", "proof", "outro", "backdrop", "captions", "take-01"}  # take-01 is the placeholder slot before the take
     for gone in re.findall(r'\n[ \t]*<div id="([^"]+)" class="clip layer"[^>]*data-composition-src="[^"]*"[^>]*></div>', text):
         if gone not in wanted:  # a scene taken out of edit.json; its file stays in compositions/
             text = re.sub(rf'\n[ \t]*<div id="{re.escape(gone)}" class="clip layer"[^>]*></div>', "", text, count=1)
@@ -688,9 +735,12 @@ def export(folder, prep, hf, args):
     # what the render says against what the captions show: an audio check, not listening
     wav = prep / ("draft.wav" if draft else "export.wav")
     run(["ffmpeg", "-v", "error", "-y", "-i", out, "-ac", "1", "-ar", "16000", wav])
-    heard = [(norm(w["word"]), w["start"]) for w in transcribe(wav, fresh=True) if norm(w["word"]) and w["start"] < lay["outro_at"]]  # the call to action has no captions
+    heard = [(spoken_key(w["word"]), w["start"]) for w in transcribe(wav, fresh=True) if spoken_key(w["word"])]
+    cta = next((i for i in range(len(heard) - 1) if heard[i][0].startswith("kauf") and heard[i + 1][0] == "keine"
+                and heard[i][1] > lay["outro_at"] - 2), None)
+    heard = [h for h in heard[:cta] if h[1] < lay["outro_at"] + CTA_LEAD]  # the call to action has no captions
     wav.unlink()
-    shown = [(norm(w), t) for g in caption_groups(prep, plan, lay) for w, t in zip(g["words"], g["w"]) if norm(w)]
+    shown = [(spoken_key(w), t) for g in caption_groups(prep, plan, lay) for w, t in zip(g["words"], g["w"]) if spoken_key(w)]
     h, c = "".join(w for w, _ in heard), "".join(w for w, _ in shown)
     match = difflib.SequenceMatcher(None, h, c, autojunk=False)
     print(f"{ok(match.ratio() >= 0.97)}  captions against the transcript of the render: {match.ratio():.3f}")
@@ -701,7 +751,9 @@ def export(folder, prep, hf, args):
                      if op == "equal" for i in range(b - a) if shown[x + i][1] > plan["vo_start"] + 0.3])
     if len(offs):
         med, lo, hi = np.median(offs) * 1000, np.percentile(offs, 5) * 1000, np.percentile(offs, 95) * 1000
-        print(f"{ok(abs(med) <= 80 and lo >= -200 and hi <= 200)}  caption timing over {len(offs)} voiceover words: heard minus shown, median {med:+.0f} ms, 5% {lo:+.0f}, 95% {hi:+.0f}"
+        # the transcriber of the render starts a word after a pause up to half a second early, so "heard" before "shown" is
+        # allowed that far; captions ahead of the sound are not, and the median shows a voiceover clip that moved
+        print(f"{ok(abs(med) <= 80 and lo >= -500 and hi <= 200)}  caption timing over {len(offs)} voiceover words: heard minus shown, median {med:+.0f} ms, 5% {lo:+.0f}, 95% {hi:+.0f}"
               + ("" if abs(med) <= 80 else ": the voiceover clip moved; run `sync`"))
 
 
@@ -710,4 +762,8 @@ COMMANDS = {"start": start, "assemble": assemble, "sync": sync, "sheet": sheet, 
 if __name__ == "__main__":
     if len(sys.argv) < 3 or sys.argv[1] not in COMMANDS:
         sys.exit(__doc__)
-    COMMANDS[sys.argv[1]](*project(sys.argv[2]), sys.argv[3:])
+    args = sys.argv[2:]
+    at = next((i for i, a in enumerate(args) if not a.startswith("--") and not (i and args[i - 1] == "--take")), None)
+    if at is None:
+        sys.exit(__doc__)
+    COMMANDS[sys.argv[1]](*project(args[at]), args[:at] + args[at + 1:])

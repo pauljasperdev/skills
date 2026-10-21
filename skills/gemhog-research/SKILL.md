@@ -31,7 +31,7 @@ Done when you have told Paul the list of ideas you are starting, each with its q
 
 Dispatch one researcher per idea, all at once. Its brief holds the entry as fetched (title, format, `Notizen`, the page's text), today's date, and a file path for the Report in a temporary folder outside the workspace.
 
-A Report whose own gap list names what another search would close goes back to its researcher before any review.
+A researcher that may not write files returns the Report as its answer; save it to the file word for word before the review. A Report whose own gap list names what another search would close goes back to its researcher before any review.
 
 Done when every Report is in its file.
 

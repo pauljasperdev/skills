@@ -23,9 +23,9 @@ Done when the Report and both guides are there. A page without a Report goes to 
 
 ### 2. Hook
 
-Read the whole Report for the answers a viewer would want: the Anlegerfragen, their deshalb, the everyday link. Write eight to ten candidates across at least four of the guide's angles, each with the answer it promises and the Report's answers that carry it.
+Read the whole Report for the answers a viewer would want: the Anlegerfragen, their deshalb, the everyday link. Write eight to ten candidates across at least four of the guide's angles, each as its three layers (Gesprochen, Text, Bild; hook-writing.md), with the answer it promises and the Report's answers that carry it.
 
-Dispatch a fresh judge on `opus` (in another tool, the strongest model at hand) with the guide's URL, the absolute paths of hook-writing.md, CHANNEL.md and QUESTIONS.md, the Report's text and the candidates, and nothing of your own reasoning. It rates and ranks them per hook-writing.md. Its ranking decides the videos: every question that clears the threshold in hook-writing.md is one, with its best candidate as the hook, changed as the judge proposes where that makes it stronger. When no question clears it but a candidate passes both gates, the strongest such candidate is the one video. When none passes both gates, stop and tell Paul what the Report would need.
+Dispatch a fresh judge on `opus` (in another tool, the strongest model at hand) with today's date, the guide's URL, the absolute paths of hook-writing.md, CHANNEL.md and QUESTIONS.md, the Report's text and the candidates, and nothing of your own reasoning. It rates and ranks them per hook-writing.md. Its ranking decides the videos: every question that clears the threshold in hook-writing.md is one, with its best candidate as the hook, changed as the judge proposes where that makes it stronger. When no question clears it but a candidate passes both gates, the strongest such candidate is the one video. When none passes both gates, stop and tell Paul what the Report would need.
 
 Done when every video has its hook, its answer, its score and its Haltbarkeit.
 
@@ -38,8 +38,8 @@ Write it as **Sprech-Bullets**: complete sentences Paul can read aloud, built as
 - The first bullet is the hook. Paul will say it on camera; until then the voiceover says it.
 - The second is the bridge, which begins the answer without echoing the hook's words; then the Erste Belohnung.
 - Every factual statement comes from the Report. A new fact is researched and added there before it is spoken.
-- The last bullet is the payoff with its deshalb. The call to action is not written; the edit appends it (craft.md).
-- 150 to 200 words give 60 to 90 seconds; the call to action adds 9 seconds in the edit. State the duration above the text, as estimated.
+- The last bullet is the payoff, landed by its deshalb or a punchline. The call to action is not written; the edit appends it (craft.md).
+- The length is yours to choose per video, as short as the answer allows (craft.md, Length). At the edit's speed about 2.8 words run a second: 60 words make about 20 seconds, 170 words about 60; the call to action adds 9 seconds. State the duration above the text, as estimated, and the shape, Punch or Erklärt.
 - When Paul rewrites a line, his wording stands. An order to restructure keeps his sentences.
 
 Done when the hook's answer is delivered and the check in step 7 passes.
@@ -60,7 +60,7 @@ Done when a word-by-word comparison with the Skript shows only tags, breaks, `�
 
 A draft, one text for YouTube, Instagram and TikTok, written now while the sources are at hand. It stays under 2,200 characters, Instagram's limit, with every source in it: Paul calls the sources the most important part (2026-10-10), so a text that runs long is cut in the market-data paragraph, never in the source list.
 
-- the hook and two or three sentences on what the video explains;
+- the hook and two or three sentences on what the video explains, with no length or duration (the platforms show it, and the recorded hook changes it);
 - for a spoken market figure, its Stichtag and what it measures and leaves out;
 - „Keine Anlageberatung." and „Voiceover mit KI-generierter Stimme.";
 - **Quellen zum Video:** the sources the Skript's statements rest on, each with a label and its URL written out;
