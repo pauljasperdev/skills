@@ -1,4 +1,0 @@
-interface:
-  display_name: "Linear Comments"
-  short_description: "Share decisions and correct Linear blockers"
-  default_prompt: "Use $linear-comments to share implementation decisions and update related Linear blockers when needed."

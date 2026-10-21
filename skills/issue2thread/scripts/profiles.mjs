@@ -1,4 +1,4 @@
-// Target profiles owned by the Linear dispatch wrappers.
+// Target profiles owned by the issue dispatch wrappers.
 const profiles = Object.freeze({
   claude: Object.freeze({
     name: "claude",

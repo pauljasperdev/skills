@@ -9,13 +9,13 @@ Implement exactly the human's requested behavior. Every line of code is a mainte
 
 ## 1. Establish the contract
 
-Read the request, applicable repository instructions, and affected code, callers, tests, and worktree changes. For a referenced Linear issue, use `linear-cli` in the repository's configured workspace to read the issue and assigned milestone. The milestone provides context, not additional implementation scope.
+Read the request, applicable repository instructions, and affected code, callers, tests, and worktree changes. For a referenced issue, or the `<N>` in a `t3code/<N>-<slug>` branch, read the GitHub issue and its repository milestone with `gh issue view <N> -R <owner>/<repo> --json title,body,comments,milestone`, using the repository's `origin`. The milestone provides context, not additional implementation scope.
 
 Identify the requested outcome, acceptance behavior, and what must stay unchanged. A handoff or another agent's recommendation is not authority to add requirements. Follow explicit user decisions; if a proposed approach conflicts with them or with verified source, explain the conflict and ask before departing from it.
 
 If requirements, expected behavior, or the necessity of extra code are unclear, ask the user before implementing the affected part. Do not turn guesses into requirements or add behavior on the assumption that it might be needed. Choose routine implementation mechanics within the established contract; uncertainty about the contract itself requires clarification.
 
-Start editing only when the scope is clear. Authorization covers the requested code changes and proportionate local checks, not deployment, publishing, Linear updates, or session/worktree creation.
+Start editing only when the scope is clear. Authorization covers the requested code changes and proportionate local checks, not deployment, publishing, issue or Status updates, or session/worktree creation.
 
 ## 2. Choose the simplest fitting design
 

@@ -9,16 +9,16 @@ Personal agent skills.
 Install all:
 
 ```bash
-npx skills add pauljasperdev/skills -g --agent claude-code --skill '*' -y
+npx skills add pauljasperdev/skills -g --agent claude-code codex --skill '*' -y
 ```
 
 Install one:
 
 ```bash
-npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread to-worktree-thread linear2thread linear2claude
+npx skills add pauljasperdev/skills -g --agent claude-code --skill to-thread to-worktree-thread issue2thread issue2claude
 ```
 
-`review` reviews the current branch against the origin state of the default branch on two axes — repo standards and the owning Linear issue plus its milestone — using parallel sub-agents.
+`review` reviews the current branch against the origin state of the default branch on two axes — repo standards and the owning GitHub issue plus its milestone — using parallel sub-agents.
 
 The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content (backlog, Reports, Skripte), the skills hold the rules. The backlog is a kanban board (Ideen, Up Next, Researched, Skript, Voiceover, Ready to post, Queued): a status names what an idea has, and each skill, called without a topic, takes every idea in the column before its own and moves it on. `gemhog-content` is the shared reference the others read by relative path (channel, formats, source and number rules, where things live in Notion), so it is always installed with them. `gemhog-research` turns a named backlog idea, or with no topic every idea in Up Next, into its Report and stops there; each idea gets a researcher subagent and an independent reviewer subagent, and only the main session writes to Notion. `gemhog-script` derives up to three Videoansätze from a Report, waits for the choice, then writes the Skript and its ElevenLabs-Fassung. `gemhog-voiceover` has Eleven v4 speak that Fassung in Paul's cloned voice through the ElevenLabs connector and saves it as the one `voiceover.mp3` in the short's folder; every run spends credits, so it generates on order only. `gemhog-publish` uploads an exported short to the content bucket and adds it to the Buffer queue of the Gemhog YouTube, TikTok and Instagram channels, with texts built from the Videobeschreibung; it shows Paul the texts before anything is queued. Install them together, per workspace: `npx skills add pauljasperdev/skills --agent claude-code codex --skill gemhog-content gemhog-research gemhog-script gemhog-voiceover gemhog-edit-short gemhog-publish -y`.
 
@@ -32,12 +32,18 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `to-worktree-thread` opens a new native T3 thread with a new branch-backed worktree and automatic setup. It uses the shared T3 adapter from `to-thread`. Both accept a supplied model and optional provider/options, and ask when no model is supplied.
 
-`linear2thread` uses `to-worktree-thread` with Linear workspace verification, selection, blocker gating, examination prompts, and workflow-state updates. `linear2claude` and `linear2codex` select default profiles owned by `linear2thread`; an explicit user model, provider, or option overrides those defaults through the Linear adapter CLI. Install both dispatch skills alongside the Linear skills.
+`issue2thread` uses `to-worktree-thread` with issue selection, blocker gating, examination prompts, and Status updates. `issue2claude` and `issue2codex` select default profiles owned by `issue2thread`; an explicit user model, provider, or option overrides those defaults through the adapter CLI. Install both dispatch skills alongside the issue skills.
 
-`linear-comments` compares implementation decisions with related Linear issues, reads milestone siblings and dependencies, and updates comments or blocking relations when needed.
+`issue-comments` compares implementation decisions with related GitHub issues, reads milestone siblings and dependencies, and updates comments or blocked-by relations when needed.
 
 `examine-work` investigates prompts or supplied briefs read-only without requiring a tracker. Its report is a discussion basis: the problem, proposed solution and decisions to discuss, the technical approach with key code and an ASCII or HTML diagram for architecture and infrastructure changes, testing and review, and a short plain-language summary. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 
-`examine-issue` wraps `examine-work` with Linear workspace verification, issue retrieval, milestone context, and an In Progress transition before repository investigation. Install both together (`--skill examine-issue examine-work`), including when using the Linear dispatchers. Explicit read-only invocations skip the transition; dispatched examinations leave workflow-state changes to the dispatcher.
+`examine-issue` wraps `examine-work` with issue retrieval, milestone context, and a Status change to In Progress before repository investigation. Install both together (`--skill examine-issue examine-work`), including when using the issue dispatchers. Explicit read-only invocations skip the change; dispatched examinations leave Status changes to the dispatcher.
 
-Repositories that use Linear must commit `.linear.toml` (or `.config/linear.toml`) with their `workspace` and default `team_id`. Credentials stay in the system keychain. Linear-aware skills verify this repository context and never infer a workspace from the directory name or issue prefix.
+Issue tracking is GitHub Issues in each repository's `origin`, used through `gh` 2.94 or newer:
+
+- Status and Priority are single-select fields of the konzeptlab organization Project `Issues`; skills resolve field and option IDs by name.
+- Status runs Triage, Backlog, Todo, In Progress, In Review, Done, Canceled. Triage is the inbox: an issue an agent files goes in with Status Triage, an issue with no Status counts as Triage, and only Paul moves an issue out of it.
+- Starting work sets Status to In Progress. The dispatch queue is open issues with Status Todo, ordered by priority (Urgent, High, Medium, Low, none), then age.
+- An issue is blocked while any of its blocked-by issues is open.
+- The milestone is the repository milestone; branches are `t3code/<N>-<slug>`.

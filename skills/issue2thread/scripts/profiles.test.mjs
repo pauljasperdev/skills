@@ -50,8 +50,8 @@ for (const [name, instanceId, model, optionId] of [
     const profile = resolveProfile(name);
     const prepared = makeBootstrapCommand({
       modelSelection: profile.modelSelection, project: { id: "project-1", workspaceRoot: "/repo" },
-      baseBranch: "pre", worktreeBranch: "t3code/sid-12-sample",
-      startFromOrigin: true, title: "SID-12 — Sample", prompt: "Examine this task.",
+      baseBranch: "pre", worktreeBranch: "t3code/12-sample",
+      startFromOrigin: true, title: "#12 — Sample", prompt: "Examine this task.",
     });
     const command = prepared.command;
     assert.equal(command.type, "thread.turn.start");
@@ -61,12 +61,12 @@ for (const [name, instanceId, model, optionId] of [
     assert.deepEqual(prepared.modelSelection, command.modelSelection);
     assert.equal(command.bootstrap.createThread.worktreePath, null);
     assert.equal(command.bootstrap.createThread.projectId, "project-1");
-    assert.equal(command.bootstrap.createThread.title, "SID-12 — Sample");
+    assert.equal(command.bootstrap.createThread.title, "#12 — Sample");
     assert.deepEqual(command.bootstrap.prepareWorktree, {
-      projectCwd: "/repo", baseBranch: "pre", branch: "t3code/sid-12-sample", startFromOrigin: true,
+      projectCwd: "/repo", baseBranch: "pre", branch: "t3code/12-sample", startFromOrigin: true,
     });
     assert.equal(command.bootstrap.runSetupScript, true);
-    assert.equal(prepared.expectedWorktreeName, "t3code-sid-12-sample");
+    assert.equal(prepared.expectedWorktreeName, "t3code-12-sample");
     assert.ok(command.message.text.endsWith("Examine this task."));
     assert.ok(command.message.text.includes("Wait for setup to finish successfully"));
   });

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { makeBootstrapCommand, openThread, openWorktreeThread } from "./t3-worktree.mjs";
 
-test("a standalone task needs no Linear context and retains its full prompt", () => {
+test("a standalone task needs no issue context and retains its full prompt", () => {
   const spec = { title: "Investigate CSV export", prompt: "Investigate CSV export.\nOnly examine the code." };
   const prepared = makeBootstrapCommand({ ...spec, modelSelection: { instanceId: "custom-provider", model: "custom-model", options: [] },
     project: { id: "project-1", workspaceRoot: "/repo" }, baseBranch: "main",
@@ -12,7 +12,6 @@ test("a standalone task needs no Linear context and retains its full prompt", ()
   assert.ok(prepared.prompt.includes("Wait for setup to finish successfully"));
   assert.equal(prepared.command.bootstrap.runSetupScript, true);
   assert.equal(prepared.command.bootstrap.prepareWorktree.startFromOrigin, undefined);
-  assert.equal(prepared.prompt.includes("Linear"), false);
   assert.equal(prepared.prompt.includes("examine-issue"), false);
 });
 

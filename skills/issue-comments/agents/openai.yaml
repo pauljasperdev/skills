@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Comments"
+  short_description: "Share decisions and correct GitHub issue blockers"
+  default_prompt: "Use $issue-comments to share implementation decisions and update related GitHub issue blockers when needed."
