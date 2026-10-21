@@ -23,7 +23,7 @@ Resolve this skill's installed directory and run its adapter with Node.js 22 or 
 node <to-worktree-thread-dir>/scripts/t3-worktree.mjs doctor --cwd <absolute-invoking-checkout>
 ```
 
-Confirm `checkout.projectPath`, `worktreeDefaults`, and `nativeBootstrapRpc: true`. Use the same selection-validation flags as `to-thread`.
+Confirm `checkout.projectPath`, `worktreeDefaults`, and `launchThreadRpc: true`. Use the same selection-validation flags as `to-thread`.
 
 Serialize the same `cwd`, `title`, and `prompt` task fields as `to-thread` into a JSON file, then pass it on stdin:
 
@@ -44,6 +44,6 @@ Append `--dry-run` for a payload preview. Both skill entry points select their o
 
 ## 2. Verify and report
 
-T3 creates the worktree through one native bootstrap containing `createThread`, `prepareWorktree`, and `runSetupScript: true`. Its `newWorktreesStartFromOrigin` setting determines the starting ref. T3 runs scripts marked `runOnWorktreeCreate`; no configured setup is valid. The adapter prepends a gate requiring successful setup before the task starts. Never run setup again.
+T3 creates the worktree through one `orchestration.launchThread` call with a `worktree` strategy naming the base ref and branch; it creates the worktree and runs setup before releasing the first turn. Its `newWorktreesStartFromOrigin` setting determines the starting ref. T3 runs scripts marked `runOnWorktreeCreate`; no configured setup is valid. The adapter prepends a gate requiring successful setup before the task starts. Never run setup again.
 
 Apply `to-thread`'s receipt and error contract. For `created`, verify a registered new worktree on the exact requested branch, the requested model/options, setup launch when configured, and the first turn. Report `setup: started` or `not-configured`; a started setup and first turn are launch receipts, not completion evidence.

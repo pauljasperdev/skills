@@ -65,9 +65,9 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     if (url.pathname === "/.well-known/t3/environment") body = { environmentId: "test", serverVersion: "test" };
     else if (url.pathname === "/api/auth/websocket-ticket") body = { ticket: "ticket" };
     else if (url.pathname === "/api/orchestration/shell") body = { projects, threads };
-    else if (url.pathname.startsWith("/api/orchestration/threads/")) body = { thread: {
-      messages: [{ id: dispatched.message.messageId, role: "user", text: dispatched.message.text }],
-      latestTurn: { state: "running" }, activities: [],
+    else if (url.pathname.startsWith("/api/orchestration/threads/")) body = { projection: {
+      messages: [{ id: dispatched.initialMessage.messageId, role: "user", text: dispatched.initialMessage.text }],
+      runs: [{ userMessageId: dispatched.initialMessage.messageId, status: "running" }],
     } };
     else assert.fail(`Unexpected request: ${url}`);
     return new Response(JSON.stringify(body));
@@ -82,13 +82,13 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
       let value = {};
       if (tag === "server.getConfig") value = { providers: [{ instanceId: "custom", status: "ready", models: [{ slug: "custom-model" }] }] };
       else if (tag === "server.getSettings") value = { newWorktreesStartFromOrigin: true };
-      else if (tag === "orchestration.dispatchCommand") {
+      else if (tag === "orchestration.launchThread") {
         dispatched = payload;
-        threads.push({ id: payload.threadId, projectId: payload.bootstrap.createThread.projectId,
-          title: payload.bootstrap.createThread.title, modelSelection: payload.modelSelection,
-          branch: payload.bootstrap.createThread.branch, worktreePath: payload.bootstrap.createThread.worktreePath,
-          latestTurn: { state: "running" },
+        threads.push({ id: payload.threadId, projectId: payload.projectId,
+          title: payload.title, modelSelection: payload.modelSelection,
+          branch: payload.workspaceStrategy.branch, worktreePath: payload.workspaceStrategy.worktreePath,
         });
+        value = { threadId: payload.threadId, resumed: false };
       } else assert.equal(tag, "server.probe");
       queueMicrotask(() => this.dispatchEvent(new MessageEvent("message", {
         data: JSON.stringify({ _tag: "Exit", requestId: id, exit: { _tag: "Success", value } }),
@@ -103,9 +103,8 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
   assert.equal(created.thread.worktreePath, current);
   assert.equal(created.thread.branch, "feature");
   assert.equal(created.thread.setup, "not-run");
-  assert.equal(dispatched.message.text, spec.prompt);
-  assert.equal(dispatched.bootstrap.prepareWorktree, undefined);
-  assert.equal(dispatched.bootstrap.runSetupScript, false);
+  assert.equal(dispatched.initialMessage.text, spec.prompt);
+  assert.deepEqual(dispatched.workspaceStrategy, { type: "existing_worktree", worktreePath: current, branch: "feature" });
   assert.equal(await git(current, "status", "--porcelain"), before);
   assert.equal(await readFile(path.join(current, "tracked.txt"), "utf8"), "unstaged\n");
   assert.equal(await readFile(path.join(current, "untracked.txt"), "utf8"), "keep me\n");
@@ -152,7 +151,7 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     assert.equal(health.ok, true);
     assert.equal(health.checkout.matchedBy, "worktree-thread");
     assert.equal(health.project.id, "owner");
-    assert.equal(health.nativeBootstrapRpc, true);
+    assert.equal(health.launchThreadRpc, true);
     assert.deepEqual(health.providers.map(({ instanceId }) => instanceId), ["custom"]);
     assert.deepEqual(health.project.modelSelection, flags.length === 0 ? undefined :
       { model: "custom-model", instanceId: "custom", options: [] });

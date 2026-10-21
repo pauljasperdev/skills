@@ -10,8 +10,7 @@ test("a standalone task needs no issue context and retains its full prompt", () 
   assert.equal(prepared.threadTitle, spec.title);
   assert.ok(prepared.prompt.endsWith(spec.prompt));
   assert.ok(prepared.prompt.includes("Wait for setup to finish successfully"));
-  assert.equal(prepared.command.bootstrap.runSetupScript, true);
-  assert.equal(prepared.command.bootstrap.prepareWorktree.startFromOrigin, undefined);
+  assert.deepEqual(prepared.command.workspaceStrategy, { type: "worktree", baseRef: "main", branch: "t3code/investigate-csv-export" });
   assert.equal(prepared.prompt.includes("examine-issue"), false);
 });
 
@@ -41,12 +40,8 @@ test("reusing a worktree preserves its branch, prompt, and skips setup", () => {
     worktreeBranch: "feature", worktreePath: "/worktrees/current", startFromOrigin: false,
     title: "Task · review", prompt: "Use the review skill. Original problem: fix export." });
   assert.deepEqual(prepared.command.modelSelection, modelSelection);
-  assert.deepEqual(prepared.command.bootstrap.createThread.modelSelection, modelSelection);
-  assert.equal(prepared.command.bootstrap.createThread.branch, "feature");
-  assert.equal(prepared.command.bootstrap.createThread.worktreePath, "/worktrees/current");
-  assert.equal(prepared.command.bootstrap.prepareWorktree, undefined);
-  assert.equal(prepared.command.bootstrap.runSetupScript, false);
-  assert.equal(prepared.command.message.text, prepared.prompt);
+  assert.deepEqual(prepared.command.workspaceStrategy, { type: "existing_worktree", worktreePath: "/worktrees/current", branch: "feature" });
+  assert.equal(prepared.command.initialMessage.text, prepared.prompt);
   assert.equal(prepared.prompt, "Use the review skill. Original problem: fix export.");
 });
 

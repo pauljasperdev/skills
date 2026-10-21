@@ -46,7 +46,7 @@ for (const [name, instanceId, model, optionId] of [
       profile.modelSelection), false);
   });
 
-  test(name + " bootstraps a T3 worktree and first turn with one model selection", () => {
+  test(name + " launches a T3 worktree and first turn with one model selection", () => {
     const profile = resolveProfile(name);
     const prepared = makeBootstrapCommand({
       modelSelection: profile.modelSelection, project: { id: "project-1", workspaceRoot: "/repo" },
@@ -54,20 +54,17 @@ for (const [name, instanceId, model, optionId] of [
       startFromOrigin: true, title: "#12 — Sample", prompt: "Examine this task.",
     });
     const command = prepared.command;
-    assert.equal(command.type, "thread.turn.start");
     assert.equal(command.threadId, prepared.threadId);
     assert.deepEqual(command.modelSelection, profile.modelSelection);
-    assert.deepEqual(command.bootstrap.createThread.modelSelection, command.modelSelection);
     assert.deepEqual(prepared.modelSelection, command.modelSelection);
-    assert.equal(command.bootstrap.createThread.worktreePath, null);
-    assert.equal(command.bootstrap.createThread.projectId, "project-1");
-    assert.equal(command.bootstrap.createThread.title, "#12 — Sample");
-    assert.deepEqual(command.bootstrap.prepareWorktree, {
-      projectCwd: "/repo", baseBranch: "pre", branch: "t3code/12-sample", startFromOrigin: true,
+    assert.equal(command.projectId, "project-1");
+    assert.equal(command.title, "#12 — Sample");
+    assert.deepEqual(command.workspaceStrategy, {
+      type: "worktree", baseRef: "pre", branch: "t3code/12-sample", startFromOrigin: true,
     });
-    assert.equal(command.bootstrap.runSetupScript, true);
+    assert.equal(command.initialMessage.messageId, prepared.messageId);
     assert.equal(prepared.expectedWorktreeName, "t3code-12-sample");
-    assert.ok(command.message.text.endsWith("Examine this task."));
-    assert.ok(command.message.text.includes("Wait for setup to finish successfully"));
+    assert.ok(command.initialMessage.text.endsWith("Examine this task."));
+    assert.ok(command.initialMessage.text.includes("Wait for setup to finish successfully"));
   });
 }

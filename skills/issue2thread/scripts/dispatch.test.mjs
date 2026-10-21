@@ -3,7 +3,7 @@ import { test } from "node:test";
 import childProcess from "node:child_process";
 import { promisify } from "node:util";
 import { syncBuiltinESMExports } from "node:module";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, rm, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -38,7 +38,7 @@ test("standalone and issue dispatch use the shared runtime path", async (t) => {
       if (args.includes("revoke")) { revoked++; stdout = "{}"; }
       else stdout = JSON.stringify({ sessionId: "test-session", token: "test-token" });
     } else if (file === "git" && args.includes("symbolic-ref")) {
-      stdout = args[1] === worktreePath ? (dispatched.bootstrap.prepareWorktree?.branch ?? dispatched.bootstrap.createThread.branch) : "main";
+      stdout = args[1] === worktreePath ? dispatched.workspaceStrategy.branch : "main";
     }
     else if (file === "git" && args.includes("for-each-ref")) stdout = "t3code/task";
     else if (file === "git" && args.includes("worktree")) stdout = `worktree ${worktreePath}\n`;
@@ -49,10 +49,9 @@ test("standalone and issue dispatch use the shared runtime path", async (t) => {
   globalThis.fetch = async (url) => {
     if (url.pathname === "/api/auth/websocket-ticket" && raceThread) threads = [raceThread];
     if (url.pathname.startsWith("/api/orchestration/threads/")) {
-      return new Response(JSON.stringify({ thread: {
-        messages: [{ id: dispatched.message.messageId, role: "user", text: dispatched.message.text }],
-        latestTurn: { state: "running" },
-        activities: dispatched.bootstrap.runSetupScript ? [{ kind: setupFailed ? "setup-script.failed" : "setup-script.started" }] : [],
+      return new Response(JSON.stringify({ projection: {
+        messages: [{ id: dispatched.initialMessage.messageId, role: "user", text: dispatched.initialMessage.text }],
+        runs: [{ userMessageId: dispatched.initialMessage.messageId, status: setupFailed ? "failed" : "preparing", startedAt: null }],
       } }));
     }
     const body = url.pathname === "/.well-known/t3/environment"
@@ -76,15 +75,15 @@ test("standalone and issue dispatch use the shared runtime path", async (t) => {
         instanceId: "codex", status: "ready", models: [{ slug: "gpt-6-astra",
           capabilities: { optionDescriptors: [{ id: "reasoningEffort", options: [{ id: "high" }] }] } }],
       }, { instanceId: "custom-provider", status: "ready", models: [{ slug: "custom-model" }] }] };
-      else if (tag === "orchestration.dispatchCommand") {
+      else if (tag === "orchestration.launchThread") {
         dispatched = payload;
+        value = { threadId: payload.threadId, resumed: false };
         if (!rejectDispatch) threads = [{ id: payload.threadId,
-          projectId: project.id, title: payload.bootstrap.createThread.title,
-          modelSelection: payload.modelSelection, branch: payload.bootstrap.prepareWorktree?.branch ?? payload.bootstrap.createThread.branch,
-          worktreePath, latestTurn: { state: "running" },
+          projectId: project.id, title: payload.title,
+          modelSelection: payload.modelSelection, branch: payload.workspaceStrategy.branch, worktreePath,
         }];
       } else assert.fail(`Unexpected RPC: ${tag}`);
-      const exit = tag === "orchestration.dispatchCommand" && rejectDispatch
+      const exit = tag === "orchestration.launchThread" && rejectDispatch
         ? { _tag: "Failure", cause: "fixture rejection" } : { _tag: "Success", value };
       queueMicrotask(() => this.dispatchEvent(new MessageEvent("message", {
         data: JSON.stringify({ _tag: "Exit", requestId: id, exit }),
@@ -122,9 +121,8 @@ test("standalone and issue dispatch use the shared runtime path", async (t) => {
   threads = [];
   rejectDispatch = true;
   await assert.rejects(openWorktreeThread(spec, root, false, selection), { code: "T3_RPC_COMMAND_FAILED" });
-  assert.equal(dispatched.bootstrap.createThread.title, "Task");
-  assert.equal((dispatched.bootstrap.prepareWorktree?.branch ?? dispatched.bootstrap.createThread.branch), "t3code/task-2");
-  assert.equal(dispatched.bootstrap.runSetupScript, true);
+  assert.equal(dispatched.title, "Task");
+  assert.deepEqual(dispatched.workspaceStrategy, { type: "worktree", baseRef: "main", branch: "t3code/task-2", startFromOrigin: true });
   assert.equal(revoked, 6);
 
   // A match that appears during connection must return the same receipt as an early match.
@@ -172,8 +170,7 @@ test("standalone and issue dispatch use the shared runtime path", async (t) => {
   assert.equal(review.thread.branch, "main");
   assert.equal(review.thread.setup, "not-run");
   assert.deepEqual(review.thread.modelSelection, selection);
-  assert.equal(dispatched.bootstrap.prepareWorktree, undefined);
-  assert.equal(dispatched.bootstrap.runSetupScript, false);
-  assert.equal(dispatched.message.text, spec.prompt);
+  assert.deepEqual(dispatched.workspaceStrategy, { type: "existing_worktree", worktreePath: await realpath(root), branch: "main" });
+  assert.equal(dispatched.initialMessage.text, spec.prompt);
   assert.equal(revoked, 12);
 });

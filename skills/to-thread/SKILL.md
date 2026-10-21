@@ -23,11 +23,11 @@ Resolve this skill's installed directory and run its adapter with Node.js 22 or 
 node <to-thread-dir>/scripts/t3-worktree.mjs doctor --cwd <absolute-current-worktree-root>
 ```
 
-The health check lists configured `providers` and their models. Confirm `checkout.projectPath` and `nativeBootstrapRpc: true`. Append `--model <model>`, optional `--provider <instance-id>`, and repeated `--option <id=value>` to validate a supplied selection.
+The health check lists configured `providers` and their models. Confirm `checkout.projectPath` and `launchThreadRpc: true`. Append `--model <model>`, optional `--provider <instance-id>`, and repeated `--option <id=value>` to validate a supplied selection.
 
 The invoking checkout locates its saved T3 project through existing threads on that worktree, then exact path or Git common-directory identity. A missing project requires adding the repository in T3; report unavailable providers/models without substitution.
 
-**T3 owns creation.** Run the adapter before concluding creation tools are unavailable. The documented Node CLI performs the RPC itself; it needs no separate RPC tool in the agent's tool list. It uses the matching official CLI to issue and revoke a temporary session, then authenticated WebSocket RPC `orchestration.dispatchCommand` with one `thread.turn.start` bootstrap. For this skill, `createThread` keeps the current branch/path and `runSetupScript` is `false`. Do not substitute manual Git creation, direct database writes, another app's task tools, or a reconstructed RPC sequence.
+**T3 owns creation.** Run the adapter before concluding creation tools are unavailable. The documented Node CLI performs the RPC itself; it needs no separate RPC tool in the agent's tool list. It uses the matching official CLI to issue and revoke a temporary session, then T3 orchestration protocol 2: one authenticated WebSocket RPC `orchestration.launchThread` carrying the thread and its first message. For this skill, its `existing_worktree` strategy keeps the current branch/path and runs no setup. Do not substitute manual Git creation, direct database writes, another app's task tools, or a reconstructed RPC sequence.
 
 ## 3. Open the thread
 
