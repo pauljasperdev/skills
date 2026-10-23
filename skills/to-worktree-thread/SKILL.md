@@ -44,6 +44,6 @@ Append `--dry-run` for a payload preview. Both skill entry points select their o
 
 ## 2. Verify and report
 
-T3 creates the worktree through one native bootstrap containing `createThread`, `prepareWorktree`, and `runSetupScript: true`. Its `newWorktreesStartFromOrigin` setting determines the starting ref. T3 runs scripts marked `runOnWorktreeCreate`; no configured setup is valid. The adapter prepends a gate requiring successful setup before the task starts. Never run setup again.
+T3 creates the thread, worktree, and first message through one `orchestration.launchThread` RPC with a `worktree` workspace strategy. Its `newWorktreesStartFromOrigin` setting determines the starting ref. T3 runs scripts marked `runOnWorktreeCreate` before the agent starts, holding the first run in `preparing`; no configured setup is valid. The adapter prepends a gate requiring successful setup before the task starts. Never run setup again.
 
 Apply `to-thread`'s receipt and error contract. For `created`, verify a registered new worktree on the exact requested branch, the requested model/options, setup launch when configured, and the first turn. Report `setup: started` or `not-configured`; a started setup and first turn are launch receipts, not completion evidence.

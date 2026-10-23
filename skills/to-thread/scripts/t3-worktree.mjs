@@ -13,6 +13,7 @@ const execFile = promisify(execFileCallback);
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DISPATCH_TIMEOUT_MS = 180_000;
 const VERIFY_TIMEOUT_MS = 20_000;
+const ORCHESTRATION_PROTOCOL = "2";
 
 class ToThreadError extends Error {
   constructor(code, message, details = undefined) {
@@ -346,6 +347,7 @@ async function withRpc(runtime, token, run) {
   url.pathname = "/ws";
   url.search = "";
   url.searchParams.set("wsTicket", issued.ticket);
+  url.searchParams.set("orchestrationProtocol", ORCHESTRATION_PROTOCOL);
 
   const rpc = await RpcSocket.connect(url);
   try {
@@ -358,7 +360,7 @@ async function withRpc(runtime, token, run) {
 
 async function authenticatedGet(runtime, token, pathname) {
   return await fetchJson(new URL(pathname, runtime.origin), {
-    headers: { authorization: `Bearer ${token}` },
+    headers: { authorization: `Bearer ${token}`, "x-t3-orchestration-protocol": ORCHESTRATION_PROTOCOL },
   });
 }
 
@@ -546,14 +548,18 @@ function validateThreadSpec(spec) {
   return { ...spec, title: spec.title.trim() };
 }
 
+// A new worktree uses T3's launch RPC, which also runs the project's setup script. The current
+// worktree is bound by thread.create and started without workspace preparation, so setup is skipped.
 export function makeBootstrapCommand({ modelSelection, project, baseBranch, worktreeBranch, startFromOrigin, worktreePath = null, title, prompt: taskPrompt }) {
-  const createdAt = new Date().toISOString();
   const threadId = randomUUID();
   const messageId = randomUUID();
   const threadTitle = title;
   const prompt = worktreePath !== null ? taskPrompt : `T3 owns this worktree and runs any configured worktree setup automatically. Wait for setup to finish successfully before starting the task; if no setup is configured, proceed. If setup fails, stop and report the failure. Do not run setup again.\n\n${taskPrompt}`;
   const runtimeMode = "full-access";
   const interactionMode = "default";
+  const thread = { threadId, projectId: project.id, title: threadTitle, modelSelection, runtimeMode, interactionMode };
+  const message = { messageId, text: prompt, attachments: [] };
+  const provenance = { createdBy: "user", creationSource: "web" };
 
   return {
     threadId,
@@ -564,40 +570,36 @@ export function makeBootstrapCommand({ modelSelection, project, baseBranch, work
     expectedWorktreeName: worktreePath === null ? worktreeBranch.replaceAll("/", "-") : path.basename(worktreePath),
     threadTitle,
     prompt,
-    command: {
-      type: "thread.turn.start",
-      commandId: randomUUID(),
-      threadId,
-      message: {
-        messageId,
-        role: "user",
-        text: prompt,
-        attachments: [],
-      },
-      modelSelection,
-      runtimeMode,
-      interactionMode,
-      bootstrap: {
-        createThread: {
-          projectId: project.id,
-          title: threadTitle,
-          modelSelection,
-          runtimeMode,
-          interactionMode,
-          branch: worktreePath === null ? baseBranch : worktreeBranch,
-          worktreePath,
-          createdAt,
-        },
-        ...(worktreePath === null ? { prepareWorktree: {
-          projectCwd: project.workspaceRoot,
-          baseBranch,
+    runtimeMode,
+    interactionMode,
+    requests: worktreePath === null ? [{
+      tag: "orchestration.launchThread",
+      payload: {
+        commandId: randomUUID(),
+        ...thread,
+        workspaceStrategy: {
+          type: "worktree",
+          baseRef: baseBranch,
           branch: worktreeBranch,
           ...(startFromOrigin ? { startFromOrigin: true } : {}),
-        } } : {}),
-        runSetupScript: worktreePath === null,
+        },
+        initialMessage: message,
       },
-      createdAt,
-    },
+    }] : [{
+      tag: "orchestration.dispatchCommand",
+      payload: { type: "thread.create", commandId: randomUUID(), ...thread, branch: worktreeBranch, worktreePath, ...provenance },
+    }, {
+      tag: "orchestration.dispatchCommand",
+      payload: {
+        type: "message.dispatch",
+        commandId: randomUUID(),
+        threadId,
+        ...message,
+        modelSelection,
+        dispatchMode: { type: "start_immediately" },
+        ...provenance,
+      },
+    }],
   };
 }
 
@@ -646,46 +648,47 @@ async function verifyCreated(runtime, token, expected, project) {
         projectId: thread.projectId,
       });
     }
-    if (thread.latestTurn?.state === "error") {
-      fail("T3_TURN_FAILED", "The first T3 turn failed to start.", {
+
+    // A failed worktree preparation unbinds the worktree, so check the run before the path.
+    const detail = await authenticatedGet(
+      runtime,
+      token,
+      `/api/orchestration/threads/${encodeURIComponent(expected.threadId)}`,
+    );
+    const projection = detail?.projection;
+    const run = (projection?.runs ?? []).find((candidate) => candidate?.userMessageId === expected.messageId);
+    const setupFailure = (projection?.turnItems ?? []).find(
+      (item) => item?.runId === run?.id && item?.type === "error" && item.failure?.code === "workspace_preparation_failed",
+    );
+    if (setupFailure) {
+      fail("T3_SETUP_FAILED", "T3 could not prepare the worktree or run its setup script.", {
         threadId: expected.threadId,
-        lastError: trimForError(thread.session?.lastError),
+        worktreePath: thread.worktreePath,
+        detail: trimForError(setupFailure.failure.message),
       });
     }
+    if (["failed", "cancelled", "interrupted"].includes(run?.status)) {
+      fail("T3_TURN_FAILED", "The first T3 turn failed to start.", {
+        threadId: expected.threadId,
+        runStatus: run.status,
+        lastError: trimForError(thread.lastError),
+      });
+    }
+    if (expected.worktreePath !== null && run?.status === "preparing") {
+      fail("T3_SETUP_UNEXPECTED", "T3 started workspace preparation while reusing an existing worktree.", { threadId: expected.threadId });
+    }
     if (typeof thread.worktreePath !== "string" || thread.worktreePath.length === 0) {
-      lastObserved = { thread: "present", worktreePath: null, turnState: thread.latestTurn?.state };
+      lastObserved = { thread: "present", worktreePath: null, turnState: run?.status };
       await sleep(250);
       continue;
     }
 
-    const detail = await authenticatedGet(
-      runtime,
-      token,
-      `/api/orchestration/threads/${encodeURIComponent(expected.threadId)}?turnLimit=1`,
-    );
-    const body = detail?.thread;
-    const messagePresent = (body?.messages ?? []).some(
+    const messagePresent = (projection?.messages ?? []).some(
       (message) =>
         message?.id === expected.messageId &&
         message?.role === "user" &&
         message?.text === expected.prompt,
     );
-    const setupFailure = (body?.activities ?? []).find(
-      (activity) => activity?.kind === "setup-script.failed",
-    );
-    if (setupFailure) {
-      fail("T3_SETUP_FAILED", "T3 could not start the configured worktree setup script.", {
-        threadId: expected.threadId,
-        worktreePath: thread.worktreePath,
-        detail: trimForError(setupFailure.payload?.detail ?? setupFailure.summary),
-      });
-    }
-    const setupStarted = (body?.activities ?? []).some(
-      (activity) => activity?.kind === "setup-script.started",
-    );
-    if (expected.worktreePath !== null && setupStarted) {
-      fail("T3_SETUP_UNEXPECTED", "T3 started setup while reusing an existing worktree.", { threadId: expected.threadId });
-    }
     const setupExpected = expected.worktreePath === null && (project.scripts ?? []).some(
       (script) => script?.runOnWorktreeCreate === true,
     );
@@ -703,8 +706,10 @@ async function verifyCreated(runtime, token, expected, project) {
       if (error instanceof ToThreadError) throw error;
     }
 
-    const turnState = body?.latestTurn?.state ?? thread.latestTurn?.state;
-    const turnStarted = turnState === "running" || turnState === "completed";
+    // T3 binds a new worktree before its setup script runs and holds the run in
+    // `preparing` until setup finishes, so a bound worktree means setup has started.
+    const turnState = run?.status;
+    const turnStarted = ["preparing", "starting", "running", "waiting", "completed"].includes(turnState);
     const branchMatches =
       typeof branch === "string" &&
       branch === thread.branch &&
@@ -718,8 +723,7 @@ async function verifyCreated(runtime, token, expected, project) {
       registered &&
       branchMatches &&
       worktreeNameMatches &&
-      selectedModelMatches &&
-      (!setupExpected || setupStarted)
+      selectedModelMatches
     ) {
       return {
         id: thread.id,
@@ -745,7 +749,6 @@ async function verifyCreated(runtime, token, expected, project) {
       modelSelection: thread.modelSelection,
       modelMatches: selectedModelMatches,
       setupExpected,
-      setupStarted,
     };
     await sleep(250);
   }
@@ -895,18 +898,18 @@ async function dispatchThread(input, t3Home, dryRun, requestedModel, newWorktree
             id: prepared.threadId,
             title: prepared.threadTitle,
             modelSelection,
-            runtimeMode: prepared.command.runtimeMode,
-            interactionMode: prepared.command.interactionMode,
+            runtimeMode: prepared.runtimeMode,
+            interactionMode: prepared.interactionMode,
             prompt: prepared.prompt,
           },
         };
       }
 
-      const dispatch = await rpc.call(
-        "orchestration.dispatchCommand",
-        prepared.command,
-        DISPATCH_TIMEOUT_MS,
-      );
+      const dispatch = [];
+      for (const { tag, payload } of prepared.requests) {
+        const { projection: _projection, ...result } = await rpc.call(tag, payload, DISPATCH_TIMEOUT_MS) ?? {};
+        dispatch.push({ tag, ...result });
+      }
       const verified = await verifyCreated(runtime, token, prepared, project);
       return {
         ok: true,

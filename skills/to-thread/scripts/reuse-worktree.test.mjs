@@ -60,14 +60,15 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     return await execFile(file, args, options);
   };
   syncBuiltinESMExports();
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = async (url, options) => {
     let body;
+    if (url.pathname.startsWith("/api/orchestration/")) assert.equal(options.headers["x-t3-orchestration-protocol"], "2");
     if (url.pathname === "/.well-known/t3/environment") body = { environmentId: "test", serverVersion: "test" };
     else if (url.pathname === "/api/auth/websocket-ticket") body = { ticket: "ticket" };
     else if (url.pathname === "/api/orchestration/shell") body = { projects, threads };
-    else if (url.pathname.startsWith("/api/orchestration/threads/")) body = { thread: {
+    else if (url.pathname.startsWith("/api/orchestration/threads/")) body = { snapshotSequence: 1, projection: {
       messages: [{ id: dispatched.message.messageId, role: "user", text: dispatched.message.text }],
-      latestTurn: { state: "running" }, activities: [],
+      runs: [{ id: "run", userMessageId: dispatched.message.messageId, status: "starting" }], turnItems: [],
     } };
     else assert.fail(`Unexpected request: ${url}`);
     return new Response(JSON.stringify(body));
@@ -75,20 +76,25 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
   globalThis.WebSocket = class extends EventTarget {
     static OPEN = 1;
     readyState = 1;
-    constructor() { super(); queueMicrotask(() => this.dispatchEvent(new Event("open"))); }
+    constructor(url) {
+      super();
+      assert.equal(url.searchParams.get("orchestrationProtocol"), "2");
+      queueMicrotask(() => this.dispatchEvent(new Event("open")));
+    }
     close() { this.readyState = 3; }
     send(raw) {
       const { id, tag, payload } = JSON.parse(raw);
       let value = {};
       if (tag === "server.getConfig") value = { providers: [{ instanceId: "custom", status: "ready", models: [{ slug: "custom-model" }] }] };
       else if (tag === "server.getSettings") value = { newWorktreesStartFromOrigin: true };
-      else if (tag === "orchestration.dispatchCommand") {
-        dispatched = payload;
-        threads.push({ id: payload.threadId, projectId: payload.bootstrap.createThread.projectId,
-          title: payload.bootstrap.createThread.title, modelSelection: payload.modelSelection,
-          branch: payload.bootstrap.createThread.branch, worktreePath: payload.bootstrap.createThread.worktreePath,
-          latestTurn: { state: "running" },
+      else if (tag === "orchestration.dispatchCommand" && payload.type === "thread.create") {
+        dispatched = { create: payload };
+        threads.push({ id: payload.threadId, projectId: payload.projectId, title: payload.title,
+          modelSelection: payload.modelSelection, branch: payload.branch, worktreePath: payload.worktreePath,
+          status: "idle",
         });
+      } else if (tag === "orchestration.dispatchCommand" && payload.type === "message.dispatch") {
+        dispatched.message = payload;
       } else assert.equal(tag, "server.probe");
       queueMicrotask(() => this.dispatchEvent(new MessageEvent("message", {
         data: JSON.stringify({ _tag: "Exit", requestId: id, exit: { _tag: "Success", value } }),
@@ -104,8 +110,8 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
   assert.equal(created.thread.branch, "feature");
   assert.equal(created.thread.setup, "not-run");
   assert.equal(dispatched.message.text, spec.prompt);
-  assert.equal(dispatched.bootstrap.prepareWorktree, undefined);
-  assert.equal(dispatched.bootstrap.runSetupScript, false);
+  assert.equal(dispatched.message.threadId, dispatched.create.threadId);
+  assert.deepEqual(dispatched.message.dispatchMode, { type: "start_immediately" });
   assert.equal(await git(current, "status", "--porcelain"), before);
   assert.equal(await readFile(path.join(current, "tracked.txt"), "utf8"), "unstaged\n");
   assert.equal(await readFile(path.join(current, "untracked.txt"), "utf8"), "keep me\n");

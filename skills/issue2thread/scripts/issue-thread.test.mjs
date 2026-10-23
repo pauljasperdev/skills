@@ -17,7 +17,7 @@ for (const name of ["claude", "codex"]) {
     const prepared = makeBootstrapCommand({ ...spec, modelSelection: profile.modelSelection,
       project: { id: "project-1", workspaceRoot: "/repo" }, baseBranch: "pre",
       worktreeBranch: "t3code/12-sample", startFromOrigin: true });
-    assert.equal(prepared.command.bootstrap.createThread.title, "#12 — Sample");
+    assert.equal(prepared.requests[0].payload.title, "#12 — Sample");
     assert.ok(prepared.prompt.includes(name === "codex" ? "$examine-issue" : "/examine-issue"));
     assert.ok(prepared.prompt.includes("-R konzeptlab/signal"));
     assert.ok(prepared.prompt.includes("Wait for setup to finish successfully"));

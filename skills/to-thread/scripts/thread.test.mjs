@@ -10,8 +10,9 @@ test("a standalone task needs no issue context and retains its full prompt", () 
   assert.equal(prepared.threadTitle, spec.title);
   assert.ok(prepared.prompt.endsWith(spec.prompt));
   assert.ok(prepared.prompt.includes("Wait for setup to finish successfully"));
-  assert.equal(prepared.command.bootstrap.runSetupScript, true);
-  assert.equal(prepared.command.bootstrap.prepareWorktree.startFromOrigin, undefined);
+  const [{ tag, payload }] = prepared.requests;
+  assert.equal(tag, "orchestration.launchThread");
+  assert.equal(payload.workspaceStrategy.startFromOrigin, undefined);
   assert.equal(prepared.prompt.includes("examine-issue"), false);
 });
 
@@ -40,13 +41,17 @@ test("reusing a worktree preserves its branch, prompt, and skips setup", () => {
     project: { id: "project-1", workspaceRoot: "/repo" }, baseBranch: "feature",
     worktreeBranch: "feature", worktreePath: "/worktrees/current", startFromOrigin: false,
     title: "Task · review", prompt: "Use the review skill. Original problem: fix export." });
-  assert.deepEqual(prepared.command.modelSelection, modelSelection);
-  assert.deepEqual(prepared.command.bootstrap.createThread.modelSelection, modelSelection);
-  assert.equal(prepared.command.bootstrap.createThread.branch, "feature");
-  assert.equal(prepared.command.bootstrap.createThread.worktreePath, "/worktrees/current");
-  assert.equal(prepared.command.bootstrap.prepareWorktree, undefined);
-  assert.equal(prepared.command.bootstrap.runSetupScript, false);
-  assert.equal(prepared.command.message.text, prepared.prompt);
+  assert.deepEqual(prepared.requests.map(({ tag }) => tag), ["orchestration.dispatchCommand", "orchestration.dispatchCommand"]);
+  const [create, start] = prepared.requests.map(({ payload }) => payload);
+  assert.equal(create.type, "thread.create");
+  assert.deepEqual(create.modelSelection, modelSelection);
+  assert.equal(create.branch, "feature");
+  assert.equal(create.worktreePath, "/worktrees/current");
+  assert.equal(start.type, "message.dispatch");
+  assert.equal(start.threadId, create.threadId);
+  assert.deepEqual(start.modelSelection, modelSelection);
+  assert.deepEqual(start.dispatchMode, { type: "start_immediately" }, "no workspace preparation, so no setup");
+  assert.equal(start.text, prepared.prompt);
   assert.equal(prepared.prompt, "Use the review skill. Original problem: fix export.");
 });
 
