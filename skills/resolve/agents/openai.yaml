@@ -1,0 +1,7 @@
+interface:
+  display_name: "Resolve PR Review"
+  short_description: "Fix valid review points, decline overengineering, resolve threads"
+  default_prompt: "Use $resolve to work through the open review threads on this PR: fix the valid points, decline the overengineering with a reason, and resolve each thread."
+
+policy:
+  allow_implicit_invocation: false
