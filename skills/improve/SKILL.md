@@ -26,6 +26,7 @@ Agreed designs are cut candidates too: the human approved an outcome, not every 
 Apply these lenses where they fit:
 
 - **Superseded code:** trace what the change replaced or disconnected. Before deleting, verify nothing still needs it, including dynamic loading, framework discovery, and external consumers.
+- **Comments:** make the code self-documenting, with names and structure that carry what it does. A comment stays only for what the code cannot say: the reason behind a choice, a non-obvious constraint, a gotcha. Reduce each survivor to that one line; existing comments outside the change stay as they are.
 - **UI:** read `$frontend-design` and aim for the smallest interface that makes the task self-explanatory.
 - **Effect:** name practice mismatches that recur beyond the change, leave them in place, and hint at `$audit-effect`.
 
