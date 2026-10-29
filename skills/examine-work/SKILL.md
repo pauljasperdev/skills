@@ -15,6 +15,8 @@ Use the prompt and supplied issue context as the brief; a wrapper owns tracker r
 
 Trace affected behavior, ownership, callers, analogous code, and tests. Verify claims against source and installed-version guidance. Distinguish requirements from design choices and flag missing evidence.
 
+Each mechanism in the proposed design cites the library construct it uses (the `$effect` lookup for Effect). A claim that a library cannot do something needs a `path:line`; without one it is **unverified** and goes under evidence gaps.
+
 Use relevant skills as read-only guidance: `codebase-design` for interfaces and seams, `effect` for Effect, `vercel-react-best-practices` for React/Next.js, `frontend-design` for UI, and `writing-for-agents` for agent instructions.
 
 Use read-only scouts when delegation is available; otherwise investigate locally. Cover both the change surface and existing patterns, runtime wiring, and verification. Proceed to the report when the core approach is supported by evidence or its gaps are identified.

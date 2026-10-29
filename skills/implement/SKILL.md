@@ -20,12 +20,13 @@ Start editing only when the scope is clear. Authorization covers the requested c
 ## 2. Choose the simplest fitting design
 
 - Read `$codebase-design` when choosing or changing interfaces and ownership. Its design guidance does not expand the task.
-- For Effect code, check the pinned version. Read `$effect` and task-matching references for v4; otherwise use version-matched guidance and repository patterns. Introducing or upgrading Effect requires an explicit request.
-- Check existing repository and library capabilities before writing custom code. If a referenced skill is unavailable, report that and use verified source and repository guidance.
+- For Effect code, follow `$effect`: look up each mechanism as you write it, in this pass. Introducing or upgrading Effect requires an explicit request.
+- Before hand-writing a mechanism (flag, counter, accumulator, catch-and-continue, retry or polling loop, wait, cache, lock, state machine), or reusing a local helper that implements one, find the library construct that models it. Keep the hand-written version only by citing the requirement the construct fails, with the `path:line` that shows it. If a referenced skill is unavailable, report that and use verified source.
+- Local code sets naming and wiring; idiom comes from the library's docs and source. Where local code contradicts them, follow the docs and name the mismatch.
 
 Each addition must serve a requested requirement, preserve an affected existing contract, or verify the change. Be able to explain what would fail or remain unsolved without it. Possible future use, generic best practice, or a nearby improvement is not sufficient justification.
 
-Prefer the simplest existing path. Extra abstractions, dependencies, configuration, fallbacks, and extension points require demonstrated necessity for this task. Keep ownership clear and control flow direct; do not build a framework around a single use case.
+Prefer the simplest existing path, library before repository. Extra abstractions, dependencies, configuration, fallbacks, and extension points require demonstrated necessity for this task. Keep ownership clear and control flow direct; do not build a framework around a single use case.
 
 ### UI: clarity through design
 
@@ -49,4 +50,4 @@ Review every added block against the scope: is it necessary, or did I invent a r
 
 For UI changes, inspect the rendered result and exercise the affected interaction when the environment permits. Check whether a first-time user can identify the next action and understand the outcome without explanatory narration. Remove redundant text and visual elements; fix any remaining ambiguity in the layout, labels, or feedback. Report any gap in visual or interaction verification.
 
-Finish when all requested behavior is wired and verified, no speculative additions remain, and unrelated work is untouched. Report the delivered behavior, checks actually run, and any unresolved question or verification gap. Stop at the requested outcome; an unverified or blocked result is not complete.
+Finish when all requested behavior is wired and verified, no speculative additions remain, and unrelated work is untouched. Report the delivered behavior, each mechanism with its source `path:line`, checks actually run, and any unresolved question or verification gap. Stop at the requested outcome; an unverified or blocked result is not complete.

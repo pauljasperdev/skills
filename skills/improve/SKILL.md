@@ -12,9 +12,9 @@ A second pass with fresh eyes. The first pass made it work; this one asks whethe
 
 ## 1. Re-solve before you re-read
 
-Restate the human's goal and each problem the implementation addresses, as outcomes. For each, sketch the smallest solution you would write today, knowing what you now know about the codebase, before reopening the diff. Lean on what already exists: for every safeguard, check whether an existing mechanism, rule, or library capability already covers that risk. For a ten-line fix this takes a minute; for a large change, have a subagent that has not seen the implementation write the sketch from the request alone.
+Restate the human's goal and each problem the implementation addresses, as outcomes. For each, sketch the smallest solution you would write today, knowing what you now know about the codebase, before reopening the diff. Lean on what already exists: for every mechanism and safeguard, look up the library construct or existing rule that covers it (`$effect` for Effect code). For a ten-line fix this takes a minute; for a large change, have a subagent that has not seen the implementation write the sketch from the request alone.
 
-Then compare the sketch with what was built. Every material difference (an extra mechanism, column, option, retry path, or hand-written version of something generated) is a cut candidate. A large diff for a few problems is a signal in itself. The step is done when every problem has a sketch and every difference is listed as a candidate.
+Then compare the sketch with what was built. Every material difference (an extra mechanism, column, option, retry path, or hand-written version of something generated or provided by a library) is a cut candidate. A large diff for a few problems is a signal in itself. The step is done when every problem has a sketch and every difference is listed as a candidate.
 
 ## 2. Cut
 
@@ -26,9 +26,10 @@ Agreed designs are cut candidates too: the human approved an outcome, not every 
 Apply these lenses where they fit:
 
 - **Superseded code:** trace what the change replaced or disconnected. Before deleting, verify nothing still needs it, including dynamic loading, framework discovery, and external consumers.
+- **Code smells:** read every hunk for names that hide what they hold, duplicated logic, functions doing several things, and flags, counters, or sentinel values carrying control flow. Fix each within the change.
 - **Comments:** make the code self-documenting, with names and structure that carry what it does. A comment stays only for what the code cannot say: the reason behind a choice, a non-obvious constraint, a gotcha. Reduce each survivor to that one line; existing comments outside the change stay as they are.
 - **UI:** read `$frontend-design` and aim for the smallest interface that makes the task self-explanatory.
-- **Effect:** name practice mismatches that recur beyond the change, leave them in place, and hint at `$audit-effect`.
+- **Effect:** run the cold review from `$effect` and fix its confirmed findings within the change. Name mismatches that recur outside the change and hint at `$audit-effect`.
 
 The step is done when every candidate is applied, proposed, or kept for a stated reason.
 
@@ -44,4 +45,5 @@ Fit it on one screen:
 - Cuts applied, one line each.
 - Proposed cuts as a table: cut, what it saves, trade-off.
 - Each remaining large piece and why it is the minimum.
+- Cold review findings: fixed, or rejected with their source; Patterns rows to add.
 - Checks run and any gaps.
