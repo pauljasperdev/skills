@@ -5,49 +5,70 @@ description: Implement an authorized feature, fix, or technical handoff with min
 
 # Implement
 
-Implement exactly the human's requested behavior. Every line of code is a maintenance liability: add only what is necessary to deliver and verify that behavior while preserving existing contracts. Aim for clean, lean code that is easy to understand and maintain.
+Build exactly what was asked. Minimal code, verified. Every line is a liability.
 
-## 1. Establish the contract
+## 1. Contract
 
-Read the request, applicable repository instructions, and affected code, callers, tests, and worktree changes. For a referenced issue, or the `<N>` in a `t3code/<N>-<slug>` branch, read the GitHub issue and its repository milestone with `gh issue view <N> -R <owner>/<repo> --json title,body,comments,milestone`, using the repository's `origin`. The milestone provides context, not additional implementation scope.
+- Read: request, repo instructions, affected code, callers, tests, worktree changes
+- Issue (referenced, or `<N>` in `t3code/<N>-<slug>`): `gh issue view <N> -R <owner>/<repo> --json title,body,comments,milestone`; milestone = context, not scope
+- Pin: outcome, acceptance behavior, what stays unchanged
+- Handoffs and agent suggestions ≠ requirements
+- Conflict with user decisions or verified source → explain, ask
+- Unclear requirement → ask before building that part
+- Authorized: code changes + local checks. Not: deploy, publish, issue or Status updates, sessions, worktrees
 
-Identify the requested outcome, acceptance behavior, and what must stay unchanged. A handoff or another agent's recommendation is not authority to add requirements. Follow explicit user decisions; if a proposed approach conflicts with them or with verified source, explain the conflict and ask before departing from it.
+## 2. Design
 
-If requirements, expected behavior, or the necessity of extra code are unclear, ask the user before implementing the affected part. Do not turn guesses into requirements or add behavior on the assumption that it might be needed. Choose routine implementation mechanics within the established contract; uncertainty about the contract itself requires clarification.
+- `$codebase-design`: ownership, interfaces, seams
+- `$effect`: look up each mechanism as you write it; no new Effect unless asked
+- Library construct before hand-rolled mechanism (flag, counter, retry, polling, wait, cache, lock, state machine); hand-rolled only with the `path:line` where the construct fails
+- Local code sets naming and wiring; library docs and source set idiom; contradiction → follow docs, name it
+- Skill unavailable → say so, use verified source
+- Every addition serves a requirement, an existing contract, or verification
+- Simplest path: library, then existing repo code
+- No speculative abstractions, dependencies, config, fallbacks, extension points
 
-Start editing only when the scope is clear. Authorization covers the requested code changes and proportionate local checks, not deployment, publishing, issue or Status updates, or session/worktree creation.
+## 3. UI
 
-## 2. Choose the simplest fitting design
+- `$frontend-design`, within the product's visual language
+- Primary action, choices, state clear from hierarchy, grouping, spacing, familiar controls, feedback
+- Short concrete labels; visible label over icon or tooltip
+- Supporting text only for consequential choices, input formats, error recovery
+- Cut narration, repeated headings, filler, implementation details
+- Keep accessibility and feedback
 
-- Read `$codebase-design` when choosing or changing interfaces and ownership. Its design guidance does not expand the task.
-- For Effect code, follow `$effect`: look up each mechanism as you write it, in this pass. Introducing or upgrading Effect requires an explicit request.
-- Before hand-writing a mechanism (flag, counter, accumulator, catch-and-continue, retry or polling loop, wait, cache, lock, state machine), or reusing a local helper that implements one, find the library construct that models it. Keep the hand-written version only by citing the requirement the construct fails, with the `path:line` that shows it. If a referenced skill is unavailable, report that and use verified source.
-- Local code sets naming and wiring; idiom comes from the library's docs and source. Where local code contradicts them, follow the docs and name the mismatch.
+## 4. Build
 
-Each addition must serve a requested requirement, preserve an affected existing contract, or verify the change. Be able to explain what would fail or remain unsolved without it. Possible future use, generic best practice, or a nearby improvement is not sufficient justification.
+- Real runtime path, small working increments
+- Tests for requested behavior and failure cases; reproduce bugs first
+- Keep validation, error handling, compatibility, existing tests
+- No adjacent cleanup or unrelated fixes
+- Docs: `$writing-for-agents`; update existing docs, non-obvious only, link to source
 
-Prefer the simplest existing path, library before repository. Extra abstractions, dependencies, configuration, fallbacks, and extension points require demonstrated necessity for this task. Keep ownership clear and control flow direct; do not build a framework around a single use case.
+## 5. Verify
 
-### UI: clarity through design
+- Each added block: requested or invented? Cut invented
+- Cut machinery, not safeguards or clarity
+- Rerun affected checks
+- UI: render it, exercise the interaction, first-time-user test
 
-When building or reshaping a UI, read `$frontend-design`. Apply it within the requested scope and the product's established visual language. Aim for the smallest, cleanest interface that makes the task self-explanatory.
+## 6. Review
 
-Make the primary action, available choices, and current state clear through hierarchy, grouping, spacing, familiar controls, and visible feedback. Resolve confusing interactions in the design before adding explanatory prose. Each element must help the user act, orient themselves, or understand a result.
+- Fresh subagent: diff + request, not your reasoning
+- Check:
+  - code in the wrong module or package
+  - details leaking across interfaces (storage, vendor types, config, env, internal errors)
+  - dependency direction, reaching into internals
+  - rule or constant owned twice
+  - Effect diff: `$effect` cold review
+- Fix valid findings; rejected → report with refuting source
+- Repeat with a fresh subagent until clean
 
-Use concise, concrete labels and action names. Add supporting text only when it provides information the layout and controls cannot convey, such as a consequential choice, required input format, or error recovery. Remove narration of obvious controls, repeated headings and descriptions, filler, and implementation details. Prefer a clear visible label to an ambiguous icon or help hidden in a tooltip. Minimalism must preserve accessibility, discoverability, and necessary feedback.
+## Report
 
-## 3. Build with feedback
-
-Implement through the real runtime path in small, working increments. Add or adapt tests for requested behavior and relevant failure cases; reproduce a bug before fixing it when feasible. Use repository-native checks while working.
-
-Keep adjacent cleanup and unrelated fixes out of the diff. Change surrounding code only where the requested solution requires it. Preserve necessary validation, error handling, compatibility, and tests; minimal code must still be correct and complete.
-
-When docs need changing, read `$writing-for-agents`. Update existing authoritative docs with only necessary, non-obvious contracts, rationale, conventions, or pitfalls for future agents. Link to source instead of duplicating it; keep task history in the conversation.
-
-## 4. Verify and subtract
-
-Review every added block against the scope: is it necessary, or did I invent a requirement? Remove unsupported additions and simplify avoidable complexity within your changes. Reduce code by removing machinery, not by obscuring logic or dropping required safeguards. Rerun affected checks after simplifying.
-
-For UI changes, inspect the rendered result and exercise the affected interaction when the environment permits. Check whether a first-time user can identify the next action and understand the outcome without explanatory narration. Remove redundant text and visual elements; fix any remaining ambiguity in the layout, labels, or feedback. Report any gap in visual or interaction verification.
-
-Finish when all requested behavior is wired and verified, no speculative additions remain, and unrelated work is untouched. Report the delivered behavior, each mechanism with its source `path:line`, checks actually run, and any unresolved question or verification gap. Stop at the requested outcome; an unverified or blocked result is not complete.
+- Delivered behavior
+- Mechanisms with source `path:line`
+- Checks run
+- Review: fixed, rejected, open
+- Open questions, verification gaps
+- Unverified, unreviewed, or blocked ≠ done
