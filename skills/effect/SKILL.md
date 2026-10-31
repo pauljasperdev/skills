@@ -40,6 +40,7 @@ In the Look in column, `.ts` files are under `packages/effect/src/` and numbered
 | `try`/`catch`, `throw`, an error turned into a boolean, `null`, counter, or status object | Failure stays in the error channel (`Schema.TaggedError` or `Data.TaggedError`); one boundary handles it with `catchTag`/`catchTags` | `01_effect/04_errors`, `Effect.ts` |
 | Catch-and-continue in a loop, failures pushed to an array | `Effect.partition`, `Effect.validate`, `Effect.all` with `mode: "result"` | `Effect.ts` |
 | `catch`/`orElseSucceed`/`ignore` over a whole error union | Recover only the tags the fallback is true for; `orDie` only for impossible states and startup config | `01_effect/04_errors`, `Effect.ts` |
+| Route guard reading an atom with `orElseSucceed` (defects still crash the page) | `Effect.catchCause` → redirect | `Effect.ts`, `reactivity/Atom.ts` |
 | Attempt counter, `while` + `sleep`, backoff arithmetic | `Effect.retry`/`Effect.repeat` with a `Schedule` | `06_schedule`, `Schedule.ts` |
 | Polling loop, interval timer, time-of-day check | `Effect.repeat` with `Schedule.spaced`/`fixed`/`cron` | `06_schedule`, `Schedule.ts`, `Cron.ts` |
 | Retry or wait inside a durable workflow | `Activity.retry` (attempt count, no schedule) and named `DurableClock.sleep` between attempts; a `Schedule` is in-memory | `workflow/Activity.ts`, `workflow/DurableClock.ts`, `packages/effect/test/workflow/` |
@@ -56,6 +57,7 @@ In the Look in column, `.ts` files are under `packages/effect/src/` and numbered
 | Dependency object passed around, `provide` inside a handler | `Context.Service` plus `Layer`, built once at the root | `01_effect/03_services`, `Layer.ts` |
 | Function that only returns `Effect.gen` | `Effect.fn("name")` | `LLMS.md` → Writing Effect code |
 | `JSON.parse` plus cast, hand-written guard or serializer | `Schema.decodeUnknownEffect`/encode, one schema per shape | `01_effect/02_schema`, `packages/effect/SCHEMA.md` |
+| Library value returned across RPC as-is, typed by inference | Decode into the contract schema before returning | `rpc/Rpc.ts`, `01_effect/02_schema` |
 | `runPromise` mid-workflow, signal handlers, `process.exit` | One program run at the edge (`runMain`, `ManagedRuntime`) | `01_effect/06_running`, `ManagedRuntime.ts` |
 | Real sleeps, `Date.now()`, `Math.random()` in tests | `TestClock`, `Deferred`/`Latch` synchronization, `it.effect` | `09_testing`, `testing/TestClock.ts` |
 
