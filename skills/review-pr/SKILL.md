@@ -17,9 +17,9 @@ Check out one pull request, run [`review`](../review/SKILL.md) on it, and post e
 - Accept exactly one PR number or PR URL. Resolve `<owner>/<repo>` from `origin` and stop on a URL from another repository.
 - Read it with `gh` 2.94+: `gh pr view <N> -R <owner>/<repo> --json number,url,state,isDraft,title,body,baseRefName,headRefOid,closingIssuesReferences`.
 - Stop on a closed, merged, or draft PR, unless the user explicitly asked for a draft.
-- Read the markers `<!-- review-pr:<sha> -->` in the PR's reviews: `gh api --paginate repos/<owner>/<repo>/pulls/<N>/reviews --jq '.[].body'`.
+- Read the markers `<!-- review-pr:<sha> -->` in the PR's review bodies and review comments, with their times: `gh api --paginate repos/<owner>/<repo>/pulls/<N>/reviews --jq '.[] | [.submitted_at, .body]'` and `gh api --paginate repos/<owner>/<repo>/pulls/<N>/comments --jq '.[] | [.created_at, .body]'`.
 - Stop when one carries `headRefOid`: that commit is reviewed.
-- The newest marker's SHA (the last one listed) is the **last reviewed** commit; none on a first review.
+- The newest marker's SHA is the **last reviewed** commit; none on a first review.
 
 Done when the PR number, base branch, head SHA, closing issues, and last reviewed commit are known.
 
@@ -57,15 +57,17 @@ Anchor each finding:
 - **File**: its file is in the PR but the line is outside every hunk: a `FILE` thread on that path, naming the line in the body.
 - **Elsewhere**: its file is not in the PR (a broken caller, for example): a `LINE` thread on the changed line that causes it, naming the real location in the body.
 
-Thread body: `**<severity> · <lens> · <verdict>**`, the claim, the consequence, and the quoted evidence.
+Thread body: `**<severity> · <lens> · <verdict>**`, the claim, the consequence, the quoted evidence, and last the marker `<!-- review-pr:<headRefOid> -->`.
 
 Post with `gh api graphql`, building every variables payload with a JSON serializer:
 
 1. `addPullRequestReview(input: {pullRequestId, commitOID: <headRefOid>})` creates a pending review. When one of yours is already pending on this PR, stop and report it, leaving it untouched.
 2. `addPullRequestReviewThread(input: {pullRequestReviewId, path, body, subjectType, line, side, startLine, startSide})` once per finding. When a `LINE` thread is rejected, retry it as a `FILE` thread on the same path.
-3. `submitPullRequestReview(input: {pullRequestReviewId, event: COMMENT, body})`. The body holds the marker `<!-- review-pr:<headRefOid> -->`, `review`'s surface line, the finding count per lens and severity, coverage gaps, and any finding that could not be anchored. Findings live in their threads, not in the body.
-
-If the PR head moved while reviewing, add a line to the body naming the reviewed SHA.
+3. `submitPullRequestReview(input: {pullRequestReviewId, event: COMMENT, body})`. The threads are the whole review, so the body stays empty: a review body is a comment nobody can resolve. It carries text only for what no thread holds, then with the marker `<!-- review-pr:<headRefOid> -->`:
+   - no findings: one line saying so, with `review`'s surface line
+   - a failed or incomplete review: what was not covered
+   - a finding that could not be anchored
+   - a PR head that moved while reviewing: the reviewed SHA
 
 ## 5. Clean up and report
 
