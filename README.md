@@ -30,9 +30,9 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `audit-effect` is manually invoked to audit Effect usage across the current codebase and produce pattern-level findings with standalone refactoring prompts. It searches for the `effect` Patterns shapes and uses `codebase-design` for architecture judgment; the audit leaves code unchanged.
 
-`review2thread` summarizes the original problem and implemented solution, then delegates to `to-thread` to launch a review on the current branch and worktree. Pass any configured model and optional provider; when no model is supplied, the agent asks.
+`review-agent` summarizes the original problem and implemented solution, then starts a T3 subagent on the current checkout that runs `review` and reports back into the same thread. It uses the current model unless you name another.
 
-`to-thread` opens a new native T3 thread on the current branch and worktree, keeping uncommitted files available and skipping setup. `review2thread` uses it.
+`to-thread` opens a new native T3 thread on the current branch and worktree, keeping uncommitted files available and skipping setup.
 
 `to-worktree-thread` opens a new native T3 thread with a new branch-backed worktree and automatic setup. It uses the shared T3 adapter from `to-thread`. Both accept a supplied model and optional provider/options, and ask when no model is supplied.
 
