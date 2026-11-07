@@ -7,6 +7,8 @@ description: Open a native T3 thread on the current branch and worktree, or prev
 
 Create a native **T3 Code thread** and first turn on the current branch and worktree, including uncommitted files. This skill owns the shared T3 adapter, model selection, and verification. [`to-worktree-thread`](../to-worktree-thread/SKILL.md) uses that adapter to create a new worktree instead. Task wrappers supply their own prompts and follow-up actions.
 
+**The launcher creates the thread.** T3's `t3_thread_launch` tool is the only creation path: the adapter resolves and validates its arguments, and the agent passes them to the launcher unchanged. T3 tools may load late; load a deferred one first (Claude Code: ToolSearch `select:mcp__t3-code__t3_thread_launch,mcp__t3-code__t3_thread_read`) before concluding it is unavailable. When it is genuinely absent, report that and stop; manual Git creation, direct database writes, raw RPC, `t3 thread start`, and another app's task tools are not substitutes.
+
 ## 1. Resolve the task and model
 
 Resolve the current Git worktree root, a concise title, and the first prompt from the user's request or wrapper input. Carry enough context for an independent thread to do the requested work, including its scope and constraints. For an empty thread request, use `Wait for the user's next instruction.` as the first prompt.
@@ -23,18 +25,16 @@ Resolve this skill's installed directory and run its adapter with Node.js 22 or 
 node <to-thread-dir>/scripts/t3-worktree.mjs doctor --cwd <absolute-current-worktree-root>
 ```
 
-The health check lists configured `providers` and their models. Confirm `checkout.projectPath` and `nativeBootstrapRpc: true`. Append `--model <model>`, optional `--provider <instance-id>`, and repeated `--option <id=value>` to validate a supplied selection.
+The health check lists configured `providers` and their models. Confirm `checkout.projectPath` and `launcher: "t3_thread_launch"`. Append `--model <model>`, optional `--provider <instance-id>`, and repeated `--option <id=value>` to validate a supplied selection.
 
-The invoking checkout locates its saved T3 project through existing threads on that worktree, then exact path or Git common-directory identity. A missing project requires adding the repository in T3; report unavailable providers/models without substitution.
+The invoking checkout locates its saved T3 project through existing threads on that worktree, then exact path or Git common-directory identity. A missing project requires adding the repository in T3; report unavailable providers/models without substitution. The adapter reads T3 state through a temporary session that it issues and revokes with the matching official CLI; it never writes.
 
-**T3 owns creation.** Run the adapter before concluding creation tools are unavailable. The documented Node CLI performs the RPC itself; it needs no separate RPC tool in the agent's tool list. It uses the matching official CLI to issue and revoke a temporary session, then authenticated T3 orchestration protocol 2. For this skill, `orchestration.dispatchCommand` sends `thread.create` bound to the current branch/path, then `message.dispatch` with `start_immediately`. `orchestration.launchThread` always runs the project's setup script, so it is reserved for new worktrees. Do not substitute manual Git creation, direct database writes, another app's task tools, or a reconstructed RPC sequence.
-
-## 3. Open the thread
+## 3. Prepare the launch
 
 Serialize one JSON object into a file, keeping task text out of shell code, then pass it on stdin:
 
 ```text
-node <to-thread-dir>/scripts/t3-worktree.mjs open --model <model> [--provider <instance-id>] [--option <id=value>] --json < <thread-json-file>
+node <to-thread-dir>/scripts/t3-worktree.mjs prepare --model <model> [--provider <instance-id>] [--option <id=value>] --json < <thread-json-file>
 ```
 
 Required task fields:
@@ -45,13 +45,17 @@ Required task fields:
 
 The adapter preserves the supplied prompt exactly. Optional `dedupeKey` matches a literal substring of active titles on this worktree across providers; otherwise match the complete title. Set `allowDuplicate: true` only for an explicit additional thread request. The current checkout must be branch-backed. Its staged, unstaged, and untracked files stay available; setup is skipped.
 
-Append `--dry-run` to validate access and preview the payload without creating a thread. A preview still uses temporary authentication.
+`prepare` returns one of:
 
-## 4. Verify and report
+- `existing`: an active matching thread. Report it and skip the launch. It may use a different model from the requested selection.
+- `launch`: `launch` holds the exact `t3_thread_launch` arguments, `expected` the values verification checks. The workspace strategy binds the current checkout: `root` for the project checkout, otherwise `existing_worktree`. Runtime and interaction modes are omitted so the thread inherits the caller's.
 
-- `existing`: report the existing thread and skip creation. It may use a different model from the requested selection.
-- `dry-run`: report the proposed payload, or an existing match; generated IDs are prospective.
-- `created`: require `ok: true`, concrete `thread.id`, non-null `thread.worktreePath`, `worktree.detached: false`, and the requested model/options. The adapter verifies the registered worktree, exact branch/path, skipped setup, and first turn.
-- Error: report the concrete code and whether dispatch may have created a thread. Preserve any created thread for diagnosis and stop; never silently retry creation. A batch wrapper may continue only for errors isolated to one task.
+A preview request stops here: report the `launch` arguments without calling the launcher.
 
-Report the provider/model, result, thread ID, branch, worktree, and setup status. A started first turn is a launch receipt, not evidence that the task completed. Return the receipt to a calling wrapper before its follow-up actions.
+## 4. Launch, verify, and report
+
+Call `t3_thread_launch` with the `launch` object unchanged. After an error or lost reply, retry once with the same arguments: the shared `clientRequestId` makes the retry idempotent. A fresh `prepare` mints a new `clientRequestId` and can create a second thread, so rerun it only after `t3_thread_read` or `t3_thread_list` shows no thread was created.
+
+Then `t3_thread_read` the new thread and match it against `expected`: title, branch, `worktreePath` (or the worktree's directory name `worktreeName`), provider/model/options, and the prompt as the first user message with a started turn. A mismatch or failed turn is an error: report it, preserve the thread for diagnosis, and stop. A batch wrapper may continue only for errors isolated to one task.
+
+Report the provider/model, result, thread `link`, branch, worktree, and `expected.setup`. A started first turn is a launch receipt, not evidence that the task completed. Return the receipt to a calling wrapper before its follow-up actions.

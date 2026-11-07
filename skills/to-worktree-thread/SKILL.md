@@ -5,7 +5,7 @@ description: Open a native T3 thread in a new branch-backed worktree, or preview
 
 # To T3 worktree thread
 
-Create a native **T3 Code thread**, new branch-backed worktree, and first turn. Read [`to-thread`](../to-thread/SKILL.md) for task/model resolution, T3 access, and the receipt contract. Use this skill's adapter for creation; it shares the implementation with `to-thread` while selecting new-worktree behavior.
+Create a native **T3 Code thread**, new branch-backed worktree, and first turn. Read [`to-thread`](../to-thread/SKILL.md) for task/model resolution, T3 access, the `t3_thread_launch` launcher, and the receipt contract. Use this skill's adapter to prepare the launch; it shares the implementation with `to-thread` while selecting new-worktree behavior.
 
 Both skills accept the caller's model, optional provider, and model options. Follow `to-thread`'s requirement to ask when no model is supplied. The caller chooses the task and supplies its first prompt.
 
@@ -15,7 +15,7 @@ The shared `to-thread` skill must be installed alongside this one. If missing, i
 npx skills add pauljasperdev/skills -g --agent <invoking-agent> --skill to-thread to-worktree-thread -y
 ```
 
-## 1. Check T3 and open the thread
+## 1. Check T3 and prepare the launch
 
 Resolve this skill's installed directory and run its adapter with Node.js 22 or newer:
 
@@ -23,12 +23,12 @@ Resolve this skill's installed directory and run its adapter with Node.js 22 or 
 node <to-worktree-thread-dir>/scripts/t3-worktree.mjs doctor --cwd <absolute-invoking-checkout>
 ```
 
-Confirm `checkout.projectPath`, `worktreeDefaults`, and `nativeBootstrapRpc: true`. Use the same selection-validation flags as `to-thread`.
+Confirm `checkout.projectPath`, `worktreeDefaults`, and `launcher: "t3_thread_launch"`. Use the same selection-validation flags as `to-thread`.
 
 Serialize the same `cwd`, `title`, and `prompt` task fields as `to-thread` into a JSON file, then pass it on stdin:
 
 ```text
-node <to-worktree-thread-dir>/scripts/t3-worktree.mjs open --model <model> [--provider <instance-id>] [--option <id=value>] --json < <thread-json-file>
+node <to-worktree-thread-dir>/scripts/t3-worktree.mjs prepare --model <model> [--provider <instance-id>] [--option <id=value>] --json < <thread-json-file>
 ```
 
 Optional fields:
@@ -40,10 +40,10 @@ Optional fields:
 | `dedupeKey` | Literal substring matched against active titles within the saved project, across providers. Otherwise match the complete title. |
 | `allowDuplicate` | Set `true` only for an explicit fresh/duplicate request. |
 
-Append `--dry-run` for a payload preview. Both skill entry points select their own worktree behavior; omit `reuseWorktree` from task input.
+Both skill entry points select their own worktree behavior; omit `reuseWorktree` from task input. A preview request stops at the prepared `launch` arguments.
 
-## 2. Verify and report
+## 2. Launch, verify, and report
 
-T3 creates the thread, worktree, and first message through one `orchestration.launchThread` RPC with a `worktree` workspace strategy. Its `newWorktreesStartFromOrigin` setting determines the starting ref. T3 runs scripts marked `runOnWorktreeCreate` before the agent starts, holding the first run in `preparing`; no configured setup is valid. The adapter prepends a gate requiring successful setup before the task starts. Never run setup again.
+Launch and verify under `to-thread`'s step 4. The prepared `worktree` workspace strategy makes T3 create the thread, worktree, and first message in one launch, starting from the base branch or its origin counterpart per T3's `newWorktreesStartFromOrigin` setting. T3 runs scripts marked `runOnWorktreeCreate` before the agent starts, holding the first run in `preparing`; no configured setup is valid. The adapter prepends a gate requiring successful setup before the task starts. Never run setup again.
 
-Apply `to-thread`'s receipt and error contract. For `created`, verify a registered new worktree on the exact requested branch, the requested model/options, setup launch when configured, and the first turn. Report `setup: started` or `not-configured`; a started setup and first turn are launch receipts, not completion evidence.
+For a launched thread, verify the new worktree on the exact requested branch and directory `expected.worktreeName`, the requested model/options, and the first turn. Report `setup: started` or `not-configured`; a started setup and first turn are launch receipts, not completion evidence.

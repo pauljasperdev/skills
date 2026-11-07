@@ -2,7 +2,7 @@
 name: review2thread
 disable-model-invocation: true
 description: Open a separate T3 review thread using the requested model, with the original problem and implemented solution as context.
-allowed-tools: Bash(git:*), Bash(pwd:*), Bash(node:*)
+allowed-tools: Bash(git:*), Bash(pwd:*), Bash(node:*), mcp__t3-code__t3_thread_launch, mcp__t3-code__t3_thread_read
 ---
 
 # Review to thread
@@ -27,8 +27,8 @@ Read the installed `to-thread` skill and follow its model-selection and dispatch
 
 Supply the current worktree root as `cwd`, a concise task title ending in ` · review`, and the composed `prompt`. This opens the reviewer on the exact branch and worktree without creating another worktree or running setup. Set `allowDuplicate: true` only for an explicit additional review request.
 
-The `to-thread` and `review` skills must be installed for the selected agent. Use `to-thread`'s adapter and receipt contract.
+The `to-thread` and `review` skills must be installed for the selected agent. Use `to-thread`'s adapter, `t3_thread_launch` launcher, and receipt contract.
 
 ## 3. Report
 
-Report the `to-thread` receipt: selected provider/model, result, thread ID, current branch and worktree, and setup status. A started turn means the review launched; findings arrive in the new thread.
+Report the `to-thread` receipt: selected provider/model, result, thread link, current branch and worktree, and setup status. A started turn means the review launched; findings arrive in the new thread.

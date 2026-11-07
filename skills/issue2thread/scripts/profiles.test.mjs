@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { resolveProfile } from "./profiles.mjs";
 import { resolveModelSelection, modelMatches } from "../../to-thread/scripts/model-selection.mjs";
-import { makeBootstrapCommand } from "../../to-thread/scripts/t3-worktree.mjs";
+import { makeLaunchRequest } from "../../to-thread/scripts/t3-worktree.mjs";
 
 const configFor = (selection) => ({
   providers: [{
@@ -46,27 +46,22 @@ for (const [name, instanceId, model, optionId] of [
       profile.modelSelection), false);
   });
 
-  test(name + " bootstraps a T3 worktree and first turn with one model selection", () => {
+  test(name + " prepares a T3 worktree launch and first turn with one model selection", () => {
     const profile = resolveProfile(name);
-    const prepared = makeBootstrapCommand({
+    const { launch, expected } = makeLaunchRequest({
       modelSelection: profile.modelSelection, project: { id: "project-1", workspaceRoot: "/repo" },
       baseBranch: "pre", worktreeBranch: "t3code/12-sample",
-      startFromOrigin: true, title: "#12 — Sample", prompt: "Examine this task.",
+      title: "#12 — Sample", prompt: "Examine this task.",
     });
-    assert.equal(prepared.requests.length, 1);
-    const [{ tag, payload }] = prepared.requests;
-    assert.equal(tag, "orchestration.launchThread");
-    assert.equal(payload.threadId, prepared.threadId);
-    assert.deepEqual(payload.modelSelection, profile.modelSelection);
-    assert.deepEqual(prepared.modelSelection, payload.modelSelection);
-    assert.equal(payload.projectId, "project-1");
-    assert.equal(payload.title, "#12 — Sample");
-    assert.deepEqual(payload.workspaceStrategy, {
-      type: "worktree", baseRef: "pre", branch: "t3code/12-sample", startFromOrigin: true,
+    assert.deepEqual(launch.modelSelection, profile.modelSelection);
+    assert.deepEqual(expected.modelSelection, launch.modelSelection);
+    assert.equal(launch.projectId, "project-1");
+    assert.equal(launch.title, "#12 — Sample");
+    assert.deepEqual(launch.workspaceStrategy, {
+      type: "worktree", baseRef: "pre", branch: "t3code/12-sample",
     });
-    assert.equal(prepared.expectedWorktreeName, "t3code-12-sample");
-    assert.equal(payload.initialMessage.messageId, prepared.messageId);
-    assert.ok(payload.initialMessage.text.endsWith("Examine this task."));
-    assert.ok(payload.initialMessage.text.includes("Wait for setup to finish successfully"));
+    assert.equal(expected.worktreeName, "t3code-12-sample");
+    assert.ok(launch.message.endsWith("Examine this task."));
+    assert.ok(launch.message.includes("Wait for setup to finish successfully"));
   });
 }

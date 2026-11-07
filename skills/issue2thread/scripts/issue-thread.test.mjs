@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { prepareIssueSpec } from "./t3-worktree.mjs";
-import { makeBootstrapCommand } from "../../to-thread/scripts/t3-worktree.mjs";
+import { makeLaunchRequest } from "../../to-thread/scripts/t3-worktree.mjs";
 import { resolveProfile } from "./profiles.mjs";
 
 for (const name of ["claude", "codex"]) {
@@ -14,14 +14,13 @@ for (const name of ["claude", "codex"]) {
     assert.equal(spec.dedupeKey, "#12 — ");
     assert.equal(spec.baseBranch, "pre");
     assert.equal(spec.allowDuplicate, true);
-    const prepared = makeBootstrapCommand({ ...spec, modelSelection: profile.modelSelection,
+    const { launch } = makeLaunchRequest({ ...spec, modelSelection: profile.modelSelection,
       project: { id: "project-1", workspaceRoot: "/repo" }, baseBranch: "pre",
-      worktreeBranch: "t3code/12-sample", startFromOrigin: true });
-    assert.equal(prepared.requests[0].payload.title, "#12 — Sample");
-    assert.ok(prepared.prompt.includes(name === "codex" ? "$examine-issue" : "/examine-issue"));
-    assert.ok(prepared.prompt.includes("-R konzeptlab/signal"));
-    assert.ok(prepared.prompt.includes("Wait for setup to finish successfully"));
-    assert.ok(prepared.prompt.includes("the dispatcher owns the issue's Status change"));
+      worktreeBranch: "t3code/12-sample" });
+    assert.equal(launch.title, "#12 — Sample");
+    assert.equal(spec.prompt, (name === "codex" ? "$" : "/") + "examine-issue 12");
+    assert.ok(launch.message.endsWith("\n\n" + spec.prompt));
+    assert.ok(launch.message.includes("Wait for setup to finish successfully"));
   });
 }
 

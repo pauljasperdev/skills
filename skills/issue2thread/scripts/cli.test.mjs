@@ -20,9 +20,9 @@ test("standalone and sibling-installed CLIs preserve their input and error contr
     await mkdir(directory, { recursive: true });
     for (const file of files) await copyFile(new URL(source + file, import.meta.url), path.join(directory, file));
     const script = path.join(directory, "t3-worktree.mjs");
-    assert.match(execFileSync(process.execPath, [script, "--help"], { encoding: "utf8" }), /open JSON:/);
+    assert.match(execFileSync(process.execPath, [script, "--help"], { encoding: "utf8" }), /prepare JSON:/);
     const run = (input) => spawnSync(process.execPath,
-      [script, "open", ...(skill !== "issue2thread" ? ["--model", "example-model"] : ["--profile", "codex"]), "--json", "--t3-home", root],
+      [script, "prepare", ...(skill !== "issue2thread" ? ["--model", "example-model"] : ["--profile", "codex"]), "--json", "--t3-home", root],
       { input, encoding: "utf8" });
     for (const [input, code] of [
       ["{", "INPUT_INVALID"],
@@ -42,24 +42,24 @@ for (const skill of ["to-thread", "to-worktree-thread"]) {
     const script = new URL(`../../${skill}/scripts/t3-worktree.mjs`, import.meta.url).pathname;
     const input = JSON.stringify({ cwd: "/does-not-exist", title: "Task", prompt: "Inspect it." });
     for (const flags of [[], ["--provider", "my-provider"]]) {
-      const result = spawnSync(process.execPath, [script, "open", "--json", ...flags], { input, encoding: "utf8" });
+      const result = spawnSync(process.execPath, [script, "prepare", "--json", ...flags], { input, encoding: "utf8" });
       assert.equal(JSON.parse(result.stderr).error.code, "MODEL_REQUIRED");
     }
     for (const [flags, selection] of [
       [["--model", "my-model", "--provider", "my-provider", "--option", "effort=medium"], undefined],
       [[], { instanceId: "my-provider", model: "my-model", options: [] }],
     ]) {
-      const result = spawnSync(process.execPath, [script, "open", "--json", ...flags],
+      const result = spawnSync(process.execPath, [script, "prepare", "--json", ...flags],
         { input: JSON.stringify({ cwd: "/does-not-exist", title: "Task", prompt: "Inspect it.", modelSelection: selection }), encoding: "utf8" });
       assert.equal(JSON.parse(result.stderr).error.code, "WORKSPACE_NOT_FOUND");
     }
   });
 }
 
-test("issue doctor and open accept explicit selections over profile defaults", () => {
+test("issue doctor and prepare accept explicit selections over profile defaults", () => {
   const script = new URL("./t3-worktree.mjs", import.meta.url).pathname;
   const input = JSON.stringify({ cwd: "/does-not-exist", repo: "konzeptlab/signal", issue: 12, title: "Task" });
-  for (const command of ["doctor", "open"]) {
+  for (const command of ["doctor", "prepare"]) {
     const taskFlags = command === "doctor" ? ["--cwd", "/does-not-exist"] : ["--json"];
     for (const [selectionFlags, expected] of [
       [[], "PROFILE_INVALID"],
@@ -77,8 +77,8 @@ test("issue doctor and open accept explicit selections over profile defaults", (
 });
 
 for (const [skill, exported] of [
-  ["to-thread", "openThread"],
-  ["to-worktree-thread", "openWorktreeThread"],
+  ["to-thread", "prepareThread"],
+  ["to-worktree-thread", "prepareWorktreeThread"],
   ["issue2thread", "prepareIssueSpec"],
 ]) {
   test(skill + " can be imported from a Node stdin module without running its CLI", () => {

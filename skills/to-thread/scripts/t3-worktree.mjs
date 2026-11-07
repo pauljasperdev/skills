@@ -2,17 +2,15 @@
 
 import { execFile as execFileCallback } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { access, readFile, realpath } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
-import { validateModelSelection, resolveModelSelection, modelMatches } from "./model-selection.mjs";
+import { validateModelSelection, resolveModelSelection } from "./model-selection.mjs";
 
 const execFile = promisify(execFileCallback);
 const DEFAULT_TIMEOUT_MS = 30_000;
-const DISPATCH_TIMEOUT_MS = 180_000;
-const VERIFY_TIMEOUT_MS = 20_000;
 const ORCHESTRATION_PROTOCOL = "2";
 
 class ToThreadError extends Error {
@@ -23,8 +21,6 @@ class ToThreadError extends Error {
     this.details = details;
   }
 }
-
-const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function fail(code, message, details) {
   throw new ToThreadError(code, message, details);
@@ -529,7 +525,7 @@ async function resolveWorktreeBranch(cwd, label) {
 
 function validateThreadSpec(spec) {
   if (!spec || typeof spec !== "object" || Array.isArray(spec)) {
-    fail("INPUT_INVALID", "open --json expects one JSON object on stdin.");
+    fail("INPUT_INVALID", "prepare --json expects one JSON object on stdin.");
   }
   if (typeof spec.title !== "string" || !spec.title.trim() || /[\r\n]/.test(spec.title)) {
     fail("TITLE_INVALID", "title must be a non-empty single line.");
@@ -548,214 +544,36 @@ function validateThreadSpec(spec) {
   return { ...spec, title: spec.title.trim() };
 }
 
-// A new worktree uses T3's launch RPC, which also runs the project's setup script. The current
-// worktree is bound by thread.create and started without workspace preparation, so setup is skipped.
-export function makeBootstrapCommand({ modelSelection, project, baseBranch, worktreeBranch, startFromOrigin, worktreePath = null, title, prompt: taskPrompt }) {
-  const threadId = randomUUID();
-  const messageId = randomUUID();
-  const threadTitle = title;
-  const prompt = worktreePath !== null ? taskPrompt : `T3 owns this worktree and runs any configured worktree setup automatically. Wait for setup to finish successfully before starting the task; if no setup is configured, proceed. If setup fails, stop and report the failure. Do not run setup again.\n\n${taskPrompt}`;
-  const runtimeMode = "full-access";
-  const interactionMode = "default";
-  const thread = { threadId, projectId: project.id, title: threadTitle, modelSelection, runtimeMode, interactionMode };
-  const message = { messageId, text: prompt, attachments: [] };
-  const provenance = { createdBy: "user", creationSource: "web" };
+// T3's thread launcher (the `t3_thread_launch` tool) creates the thread, binds its workspace, and
+// starts the first turn. This adapter only resolves and validates its arguments; it never dispatches.
+// T3 applies its own start-from-origin setting to a new worktree, which also runs the project's
+// setup scripts, so its prompt gates the task on setup. The current
+// checkout is bound as-is, keeping uncommitted files and skipping setup.
+export function makeLaunchRequest({ modelSelection, project, projectCwd = project.workspaceRoot, baseBranch, worktreeBranch, worktreePath = null, title, prompt: taskPrompt }) {
+  const newWorktree = worktreePath === null;
+  const prompt = newWorktree ? `T3 owns this worktree and runs any configured worktree setup automatically. Wait for setup to finish successfully before starting the task; if no setup is configured, proceed. If setup fails, stop and report the failure. Do not run setup again.\n\n${taskPrompt}` : taskPrompt;
+  const setupConfigured = (project.scripts ?? []).some((script) => script?.runOnWorktreeCreate === true);
+  const workspaceStrategy = newWorktree
+    ? { type: "worktree", baseRef: baseBranch, branch: worktreeBranch }
+    : worktreePath === projectCwd ? { type: "root" } : { type: "existing_worktree", worktreePath };
 
   return {
-    threadId,
-    messageId,
-    modelSelection,
-    worktreeBranch,
-    worktreePath,
-    expectedWorktreeName: worktreePath === null ? worktreeBranch.replaceAll("/", "-") : path.basename(worktreePath),
-    threadTitle,
-    prompt,
-    runtimeMode,
-    interactionMode,
-    requests: worktreePath === null ? [{
-      tag: "orchestration.launchThread",
-      payload: {
-        commandId: randomUUID(),
-        ...thread,
-        workspaceStrategy: {
-          type: "worktree",
-          baseRef: baseBranch,
-          branch: worktreeBranch,
-          ...(startFromOrigin ? { startFromOrigin: true } : {}),
-        },
-        initialMessage: message,
-      },
-    }] : [{
-      tag: "orchestration.dispatchCommand",
-      payload: { type: "thread.create", commandId: randomUUID(), ...thread, branch: worktreeBranch, worktreePath, ...provenance },
-    }, {
-      tag: "orchestration.dispatchCommand",
-      payload: {
-        type: "message.dispatch",
-        commandId: randomUUID(),
-        threadId,
-        ...message,
-        modelSelection,
-        dispatchMode: { type: "start_immediately" },
-        ...provenance,
-      },
-    }],
+    launch: {
+      clientRequestId: randomUUID(),
+      projectId: project.id,
+      title,
+      message: prompt,
+      modelSelection,
+      workspaceStrategy,
+    },
+    expected: {
+      title,
+      branch: worktreeBranch,
+      ...(newWorktree ? { worktreeName: worktreeBranch.replaceAll("/", "-") } : { worktreePath }),
+      modelSelection,
+      setup: !newWorktree ? "not-run" : setupConfigured ? "started" : "not-configured",
+    },
   };
-}
-
-async function worktreeIsRegistered(projectCwd, worktreePath) {
-  const output = await runGit(
-    projectCwd,
-    ["worktree", "list", "--porcelain"],
-    "WORKTREE_LIST_FAILED",
-    "Could not inspect Git worktrees after T3 creation.",
-  );
-  const registered = output
-    .split("\n")
-    .filter((line) => line.startsWith("worktree "))
-    .map((line) => line.slice("worktree ".length));
-  let target;
-  try {
-    target = await realpath(worktreePath);
-  } catch {
-    return false;
-  }
-  for (const candidate of registered) {
-    try {
-      if ((await realpath(candidate)) === target) return true;
-    } catch {
-      // Ignore stale entries while verifying the target.
-    }
-  }
-  return false;
-}
-
-async function verifyCreated(runtime, token, expected, project) {
-  const deadline = Date.now() + VERIFY_TIMEOUT_MS;
-  let lastObserved = {};
-  while (Date.now() < deadline) {
-    const shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
-    const thread = (shell.threads ?? []).find((candidate) => candidate?.id === expected.threadId);
-    if (!thread) {
-      lastObserved = { thread: "missing" };
-      await sleep(250);
-      continue;
-    }
-    if (thread.title !== expected.threadTitle || thread.projectId !== project.id) {
-      fail("T3_THREAD_MISMATCH", "T3 created a thread with unexpected metadata.", {
-        threadId: expected.threadId,
-        title: thread.title,
-        projectId: thread.projectId,
-      });
-    }
-
-    // A failed worktree preparation unbinds the worktree, so check the run before the path.
-    const detail = await authenticatedGet(
-      runtime,
-      token,
-      `/api/orchestration/threads/${encodeURIComponent(expected.threadId)}`,
-    );
-    const projection = detail?.projection;
-    const run = (projection?.runs ?? []).find((candidate) => candidate?.userMessageId === expected.messageId);
-    const setupFailure = (projection?.turnItems ?? []).find(
-      (item) => item?.runId === run?.id && item?.type === "error" && item.failure?.code === "workspace_preparation_failed",
-    );
-    if (setupFailure) {
-      fail("T3_SETUP_FAILED", "T3 could not prepare the worktree or run its setup script.", {
-        threadId: expected.threadId,
-        worktreePath: thread.worktreePath,
-        detail: trimForError(setupFailure.failure.message),
-      });
-    }
-    if (["failed", "cancelled", "interrupted"].includes(run?.status)) {
-      fail("T3_TURN_FAILED", "The first T3 turn failed to start.", {
-        threadId: expected.threadId,
-        runStatus: run.status,
-        lastError: trimForError(thread.lastError),
-      });
-    }
-    if (expected.worktreePath !== null && run?.status === "preparing") {
-      fail("T3_SETUP_UNEXPECTED", "T3 started workspace preparation while reusing an existing worktree.", { threadId: expected.threadId });
-    }
-    if (typeof thread.worktreePath !== "string" || thread.worktreePath.length === 0) {
-      lastObserved = { thread: "present", worktreePath: null, turnState: run?.status };
-      await sleep(250);
-      continue;
-    }
-
-    const messagePresent = (projection?.messages ?? []).some(
-      (message) =>
-        message?.id === expected.messageId &&
-        message?.role === "user" &&
-        message?.text === expected.prompt,
-    );
-    const setupExpected = expected.worktreePath === null && (project.scripts ?? []).some(
-      (script) => script?.runOnWorktreeCreate === true,
-    );
-    const registered = await worktreeIsRegistered(project.workspaceRoot, thread.worktreePath);
-    let branch = null;
-    try {
-      await access(thread.worktreePath);
-      branch = await runGit(
-        thread.worktreePath,
-        ["symbolic-ref", "--quiet", "--short", "HEAD"],
-        "T3_WORKTREE_DETACHED",
-        "T3 created a detached worktree instead of a branch-backed worktree.",
-      );
-    } catch (error) {
-      if (error instanceof ToThreadError) throw error;
-    }
-
-    // T3 binds a new worktree before its setup script runs and holds the run in
-    // `preparing` until setup finishes, so a bound worktree means setup has started.
-    const turnState = run?.status;
-    const turnStarted = ["preparing", "starting", "running", "waiting", "completed"].includes(turnState);
-    const branchMatches =
-      typeof branch === "string" &&
-      branch === thread.branch &&
-      branch === expected.worktreeBranch;
-    const worktreeNameMatches = path.basename(thread.worktreePath) === expected.expectedWorktreeName &&
-      (expected.worktreePath === null || await realpath(thread.worktreePath) === expected.worktreePath);
-    const selectedModelMatches = modelMatches(thread.modelSelection, expected.modelSelection);
-    if (
-      messagePresent &&
-      turnStarted &&
-      registered &&
-      branchMatches &&
-      worktreeNameMatches &&
-      selectedModelMatches
-    ) {
-      return {
-        id: thread.id,
-        title: thread.title,
-        branch,
-        worktreePath: thread.worktreePath,
-        modelSelection: thread.modelSelection,
-        turnState,
-        setup: expected.worktreePath !== null ? "not-run" : setupExpected ? "started" : "not-configured",
-      };
-    }
-    lastObserved = {
-      thread: "present",
-      worktreePath: thread.worktreePath,
-      messagePresent,
-      turnState,
-      registered,
-      branch,
-      threadBranch: thread.branch,
-      expectedBranch: expected.worktreeBranch,
-      worktreeName: path.basename(thread.worktreePath),
-      expectedWorktreeName: expected.expectedWorktreeName,
-      modelSelection: thread.modelSelection,
-      modelMatches: selectedModelMatches,
-      setupExpected,
-    };
-    await sleep(250);
-  }
-  fail("T3_VERIFICATION_TIMEOUT", "T3 accepted the request but concrete worktree verification timed out.", {
-    threadId: expected.threadId,
-    ...lastObserved,
-  });
 }
 
 function summarizeProject(project, modelSelection) {
@@ -797,9 +615,8 @@ async function doctor(cwd, t3Home, requestedModel) {
     const baseBranch = await resolveBaseBranch(projectCwd);
     const rpcState = await withRpc(runtime, token, async (rpc) => {
       const config = await rpc.call("server.getConfig", {});
-      const settings = await rpc.call("server.getSettings", {});
       const modelSelection = requestedModel === undefined ? undefined : resolveModelSelection(config, requestedModel);
-      return { settings, modelSelection, providers: (config.providers ?? []).map((provider) => ({
+      return { modelSelection, providers: (config.providers ?? []).map((provider) => ({
         instanceId: provider.instanceId,
         driver: provider.driver,
         status: provider.status,
@@ -823,24 +640,23 @@ async function doctor(cwd, t3Home, requestedModel) {
       project: summarizeProject(project, modelSelection),
       worktreeDefaults: {
         baseBranch,
-        startFromOrigin: rpcState.settings?.newWorktreesStartFromOrigin === true,
         branchPattern: "t3code/<branch-label-or-title-slug>",
       },
       providers: rpcState.providers,
-      nativeBootstrapRpc: true,
+      launcher: "t3_thread_launch",
     };
   });
 }
 
-export async function openThread(input, t3Home, dryRun, requestedModel) {
-  return await dispatchThread(input, t3Home, dryRun, requestedModel, false);
+export async function prepareThread(input, t3Home, requestedModel) {
+  return await prepareLaunch(input, t3Home, requestedModel, false);
 }
 
-export async function openWorktreeThread(input, t3Home, dryRun, requestedModel) {
-  return await dispatchThread(input, t3Home, dryRun, requestedModel, true);
+export async function prepareWorktreeThread(input, t3Home, requestedModel) {
+  return await prepareLaunch(input, t3Home, requestedModel, true);
 }
 
-async function dispatchThread(input, t3Home, dryRun, requestedModel, newWorktree) {
+async function prepareLaunch(input, t3Home, requestedModel, newWorktree) {
   const spec = validateThreadSpec(input);
   if (!newWorktree && (spec.baseBranch !== undefined || spec.branchLabel !== undefined)) {
     fail("INPUT_INVALID", "baseBranch and branchLabel belong to to-worktree-thread.");
@@ -848,11 +664,10 @@ async function dispatchThread(input, t3Home, dryRun, requestedModel, newWorktree
   let modelSelection = validateModelSelection(requestedModel ?? spec.modelSelection);
   const { title, prompt } = spec;
   const cwd = await canonicalPath(spec.cwd ?? process.cwd());
-  spec.cwd = cwd;
   const runtime = await discoverRuntime(t3Home);
 
   return await withSession(runtime, async (token) => {
-    let shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
+    const shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
     const { project } = await resolveProject(shell, cwd);
     const projectCwd = await canonicalPath(project.workspaceRoot);
     const worktreePath = newWorktree ? null : cwd;
@@ -860,73 +675,34 @@ async function dispatchThread(input, t3Home, dryRun, requestedModel, newWorktree
     if (existing && spec.allowDuplicate !== true) return existingReceipt(project, existing);
 
     const baseBranch = await resolveBaseBranch(newWorktree ? projectCwd : cwd, newWorktree ? spec.baseBranch : undefined);
-    return await withRpc(runtime, token, async (rpc) => {
+    await withRpc(runtime, token, async (rpc) => {
       modelSelection = resolveModelSelection(await rpc.call("server.getConfig", {}), modelSelection);
-      const settings = await rpc.call("server.getSettings", {});
-      const startFromOrigin = newWorktree && settings?.newWorktreesStartFromOrigin === true;
-
-      shell = await authenticatedGet(runtime, token, "/api/orchestration/shell");
-      const racedExisting = await findExistingThread(shell, project.id, spec, worktreePath);
-      if (racedExisting && spec.allowDuplicate !== true) return existingReceipt(project, racedExisting);
-
-      const worktreeBranch = newWorktree ? await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title) : baseBranch;
-      const prepared = makeBootstrapCommand({
-        modelSelection,
-        project,
-        baseBranch,
-        worktreeBranch,
-        startFromOrigin,
-        worktreePath,
-        title,
-        prompt,
-      });
-
-      if (dryRun) {
-        return {
-          ok: true,
-          action: "dry-run",
-          runtime: { origin: runtime.origin, serverVersion: runtime.serverVersion },
-          project: summarizeProject(project, modelSelection),
-          worktree: {
-            baseBranch,
-            branch: prepared.worktreeBranch,
-            name: prepared.expectedWorktreeName,
-            startFromOrigin,
-            ...(!newWorktree ? { path: cwd, reused: true } : {}),
-          },
-          thread: {
-            id: prepared.threadId,
-            title: prepared.threadTitle,
-            modelSelection,
-            runtimeMode: prepared.runtimeMode,
-            interactionMode: prepared.interactionMode,
-            prompt: prepared.prompt,
-          },
-        };
-      }
-
-      const dispatch = [];
-      for (const { tag, payload } of prepared.requests) {
-        const { projection: _projection, ...result } = await rpc.call(tag, payload, DISPATCH_TIMEOUT_MS) ?? {};
-        dispatch.push({ tag, ...result });
-      }
-      const verified = await verifyCreated(runtime, token, prepared, project);
-      return {
-        ok: true,
-        action: "created",
-        project: summarizeProject(project, modelSelection),
-        dispatch,
-        thread: verified,
-        worktree: {
-          baseBranch,
-          branch: verified.branch,
-          name: path.basename(verified.worktreePath),
-          startFromOrigin,
-          detached: false,
-          ...(!newWorktree ? { reused: true } : {}),
-        },
-      };
     });
+    const worktreeBranch = newWorktree ? await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title) : baseBranch;
+    const { launch, expected } = makeLaunchRequest({
+      modelSelection,
+      project,
+      projectCwd,
+      baseBranch,
+      worktreeBranch,
+      worktreePath,
+      title,
+      prompt,
+    });
+
+    return {
+      ok: true,
+      action: "launch",
+      tool: "t3_thread_launch",
+      project: summarizeProject(project, modelSelection),
+      worktree: {
+        baseBranch,
+        branch: worktreeBranch,
+        ...(newWorktree ? { name: expected.worktreeName } : { path: cwd, reused: true }),
+      },
+      launch,
+      expected,
+    };
   });
 }
 
@@ -935,7 +711,7 @@ function parseArgs(argv) {
   const options = {};
   for (let index = 0; index < rest.length; index += 1) {
     const argument = rest[index];
-    if (argument === "--json" || argument === "--dry-run") {
+    if (argument === "--json") {
       options[argument.slice(2)] = true;
       continue;
     }
@@ -969,10 +745,10 @@ async function readStdinJson() {
 }
 
 function printHelp(inputExample) {
-  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor [--cwd PATH] [--model MODEL] [--provider INSTANCE_ID]\n  node t3-worktree.mjs open --model MODEL [--provider INSTANCE_ID] [--option ID=VALUE] --json [--dry-run]\n\nopen JSON: ${inputExample}\n`);
+  process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor [--cwd PATH] [--model MODEL] [--provider INSTANCE_ID]\n  node t3-worktree.mjs prepare --model MODEL [--provider INSTANCE_ID] [--option ID=VALUE] --json\n\nprepare JSON: ${inputExample}\nprepare prints t3_thread_launch arguments; it never creates a thread.\n`);
 }
 
-async function main(open, inputExample, argv) {
+async function main(prepare, inputExample, argv) {
   const { command, options } = parseArgs(argv);
   const t3Home = path.resolve(options["t3-home"] ?? process.env.T3CODE_HOME ?? path.join(homedir(), ".t3"));
   const requestedModel = options.model === undefined && options.provider === undefined && options.modelOptions === undefined
@@ -980,9 +756,9 @@ async function main(open, inputExample, argv) {
   if (command === "doctor") {
     return await doctor(options.cwd ?? process.cwd(), t3Home, requestedModel);
   }
-  if (command === "open") {
-    if (options.json !== true) fail("ARGUMENT_INVALID", "open requires --json.");
-    return await open(await readStdinJson(), t3Home, options["dry-run"] === true, requestedModel);
+  if (command === "prepare") {
+    if (options.json !== true) fail("ARGUMENT_INVALID", "prepare requires --json.");
+    return await prepare(await readStdinJson(), t3Home, requestedModel);
   }
   if (command === "help" || command === "--help" || command === undefined) {
     printHelp(inputExample);
@@ -991,9 +767,9 @@ async function main(open, inputExample, argv) {
   fail("ARGUMENT_INVALID", `Unknown command: ${command}`);
 }
 
-export async function runCli(open = openThread, inputExample = '{"cwd":"/repo","title":"Task title","prompt":"First task"}', argv = process.argv.slice(2)) {
+export async function runCli(prepare = prepareThread, inputExample = '{"cwd":"/repo","title":"Task title","prompt":"First task"}', argv = process.argv.slice(2)) {
   try {
-    const result = await main(open, inputExample, argv);
+    const result = await main(prepare, inputExample, argv);
     if (result !== null) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } catch (error) {
     const normalized =

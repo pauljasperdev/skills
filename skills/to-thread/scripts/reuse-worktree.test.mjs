@@ -42,7 +42,6 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
   const projects = [{ id: "owner", workspaceRoot: repo, scripts: [{ runOnWorktreeCreate: true }] },
     { id: "other", workspaceRoot: other }];
   let threads = [{ id: "source", projectId: "owner", worktreePath: alias, title: "Task" }];
-  let dispatched;
   let revoked = 0;
   const gitCalls = [];
   await mkdir(path.join(home, "userdata"), { recursive: true });
@@ -66,10 +65,6 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     if (url.pathname === "/.well-known/t3/environment") body = { environmentId: "test", serverVersion: "test" };
     else if (url.pathname === "/api/auth/websocket-ticket") body = { ticket: "ticket" };
     else if (url.pathname === "/api/orchestration/shell") body = { projects, threads };
-    else if (url.pathname.startsWith("/api/orchestration/threads/")) body = { snapshotSequence: 1, projection: {
-      messages: [{ id: dispatched.message.messageId, role: "user", text: dispatched.message.text }],
-      runs: [{ id: "run", userMessageId: dispatched.message.messageId, status: "starting" }], turnItems: [],
-    } };
     else assert.fail(`Unexpected request: ${url}`);
     return new Response(JSON.stringify(body));
   };
@@ -83,65 +78,52 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     }
     close() { this.readyState = 3; }
     send(raw) {
-      const { id, tag, payload } = JSON.parse(raw);
+      const { id, tag } = JSON.parse(raw);
       let value = {};
       if (tag === "server.getConfig") value = { providers: [{ instanceId: "custom", status: "ready", models: [{ slug: "custom-model" }] }] };
-      else if (tag === "server.getSettings") value = { newWorktreesStartFromOrigin: true };
-      else if (tag === "orchestration.dispatchCommand" && payload.type === "thread.create") {
-        dispatched = { create: payload };
-        threads.push({ id: payload.threadId, projectId: payload.projectId, title: payload.title,
-          modelSelection: payload.modelSelection, branch: payload.branch, worktreePath: payload.worktreePath,
-          status: "idle",
-        });
-      } else if (tag === "orchestration.dispatchCommand" && payload.type === "message.dispatch") {
-        dispatched.message = payload;
-      } else assert.equal(tag, "server.probe");
+      else assert.equal(tag, "server.probe");
       queueMicrotask(() => this.dispatchEvent(new MessageEvent("message", {
         data: JSON.stringify({ _tag: "Exit", requestId: id, exit: { _tag: "Success", value } }),
       })));
     }
   };
-  const { openThread, runCli } = await import("./t3-worktree.mjs");
+  const { prepareThread, runCli } = await import("./t3-worktree.mjs");
   const spec = { cwd: current, title: "Task · review", prompt: "Use the review skill. Original problem: export." };
   const selection = { model: "custom-model" };
-  const created = await openThread(spec, home, false, selection);
-  assert.equal(created.project.id, "owner");
-  assert.equal(created.thread.worktreePath, current);
-  assert.equal(created.thread.branch, "feature");
-  assert.equal(created.thread.setup, "not-run");
-  assert.equal(dispatched.message.text, spec.prompt);
-  assert.equal(dispatched.message.threadId, dispatched.create.threadId);
-  assert.deepEqual(dispatched.message.dispatchMode, { type: "start_immediately" });
+  const prepared = await prepareThread(spec, home, selection);
+  assert.equal(prepared.action, "launch");
+  assert.equal(prepared.project.id, "owner");
+  assert.equal(prepared.launch.projectId, "owner");
+  assert.deepEqual(prepared.launch.workspaceStrategy, { type: "existing_worktree", worktreePath: current });
+  assert.equal(prepared.launch.message, spec.prompt);
+  assert.deepEqual(prepared.expected, { title: spec.title, branch: "feature", worktreePath: current,
+    modelSelection: { model: "custom-model", instanceId: "custom", options: [] }, setup: "not-run" });
   assert.equal(await git(current, "status", "--porcelain"), before);
   assert.equal(await readFile(path.join(current, "tracked.txt"), "utf8"), "unstaged\n");
   assert.equal(await readFile(path.join(current, "untracked.txt"), "utf8"), "keep me\n");
   assert.equal(await git(current, "show", ":tracked.txt"), "staged");
   assert.equal(revoked, 1);
 
-  // The same worktree can be saved under a symlink without permitting a second review.
-  threads.find((thread) => thread.id === created.thread.id).worktreePath = alias;
-  dispatched = undefined;
-  const existing = await openThread(spec, home, false, selection);
+  // Once launched, the same worktree saved under a symlink does not permit a second review.
+  threads.push({ id: "launched", projectId: "owner", title: spec.title, branch: "feature",
+    worktreePath: alias, modelSelection: prepared.expected.modelSelection });
+  const existing = await prepareThread(spec, home, selection);
   assert.equal(existing.action, "existing");
-  assert.equal(existing.thread.id, created.thread.id);
-  assert.deepEqual(existing.project.modelSelection, created.thread.modelSelection);
-  assert.equal(dispatched, undefined);
+  assert.equal(existing.thread.id, "launched");
+  assert.deepEqual(existing.project.modelSelection, prepared.expected.modelSelection);
   assert.equal(revoked, 2);
 
-  // Conflicting project mappings stop before dispatch and still revoke authentication.
+  // Conflicting project mappings stop before preparation and still revoke authentication.
   threads.push({ id: "conflict", projectId: "other", worktreePath: current });
-  await assert.rejects(openThread({ ...spec, allowDuplicate: true }, home, false, selection), { code: "T3_PROJECT_AMBIGUOUS" });
-  assert.equal(dispatched, undefined);
+  await assert.rejects(prepareThread({ ...spec, allowDuplicate: true }, home, selection), { code: "T3_PROJECT_AMBIGUOUS" });
   assert.equal(revoked, 3);
   threads.pop();
   const owner = projects.shift();
-  await assert.rejects(openThread(spec, home, false, selection), { code: "T3_PROJECT_NOT_FOUND" });
-  assert.equal(dispatched, undefined);
+  await assert.rejects(prepareThread(spec, home, selection), { code: "T3_PROJECT_NOT_FOUND" });
   assert.equal(revoked, 4);
   projects.unshift(owner);
   await git(current, "checkout", "--detach");
-  await assert.rejects(openThread({ ...spec, allowDuplicate: true }, home, false, selection), { code: "DETACHED_BASE_CHECKOUT" });
-  assert.equal(dispatched, undefined);
+  await assert.rejects(prepareThread({ ...spec, allowDuplicate: true }, home, selection), { code: "DETACHED_BASE_CHECKOUT" });
   assert.equal(revoked, 5);
   assert.equal(await git(current, "status", "--porcelain"), before);
   // Exercise the CLI health check through the same real Git and serialized RPC path.
@@ -158,12 +140,11 @@ test("review reuse follows the worktree's T3 project and retains dirty Git state
     assert.equal(health.ok, true);
     assert.equal(health.checkout.matchedBy, "worktree-thread");
     assert.equal(health.project.id, "owner");
-    assert.equal(health.nativeBootstrapRpc, true);
+    assert.equal(health.launcher, "t3_thread_launch");
     assert.deepEqual(health.providers.map(({ instanceId }) => instanceId), ["custom"]);
     assert.deepEqual(health.project.modelSelection, flags.length === 0 ? undefined :
       { model: "custom-model", instanceId: "custom", options: [] });
   }
   assert.equal(revoked, 7);
-  assert.ok(gitCalls.every((args) => ["rev-parse", "symbolic-ref", "worktree"].includes(args[2]) &&
-    (args[2] !== "worktree" || args[3] === "list")), "the adapter only inspected Git");
+  assert.ok(gitCalls.every((args) => ["rev-parse", "symbolic-ref"].includes(args[2])), "the adapter only inspected Git");
 });

@@ -4,7 +4,7 @@ import { realpath } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { resolveProfile } from "./profiles.mjs";
 import { runCli } from "../../to-thread/scripts/t3-worktree.mjs";
-import { openWorktreeThread } from "../../to-worktree-thread/scripts/t3-worktree.mjs";
+import { prepareWorktreeThread } from "../../to-worktree-thread/scripts/t3-worktree.mjs";
 
 function fail(code, message) {
   throw Object.assign(new Error(message), { code });
@@ -34,14 +34,13 @@ function validateTitle(title) {
   return title.trim();
 }
 
-function issuePrompt(issue, repo, profile) {
-  const examine = profile.name === "codex" ? "$examine-issue" : "/examine-issue";
-  return `Use ${examine} to examine issue #${issue} in ${repo}. Pass -R ${repo} to every gh issue command and refuse any other repository. Keep the issue, its project fields, and the repository read-only; the dispatcher owns the issue's Status change. Make the consequential technical design decisions: define interfaces and ownership, choose appropriate seams and data flow, and explain how every affected library or framework should be used according to its conventions, with particular attention to Effect and React when present. Leave the implementation agent latitude over incidental implementation details such as local control flow and naming. Do not produce a waterfall implementation plan or start implementation. Finish with the examination report as a discussion basis. Wait for user authorization before implementation.`;
+function issuePrompt(issue, profile) {
+  return `${profile.name === "codex" ? "$" : "/"}examine-issue ${issue}`;
 }
 
 export function prepareIssueSpec(spec, profile) {
   if (!spec || typeof spec !== "object" || Array.isArray(spec)) {
-    fail("INPUT_INVALID", "open --json expects one JSON object on stdin.");
+    fail("INPUT_INVALID", "prepare --json expects one JSON object on stdin.");
   }
   const issue = validateIssue(spec.issue);
   const repo = validateRepo(spec.repo);
@@ -53,7 +52,7 @@ export function prepareIssueSpec(spec, profile) {
     title: `#${issue} — ${title}`,
     branchLabel: `${issue}-${title}`,
     dedupeKey: `#${issue} — `,
-    prompt: issuePrompt(issue, repo, profile),
+    prompt: issuePrompt(issue, profile),
   };
 }
 
@@ -63,7 +62,7 @@ if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
   const example = '{"cwd":"/repo","repo":"konzeptlab/signal","issue":12,"title":"Issue title"}';
   try {
     if (argv[0] === "help" || argv[0] === "--help" || argv.length === 0) {
-      process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH] [--model MODEL] [--provider INSTANCE_ID] [--option ID=VALUE]\n  node t3-worktree.mjs open --profile claude|codex [--model MODEL] [--provider INSTANCE_ID] [--option ID=VALUE] --json [--dry-run]\n\nProfile defaults apply to omitted model/provider flags. Any explicit selection replaces the default options; --option is repeatable.\nopen JSON: ${example}\n`);
+      process.stdout.write(`Usage:\n  node t3-worktree.mjs doctor --profile claude|codex [--cwd PATH] [--model MODEL] [--provider INSTANCE_ID] [--option ID=VALUE]\n  node t3-worktree.mjs prepare --profile claude|codex [--model MODEL] [--provider INSTANCE_ID] [--option ID=VALUE] --json\n\nProfile defaults apply to omitted model/provider flags. Any explicit selection replaces the default options; --option is repeatable.\nprepare JSON: ${example}\nprepare prints t3_thread_launch arguments; it never creates a thread.\n`);
     } else {
       const profileIndex = argv.indexOf("--profile");
       const profile = resolveProfile(profileIndex === -1 ? undefined : argv[profileIndex + 1]);
@@ -76,8 +75,8 @@ if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
       if (!hasSelection) {
         for (const { id, value } of modelSelection.options) defaults.push("--option", `${id}=${value}`);
       }
-      await runCli(async (spec, t3Home, dryRun, selection) => {
-        const result = await openWorktreeThread(prepareIssueSpec(spec, profile), t3Home, dryRun, selection);
+      await runCli(async (spec, t3Home, selection) => {
+        const result = await prepareWorktreeThread(prepareIssueSpec(spec, profile), t3Home, selection);
         return { ...result, issue: spec.issue, repo: spec.repo };
       }, example, [argv[0], ...defaults, ...argv.slice(1)]);
     }
