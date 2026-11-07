@@ -1,4 +1,4 @@
 interface:
   display_name: "Review Branch"
-  short_description: "Two-axis review of the branch against origin default"
-  default_prompt: "Use $review to review everything changed on this branch since the origin state of the default branch, on the standards and spec axes."
+  short_description: "Lens-based review of the branch against origin default"
+  default_prompt: "Use $review to review everything changed on this branch since the origin state of the default branch, with its spec, correctness, design, standards, and security lenses."

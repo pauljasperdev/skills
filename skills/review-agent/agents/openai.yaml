@@ -2,5 +2,6 @@ interface:
   display_name: "Review Agent"
   short_description: "Run $review in a T3 subagent with this thread's context"
   default_prompt: "Use $review-agent to start a T3 subagent on this checkout that runs $review with the problem and implemented solution from this thread."
+
 policy:
   allow_implicit_invocation: false
