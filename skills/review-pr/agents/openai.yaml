@@ -1,6 +1,6 @@
 interface:
   display_name: "Review PR"
-  short_description: "Run $review on a pull request and post it as a PR review"
+  short_description: "Run $review on a pull request and post one thread per finding"
   default_prompt: "Use $review-pr to review pull request <number or URL> with $review and post the result on the PR."
 
 policy:

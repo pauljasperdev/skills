@@ -32,7 +32,7 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `review-agent` summarizes the original problem and implemented solution, then starts a T3 subagent on the current checkout that runs `review` and reports back into the same thread. It uses the current model unless you name another.
 
-`review-pr` checks out a pull request in a temporary worktree, runs `review` on it, and posts the result as one GitHub review with inline comments. Run it by hand or from a T3 webhook task when a PR opens; `skills/review-pr/webhook.md` has the setup.
+`review-pr` checks out a pull request in a temporary worktree, runs `review` on it, and posts each finding as its own review thread at its place in the diff. Run it by hand or from a T3 webhook task when a PR opens; `skills/review-pr/webhook.md` has the setup.
 
 `to-thread` opens a new native T3 thread on the current branch and worktree, keeping uncommitted files available and skipping setup.
 
