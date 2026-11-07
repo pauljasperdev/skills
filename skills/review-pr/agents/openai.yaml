@@ -1,0 +1,7 @@
+interface:
+  display_name: "Review PR"
+  short_description: "Run $review on a pull request and post it as a PR review"
+  default_prompt: "Use $review-pr to review pull request <number or URL> with $review and post the result on the PR."
+
+policy:
+  allow_implicit_invocation: false
