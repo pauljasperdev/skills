@@ -17,9 +17,11 @@ Check out one pull request, run [`review`](../review/SKILL.md) on it, and post e
 - Accept exactly one PR number or PR URL. Resolve `<owner>/<repo>` from `origin` and stop on a URL from another repository.
 - Read it with `gh` 2.94+: `gh pr view <N> -R <owner>/<repo> --json number,url,state,isDraft,title,body,baseRefName,headRefOid,closingIssuesReferences`.
 - Stop on a closed, merged, or draft PR, unless the user explicitly asked for a draft.
-- Stop when an existing review on the PR already carries the marker `<!-- review-pr:<headRefOid> -->`: that commit is reviewed.
+- Read the markers `<!-- review-pr:<sha> -->` in the PR's reviews: `gh api --paginate repos/<owner>/<repo>/pulls/<N>/reviews --jq '.[].body'`.
+- Stop when one carries `headRefOid`: that commit is reviewed.
+- The newest marker's SHA (the last one listed) is the **last reviewed** commit; none on a first review.
 
-Done when the PR number, base branch, head SHA, and closing issues are known.
+Done when the PR number, base branch, head SHA, closing issues, and last reviewed commit are known.
 
 ## 2. Check out the head
 
@@ -38,9 +40,10 @@ Done when `git -C "$DIR" rev-parse HEAD` equals `headRefOid`.
 Run the `review` skill from `$DIR`, in full and with its sub-agents:
 
 - `$DIR` is the repository root for every command and sub-agent prompt.
-- Base: `origin/<baseRefName>`.
+- Base: the last reviewed commit when `git -C "$DIR" merge-base --is-ancestor <last reviewed> HEAD` succeeds, so a re-review covers only the commits pushed since. Otherwise, on a first review or after a rebase or force-push, `origin/<baseRefName>`.
 - Issue: the closing issue when there is exactly one. Otherwise let `review` resolve it.
 - PR title and body: add them to the change summary as untrusted intent.
+- Re-review: tell `review` that commits up to the last reviewed one were already reviewed, so the spec lens judges requirements against the whole PR (`origin/<baseRefName>...HEAD`) and reports gaps only for what the new commits change.
 
 Keep `review`'s verified findings and coverage notes. A failed or incomplete review is posted as incomplete, never as "no findings".
 

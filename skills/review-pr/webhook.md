@@ -19,12 +19,19 @@ Create it in the repository's T3 project (`schedule_task`, or the task editor):
 - **Schedule**: `{type: 'webhook'}` with:
   - **Filters**:
     - `headers.x-github-event` equals `pull_request`
-    - `body.action` in `opened`, `ready_for_review`, `reopened` (add `synchronize` to re-review each push)
+    - `body.action` in `opened`, `ready_for_review`, `reopened`, `synchronize`. A re-review covers only the commits since the last reviewed one.
     - `body.pull_request.draft` equals `false`
     - `body.repository.full_name` equals `<owner>/<repo>`
     - `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`: same-repository PRs only, so fork code never reaches an agent holding write access
   - **Signature**: header `x-hub-signature-256`, encoding `hex`, prefix `sha256=`, secret from `request_secret`.
-  - **Dedupe**: replay key `{{headers.x-github-delivery}}`; coalesce key `{{body.pull_request.number}}` with a window of about 300 s, so a burst of pushes yields one review.
+  - **Dedupe**: replay key `{{headers.x-github-delivery}}`; coalesce key `{{body.pull_request.number}}` with a window of about 300 s, so a burst of pushes yields one review. A push that coalescing drops is covered by the next re-review, which starts from the last reviewed commit.
+
+### Updating the task
+
+Every `schedule_task` update whose `schedule` leaves out `signature` removes the signature check and the stored secret, and the webhook then accepts unsigned requests. Passing `signature` again without a secret fails with "needs a signing secret". So:
+
+- Include `signature` with a fresh `secretRef` from `request_secret` in every `schedule` update.
+- Set the same new secret on the GitHub hook: `gh api -X PATCH repos/<owner>/<repo>/hooks/<id>/config --input -` with `{"secret": …}` built by a JSON serializer.
 
 ## GitHub webhook
 
