@@ -1,10 +1,10 @@
 ---
-name: review-standards
-description: Standards review of a change. Judges the code inside the modules against the repository's rules and its existing code.
+name: review-implementation
+description: Implementation review of a change. Judges the code inside the modules against the repository's rules and its existing code.
 disable-model-invocation: true
 ---
 
-# Standards review
+# Implementation review
 
 Judge the code inside the modules: does it follow the repository's rules and fit the existing code?
 

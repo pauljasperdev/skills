@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review branch or worktree changes read-only against origin's default branch or an explicit base. Use for code review or review-since requests; runs the design, standards, correctness, scope, and security lenses as parallel sub-agents, verifies their findings, and includes uncommitted work.
+description: Review branch or worktree changes read-only against origin's default branch or an explicit base. Use for code review or review-since requests; runs the design, implementation, correctness, scope, and security lenses as parallel sub-agents, verifies their findings, and includes uncommitted work.
 ---
 
 # Review
@@ -49,7 +49,7 @@ Start one fresh read-only sub-agent per lens, all in parallel. Each prompt carri
 | Lens | File | Applies |
 | --- | --- | --- |
 | design | [`review-design`](../review-design/SKILL.md) | always |
-| standards | [`review-standards`](../review-standards/SKILL.md) | always |
+| implementation | [`review-implementation`](../review-implementation/SKILL.md) | always |
 | correctness | [`review-correctness`](../review-correctness/SKILL.md) | always |
 | scope | [`review-scope`](../review-scope/SKILL.md) | when an issue owns the branch |
 | security | [`review-security`](../review-security/SKILL.md) | when the diff touches external input, authentication, secrets, shell/SQL/path construction, network calls, or dependencies |

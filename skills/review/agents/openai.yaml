@@ -1,4 +1,4 @@
 interface:
   display_name: "Review Branch"
   short_description: "Lens-based review of the branch against origin default"
-  default_prompt: "Use $review to review everything changed on this branch since the origin state of the default branch, with its design, standards, correctness, scope, and security lenses."
+  default_prompt: "Use $review to review everything changed on this branch since the origin state of the default branch, with its design, implementation, correctness, scope, and security lenses."
