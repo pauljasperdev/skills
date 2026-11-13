@@ -47,8 +47,8 @@ Updated 2026-11-13 14:02 UTC · head `1a2b3c4d`
 <!-- review-pr -->
 ```
 
-- One row per stage that has started.
-- **Status**: `reviewing`, `resolving`, `passed`, or `needs human`.
+- One row per enabled stage.
+- **Status**: `waiting`, `reviewing`, `resolving`, `passed`, or `needs human`.
 - **Reviewed**: the commit the stage last reviewed.
 - **Needs you**: one linked line per open thread, naming the decision; `your review` once every stage passed. When the head is past a passed stage's Reviewed commit, add: `<n> commits since the last review. Comment /review to review them.`
 
