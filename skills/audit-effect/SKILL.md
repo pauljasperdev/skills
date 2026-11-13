@@ -14,7 +14,7 @@ Read-only: change no code, configuration, dependencies, or external systems, and
 
 ## 1. Scope and standard
 
-- Load `$effect` (sources, lookup, patterns) and `$codebase-design` (module depth, seams, testability). If one is unavailable, name it and limit conclusions accordingly.
+- Load `$effect` (sources, lookup, patterns), `$effect-design` (services, layers, boundaries), and `$codebase-design` (module depth, seams, testability). If one is unavailable, name it and limit conclusions accordingly.
 - Scope: the user's scope, else the repository's first-party source including uncommitted and untracked files. Generated and vendored code are evidence, not targets.
 - Read applicable `AGENTS.md`/`CLAUDE.md`, local Effect guidance, and ADRs. Record frameworks, persistence, deployment model, resource lifetimes, and configured Effect diagnostics.
 - Resolve each package's installed Effect version. Recommendations for older majors use their available APIs or are labelled migrations.
@@ -26,7 +26,7 @@ Project conventions govern naming and integration; installed source governs API 
 
 ## 2. Discover and verify
 
-Search the scoped code for the hand-written shapes in the `$effect` Patterns table, and map composition roots, adapters, callers, and tests. A match is a hypothesis: read its implementation, provisioning, consumers, and tests, and run the `$effect` lookup for the mechanism before classifying it. Inspect healthy examples too.
+Search the scoped code for the hand-written shapes in the `$effect` Patterns table and for breaches of the `$effect-design` rules, and map composition roots, adapters, callers, and tests. A match is a hypothesis: read its implementation, provisioning, consumers, and tests, and run the `$effect` lookup for the mechanism before classifying it. Inspect healthy examples too.
 
 For each candidate record:
 
@@ -47,7 +47,7 @@ Group by mechanism, not by file. Give every candidate a disposition:
 
 ## 3. Classify and write prompts
 
-Classify each family as a practice mismatch, an architectural opportunity, or an optional style migration. Prioritize by demonstrated cost, recurrence, and the size of a safe first slice.
+Classify each family as a practice mismatch (an `$effect` row), an architectural opportunity (an `$effect-design` rule), or an optional style migration. Prioritize by demonstrated cost, recurrence, and the size of a safe first slice.
 
 Write one standalone prompt per confirmed family containing:
 
