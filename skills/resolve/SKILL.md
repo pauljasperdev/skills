@@ -18,6 +18,10 @@ Every thread ends in one of three ways, always with your reply, which ends with 
 - **Declined**: reply with a one-line reason, then resolve it.
 - **Left open**: only when the call is the user's, because a fix would change agreed behaviour or reach well beyond the PR. Reply with the decision needed, in one line. A later reply without the marker, from an owner, member, or collaborator, is the user's decision: carry it out. While none has come, leave the thread as it is.
 
-Reply and resolve via `gh api graphql` (`addPullRequestReviewThreadReply`, `resolveReviewThread`). Done when a fresh, paginated list of the PR's unresolved threads shows your reply as the last comment on each.
+Reply and resolve via `gh api graphql` (`addPullRequestReviewThreadReply`, `resolveReviewThread`).
+
+Last, when the branch conflicts with its base, merge `origin/<base>` into it, keep both sides' intent, run the checks, and push.
+
+Done when a fresh, paginated list of the PR's unresolved threads shows your reply as the last comment on each, and the branch merges cleanly with its base.
 
 Report the counts fixed, declined, and left open, and the open threads.

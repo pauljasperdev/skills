@@ -28,7 +28,7 @@ Take one pull request through the review **stages**. Every run reads the PR's st
 }
 ```
 
-Every agent has the `skill` it runs, its `model`, and its `effort`, the model's thinking level. `with` lists skills the agent loads alongside, such as a framework's rules. `review` takes several agents, which run in parallel. A stage with `"enabled": false` is skipped. A stage without `resolve` is a gate: its threads wait for the human.
+Every agent has the `skill` it runs, its `model`, and its `effort`, the model's thinking level. `with` lists skills the agent loads alongside, such as a framework's rules. `review` takes several agents, which run in parallel. A stage with `"enabled": false` is skipped. A stage without `resolve` is a gate: its threads wait for the human. A stage without `review` checks CI: it passes when the PR is mergeable and every check on the head passed, after waiting for running checks; otherwise its `resolve` agent runs. Before the last stage, check it again on the current head.
 
 ## Status comment
 

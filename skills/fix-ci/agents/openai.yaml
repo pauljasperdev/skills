@@ -1,0 +1,7 @@
+interface:
+  display_name: "Fix CI"
+  short_description: "Get a PR's checks green and its branch mergeable"
+  default_prompt: "Use $fix-ci to get this PR's checks green and its branch mergeable."
+
+policy:
+  allow_implicit_invocation: false
