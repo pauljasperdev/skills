@@ -16,7 +16,7 @@ Look for:
 - **Duplication** within the change, including a value repeated as a literal.
 - **Untyped values**: magic strings, dates or IDs as strings, untyped JSON fields, string comparisons where a typed value fits.
 - **Naming**: names that hide intent, diverge from the codebase's term for the concept, or are not in English.
-- **Code smells** (Fowler): Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man.
+- **Code smells** (Fowler): Data Clumps, Repeated Switches.
 - **Comments and docs**: comments that restate the code or narrate history; stale comments, READMEs, and instruction files; instruction files holding more than non-obvious facts.
 
 A broken documented rule is a finding. Anything else is a judgement call: report it only when the change shows a concrete cost.

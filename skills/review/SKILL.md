@@ -75,5 +75,3 @@ Start one fresh sub-agent with the surface, all findings labelled by lens, and t
 - **`## <Lens>`** per lens that ran: its findings in returned order with their verdicts, refuted findings dropped. Name each skipped lens and why.
 - A failed or incomplete sub-agent is reported as incomplete, never as "no findings".
 - **Last line**: the finding count per lens.
-
-Leave fixes to the user.
