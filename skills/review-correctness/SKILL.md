@@ -1,6 +1,12 @@
-# Correctness lens
+---
+name: review-correctness
+description: Correctness review of a change. Judges whether the code does what it intends and whether its tests prove it.
+disable-model-invocation: true
+---
 
-**Owns**: whether the code does what it intends, and whether its tests prove it.
+# Correctness review
+
+Judge whether the code does what it intends, and whether its tests prove it.
 
 Look for:
 
@@ -11,6 +17,6 @@ Look for:
 - **Test honesty**: weakened or deleted assertions, skipped tests, expected values edited to match output, special-cased test inputs, mocks that replace the behaviour under test.
 - **Test coverage**: new branches and failure paths without a test.
 
-Put a concrete triggering input or call path in each finding's `evidence`.
+Each finding names a concrete triggering input or call path.
 
-**Hand off**: structure goes to design; naming, reuse, and style to standards; issue gaps to spec; vulnerabilities to security.
+Out of scope: structure, naming, and style.

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Standards Review"
+  short_description: "Repository rules, reuse, smells, and naming"
+  default_prompt: "Use $review-standards to review this change."
+
+policy:
+  allow_implicit_invocation: false

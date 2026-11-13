@@ -1,0 +1,7 @@
+interface:
+  display_name: "Correctness Review"
+  short_description: "Bugs, failure paths, and test honesty"
+  default_prompt: "Use $review-correctness to review this change."
+
+policy:
+  allow_implicit_invocation: false

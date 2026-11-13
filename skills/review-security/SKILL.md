@@ -1,6 +1,12 @@
-# Security lens
+---
+name: review-security
+description: Security review of a change. Looks for the vulnerabilities it introduces.
+disable-model-invocation: true
+---
 
-**Owns**: vulnerabilities the change introduces. Use OWASP and CWE categories.
+# Security review
+
+Find the vulnerabilities the change introduces. Use OWASP and CWE categories.
 
 Look for:
 
@@ -11,6 +17,6 @@ Look for:
 - **Unsafe defaults**: disabled verification, permissive CORS, weak cryptography.
 - **Dependencies**: every new package exists in its registry, is the intended one rather than a typo or invented name, and is pinned per repository convention.
 
-Put the path from untrusted source to sink in each finding's `evidence`.
+Each finding traces the path from the untrusted source to the sink.
 
-**Hand off**: non-security bugs go to correctness.
+Out of scope: bugs that are not vulnerabilities.

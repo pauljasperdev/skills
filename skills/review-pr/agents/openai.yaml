@@ -1,7 +1,7 @@
 interface:
   display_name: "Review PR"
-  short_description: "Run $review on a pull request and post one thread per finding"
-  default_prompt: "Use $review-pr to review pull request <number or URL> with $review and post the result on the PR."
+  short_description: "Staged agent review of a pull request: review, resolve, re-check"
+  default_prompt: "Use $review-pr to take pull request <number or URL> through its review stages."
 
 policy:
   allow_implicit_invocation: false

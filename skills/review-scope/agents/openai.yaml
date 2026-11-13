@@ -1,0 +1,7 @@
+interface:
+  display_name: "Scope Review"
+  short_description: "A change against its issue and milestone"
+  default_prompt: "Use $review-scope to review this change."
+
+policy:
+  allow_implicit_invocation: false

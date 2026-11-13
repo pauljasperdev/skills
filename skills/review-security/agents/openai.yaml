@@ -1,0 +1,7 @@
+interface:
+  display_name: "Security Review"
+  short_description: "Vulnerabilities a change introduces"
+  default_prompt: "Use $review-security to review this change."
+
+policy:
+  allow_implicit_invocation: false

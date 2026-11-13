@@ -1,0 +1,7 @@
+interface:
+  display_name: "Design Review"
+  short_description: "Responsibilities, boundaries, and interfaces of a change"
+  default_prompt: "Use $review-design to review this change."
+
+policy:
+  allow_implicit_invocation: false
