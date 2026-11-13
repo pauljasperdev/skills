@@ -1,0 +1,4 @@
+interface:
+  display_name: "Effect Design"
+  short_description: "Effect v4 rules for interfaces, services, layers, and boundaries"
+  default_prompt: "Use $effect-design to design or review the services, layers, and boundaries of this Effect code."

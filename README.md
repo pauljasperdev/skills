@@ -4,7 +4,9 @@ Personal agent skills.
 
 `implement` builds an authorized feature, fix, or handoff with minimal, maintainable code and verified behavior. It uses the installed `codebase-design` skill for design decisions and `effect` for Effect v4 work; it does not introduce Effect into other projects. `improve` is a fresh-eyes second pass after implementation: it re-solves the problem, cuts what the solution doesn't need, proposes cuts that change agreed behavior, runs the `effect` cold review on Effect diffs, and hints at `audit-effect` for Effect mismatches that recur beyond the change.
 
-`effect` replaces the upstream `kitlangton/skills` Effect skill. It holds no library docs: it sends agents to the `.repos/effect` checkout, its agent docs, and the installed package at every mechanism they write, keeps one Patterns table of hand-written shapes and the Effect constructs that model them, and defines the cold review that `improve`, `review`, and `resolve` run. Add a row when a review catches a shape the table misses.
+`effect` replaces the upstream `kitlangton/skills` Effect skill. It holds no library docs: it sends agents to the `.repos/effect` checkout, its agent docs, and the installed package at every mechanism they write, keeps one Patterns table of hand-written shapes and the Effect constructs that model them, maps Node facilities to Effect's platform modules, and defines the cold review that `improve` and `resolve` run. Add a row when a review catches a shape the table misses.
+
+`effect-design` holds the Effect v4 design rules: typed errors at interfaces, services as seams, layers built once at the root, scoped lifetimes, Schema at every boundary, and the v4 names agents still get wrong from v3. It pairs with `codebase-design`; the PR review's design stage loads it for Effect repositories.
 
 `refactor` simplifies the code under discussion while preserving observable behavior through small, verified changes.
 
@@ -28,7 +30,7 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `gemhog-edit-short` edits a Gemhog short in HyperFrames: the speaker is on screen for the hook take, then a voiceover file runs over graphic scenes in the gemhog.com look, with word-by-word captions, quiet sound effects and a closing card. One script (`scripts/short.py`, run with `uv`) finds the cut points from the waveforms, assembles the project, follows clips trimmed in Studio and checks the export. It expects the workspace to hold `media/sound/` (pop and swoosh) and logos in `media/`.
 
-`audit-effect` is manually invoked to audit Effect usage across the current codebase and produce pattern-level findings with standalone refactoring prompts. It searches for the `effect` Patterns shapes and uses `codebase-design` for architecture judgment; the audit leaves code unchanged.
+`audit-effect` is manually invoked to audit Effect usage across the current codebase and produce pattern-level findings with standalone refactoring prompts. It searches for the `effect` Patterns shapes and breaches of the `effect-design` rules, and uses `codebase-design` for architecture judgment; the audit leaves code unchanged.
 
 `review-agent` summarizes the original problem and implemented solution, then starts a T3 subagent on the current checkout that runs `review` and reports back into the same thread. It uses the current model unless you name another.
 
