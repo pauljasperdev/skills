@@ -20,4 +20,4 @@ Look for:
 
 A broken documented rule is a finding. Anything else is a judgement call: report it only when the change shows a concrete cost.
 
-Out of scope: what lint, formatting, and types enforce; module boundaries; bugs.
+Out of scope: what lint, formatting, and types enforce; interfaces and where code lives; bugs.
