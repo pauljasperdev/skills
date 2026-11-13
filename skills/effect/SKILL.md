@@ -60,8 +60,39 @@ In the Look in column, `.ts` files are under `packages/effect/src/` and numbered
 | Library value returned across RPC as-is, typed by inference | Decode into the contract schema before returning | `rpc/Rpc.ts`, `01_effect/02_schema` |
 | `runPromise` mid-workflow, signal handlers, `process.exit` | One program run at the edge (`runMain`, `ManagedRuntime`) | `01_effect/06_running`, `ManagedRuntime.ts` |
 | Real sleeps, `Date.now()`, `Math.random()` in tests | `TestClock`, `Deferred`/`Latch` synchronization, `it.effect` | `09_testing`, `testing/TestClock.ts` |
+| `Effect.option`, `\| null`, or `string \| undefined` for an expected failure | Typed error; `Option` or `Schema.optional` only for real absence | `01_effect/04_errors`, `Option.ts` |
+| Error code mapped to a message by a map or switch | Tagged error that carries its own message | `01_effect/04_errors` |
+| Result-object client checked with `if (res.error)` | `Effect.tryPromise` with the client set to throw | `Effect.ts` |
+| Promise library converted to Effect and back | Wrap it once at its edge in a service | `01_effect/03_services` |
+| Progress callback or polling loop | `Stream` | `03_stream`, `Stream.ts` |
+| `ManagedRuntime` for a one-off call | `Effect.provide` the layer | `01_effect/06_running` |
+| Bare primitives or TS interfaces as service inputs | `Schema` structs, branded IDs | `01_effect/02_schema` |
+| `ConfigProvider` passed around in tests; a custom layer around one setting | `Layer.provide`; a plain `Config` read | `packages/effect/CONFIG.md` |
+| `jsonUnsafe` response | Schema-encoded response | `http/HttpServerResponse.ts` |
 
 Documented forms that stay: plain `for`/`if` with `yield*` over a collection, sequential `Effect.all`, run calls at script, test, and framework-callback edges, `console` at a CLI's output boundary. A valid API in a different style is a style note.
+
+## Platform
+
+Effect code uses Effect's modules, not Node's, so the entry point provides the platform layer (`NodeServices.layer` and others from `@effect/platform-node`).
+
+| Node or hand-written | Effect |
+|---|---|
+| `node:fs`, `node:path` | `FileSystem`, `Path` |
+| `fetch`, axios | `HttpClient` (`effect/http`) |
+| Express, Hono, `node:http` | `HttpRouter`, `HttpServer`, `HttpApi` |
+| tRPC, custom RPC | `Rpc`, `RpcGroup` (`effect/rpc`) |
+| `child_process`, execa | `ChildProcess` (`effect/process`) |
+| commander, yargs | `Command`, `Flag` (`effect/cli`) |
+| `Date`, date-fns, `Date.now`, `setTimeout` | `DateTime`, `Clock`, `Effect.sleep` |
+| `Math.random`, `node:crypto` | `Random`; `Digest`, `SecureRandom` (`effect/crypto`) |
+| `process.env`, dotenv | `Config`, `ConfigProvider`, `Redacted` |
+| pino, winston, `console.log` | `Effect.log*`, `Logger` |
+| pg, knex, ORMs | `SqlClient` (`effect/sql`) |
+| p-retry, node-cron | `Schedule`, `Cron` |
+| lru-cache, p-limit, EventEmitter | `Cache`, `Semaphore`, `PubSub`/`Stream` |
+| zod, hand-written guards | `Schema` |
+| `process.on("SIGINT")`, `main()` | `NodeRuntime.runMain` |
 
 ## Review
 
