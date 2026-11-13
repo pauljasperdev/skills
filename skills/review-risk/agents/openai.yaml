@@ -1,0 +1,7 @@
+interface:
+  display_name: "Risk Review"
+  short_description: "A change's blast radius for its human reviewer"
+  default_prompt: "Use $review-risk to rate this change."
+
+policy:
+  allow_implicit_invocation: false

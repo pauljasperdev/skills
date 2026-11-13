@@ -6,7 +6,7 @@ Three T3 scheduled tasks per repository start the orchestrator: the `orchestrato
 
 Every trigger ends here, with one PR URL and sometimes `rerun` or `rerun <stage>`.
 
-1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
+1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
 2. Send the PR's T3 thread "Review PR #<number>" exactly this message and nothing else: `/<orchestrator skill> <PR URL>`, then `rerun` or `rerun <stage>` and `comment <id>` when given. Queue it on that thread, or launch the thread in the project root on the orchestrator's model and effort and link the PR to it.
 3. Reply with one line: the PR, the thread, and what you sent.
 
@@ -47,7 +47,7 @@ All three tasks are bound to one T3 thread on a small model, with `freshSession`
 
 Webhook filters, all on `body.repository.full_name` equals `<owner>/<repo>`:
 
-- **PR opened**: `headers.x-github-event` equals `pull_request`; `body.action` in `opened`, `ready_for_review`; `body.pull_request.draft` equals `false`; `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`, so fork code never reaches an agent with write access.
+- **PR opened**: `headers.x-github-event` equals `pull_request`; `body.action` equals `opened`; `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`, so fork code never reaches an agent with write access.
 - **Review comment**: `headers.x-github-event` equals `issue_comment`; `body.action` equals `created`; `body.issue.pull_request` exists; `body.comment.body` starts with `/review`; `body.comment.author_association` in `OWNER`, `MEMBER`, `COLLABORATOR`.
 
 Each webhook task needs T3 Connect for its public URL, and its own GitHub webhook (content type `application/json`, the one event, the task's `webhookUrl`, and a shared secret). Signature: header `x-hub-signature-256`, encoding `hex`, prefix `sha256=`. Dedupe: replay key `{{headers.x-github-delivery}}`.

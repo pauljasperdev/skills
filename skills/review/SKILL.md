@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review branch or worktree changes read-only against origin's default branch or an explicit base. Use for code review or review-since requests; runs the design, implementation, correctness, scope, and security lenses as parallel sub-agents, verifies their findings, and includes uncommitted work.
+description: Review branch or worktree changes read-only against origin's default branch or an explicit base. Use for code review or review-since requests; runs the design, implementation, correctness, scope, security, and risk lenses as parallel sub-agents, verifies their findings, and includes uncommitted work.
 ---
 
 # Review
@@ -53,6 +53,7 @@ Start one fresh read-only sub-agent per lens, all in parallel. Each prompt carri
 | correctness | [`review-correctness`](../review-correctness/SKILL.md) | always |
 | scope | [`review-scope`](../review-scope/SKILL.md) | when an issue owns the branch |
 | security | [`review-security`](../review-security/SKILL.md) | when the diff touches external input, authentication, secrets, shell/SQL/path construction, network calls, or dependencies |
+| risk | [`review-risk`](../review-risk/SKILL.md) | always |
 
 Finding format, for every lens:
 
@@ -71,6 +72,7 @@ Start one fresh sub-agent with the surface, all findings labelled by lens, and t
 ## 5. Report
 
 - **First line**: base ref, merge-base short SHA, commit count, whether uncommitted work was included, the repository, issue, and milestone reviewed against, and the `with` skills every sub-agent loaded.
+- **Risk**: the risk lens's rating.
 - **`## Blocking`**: every `CONFIRMED` or `PLAUSIBLE` blocking finding, tagged with its lens.
 - **`## <Lens>`** per lens that ran: its findings in returned order with their verdicts, refuted findings dropped. Name each skipped lens and why.
 - A failed or incomplete sub-agent is reported as incomplete, never as "no findings".
