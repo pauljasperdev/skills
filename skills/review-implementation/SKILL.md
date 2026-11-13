@@ -11,12 +11,13 @@ Judge the code inside the modules: does it follow the repository's rules and fit
 Look for:
 
 - **Repository rules**: every rule in `AGENTS.md`, `CLAUDE.md`, and the docs they point to that the change breaks, cited as file plus rule.
-- **Reuse**: helpers, utilities, or patterns already in the codebase that the change reimplements. Search the repository for them.
-- **Duplication** within the change.
-- **Naming**: names that hide intent, or that diverge from the codebase's existing term for the same concept.
+- **Reuse**: what the codebase, a maintained library, the platform, or an existing tool already provides, reimplemented; a library used against its documented setup or patched around. Search for them.
+- **Needless code**: single-use helpers, files, variables, or wrappers; logic, labels, or dependencies the task does not need.
+- **Duplication** within the change, including a value repeated as a literal.
+- **Untyped values**: magic strings, dates or IDs as strings, untyped JSON fields, string comparisons where a typed value fits.
+- **Naming**: names that hide intent, diverge from the codebase's term for the concept, or are not in English.
 - **Code smells** (Fowler): Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man.
-- **Stale docs**: comments, READMEs, and instruction files the change made wrong.
-- **Effect**: when the change uses Effect, run the `effect` cold review on the diff.
+- **Comments and docs**: comments that restate the code or narrate history; stale comments, READMEs, and instruction files; instruction files holding more than non-obvious facts.
 
 A broken documented rule is a finding. Anything else is a judgement call: report it only when the change shows a concrete cost.
 
