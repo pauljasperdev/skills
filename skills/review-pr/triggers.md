@@ -7,7 +7,7 @@ Three T3 scheduled tasks per repository start the orchestrator: the `orchestrato
 Every trigger ends here, with one PR URL and sometimes `rerun` or `rerun <stage>`.
 
 1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
-2. Run the orchestrator's skill with the PR URL, and the rerun and comment when given, in the PR's T3 thread "Review PR #<number>". Queue the message on that thread, or launch the thread in the project root on the orchestrator's model and effort and link the PR to it.
+2. Send the PR's T3 thread "Review PR #<number>" exactly this message and nothing else: `/<orchestrator skill> <PR URL>`, then `rerun` or `rerun <stage>` and `comment <id>` when given. Queue it on that thread, or launch the thread in the project root on the orchestrator's model and effort and link the PR to it.
 3. Reply with one line: the PR, the thread, and what you sent.
 
 ## PR opened
