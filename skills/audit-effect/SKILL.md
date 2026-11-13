@@ -10,7 +10,7 @@ metadata:
 
 Find recurring Effect practice mismatches and architectural friction, and turn each confirmed pattern family into a refactoring prompt. Representative examples establish a family; the deliverable is not a line-by-line rewrite list.
 
-Read-only: change no code, configuration, dependencies, or external systems, and run no setup, fixers, or application tests. The report goes in the conversation unless the user asks for a file.
+Read-only: change no code, configuration, dependencies, or external systems, and run no setup, fixers, or application tests.
 
 ## 1. Scope and standard
 
@@ -20,7 +20,7 @@ Read-only: change no code, configuration, dependencies, or external systems, and
 - Resolve each package's installed Effect version. Recommendations for older majors use their available APIs or are labelled migrations.
 - Record supplied hypotheses as candidates to verify.
 
-Project conventions govern naming and integration; installed source governs API semantics. A proposal to revisit a convention or ADR is separate from a violation. Nothing here implies an upgrade or framework replacement.
+Project conventions govern naming and integration; installed source governs API semantics. A proposal to revisit a convention or ADR is separate from a violation.
 
 **Done when:** scope, candidates, versions, governing guidance, and evidence gaps are recorded.
 
@@ -61,4 +61,4 @@ Write one standalone prompt per confirmed family containing:
 
 ## 4. Report
 
-Lead with the assessment and highest-value opportunities. State scope, versions, guidance used, and limits. Per family: classification, priority, mechanism and consequence, representative links, direction, exceptions, prompt. Then the coverage record and dispositions, good examples to keep, hypotheses not borne out, and Patterns rows to add for mechanisms the table missed. Apply no refactors.
+Lead with the assessment and highest-value opportunities. State scope, versions, guidance used, and limits. Per family: classification, priority, mechanism and consequence, representative links, direction, exceptions, prompt. Then the coverage record and dispositions, good examples to keep, hypotheses not borne out, and Patterns rows to add for mechanisms the table missed.

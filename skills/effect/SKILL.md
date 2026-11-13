@@ -64,7 +64,7 @@ In the Look in column, `.ts` files are under `packages/effect/src/` and numbered
 | Error code mapped to a message by a map or switch | Tagged error that carries its own message | `01_effect/04_errors` |
 | Result-object client checked with `if (res.error)` | `Effect.tryPromise` with the client set to throw | `Effect.ts` |
 | Promise library converted to Effect and back | Wrap it once at its edge in a service | `01_effect/03_services` |
-| Progress callback or polling loop | `Stream` | `03_stream`, `Stream.ts` |
+| Progress callback | `Stream` | `03_stream`, `Stream.ts` |
 | `ManagedRuntime` for a one-off call | `Effect.provide` the layer | `01_effect/06_running` |
 | Bare primitives or TS interfaces as service inputs | `Schema` structs, branded IDs | `01_effect/02_schema` |
 | `ConfigProvider` passed around in tests; a custom layer around one setting | `Layer.provide`; a plain `Config` read | `packages/effect/CONFIG.md` |
@@ -96,7 +96,7 @@ Effect code uses Effect's modules, not Node's, so the entry point provides the p
 
 ## Review
 
-Run a **cold review** on every Effect diff: a fresh subagent briefed with the diff command, the untracked files, and this task, and without the implementation's reasons:
+After writing Effect code, run a **cold review** on the diff: a fresh subagent briefed with the diff command, the untracked files, and this task, and without the implementation's reasons:
 
 > Load `$effect`. For every mechanism in the diff, cite the construct that models it with `path:line`, or the `path:line` showing none fits. Report each departure with its `file:line`. A finding or rejection without a path is unverified.
 
