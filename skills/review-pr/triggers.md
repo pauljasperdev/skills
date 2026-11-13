@@ -6,7 +6,7 @@ Three T3 scheduled tasks per repository start the orchestrator: the `orchestrato
 
 Every trigger ends here, with one PR URL and sometimes `rerun` or `rerun <stage>`.
 
-1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository and the PR is open.
+1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
 2. Run the orchestrator's skill with the PR URL, and the rerun when there is one, in the PR's T3 thread "Review PR #<number>". Queue the message on that thread, or launch the thread in the project root on the orchestrator's model and effort and link the PR to it.
 3. Reply with one line: the PR, the thread, and what you sent.
 
@@ -26,10 +26,10 @@ A human asks for a rerun with a PR comment: `/review`, or `/review <stage>`.
 
 Find the PRs whose review can start or continue. It catches what the webhooks missed, and a human's replies on threads.
 
-1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid`. Drop drafts, forks, bot authors, and PRs created before `since` in the config, when it is set.
+1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid`. Drop those Dispatch would reject.
 2. **Decide** for each, from its status comment (the PR comment ending in `<!-- review-pr -->`) and that comment's `updated_at`:
    - **Start**: it has none.
-   - **Continue**: a stage `needs human` or every stage `passed`, and the PR changed since the comment's last edit: another head commit, a newer review comment or reply, or a count of unresolved threads that differs from its Open column.
+   - **Continue**: a stage `needs human` or every stage `passed`, and the PR changed since the comment's last edit: another head commit; a newer review comment or reply from an owner, member, or collaborator without `<!-- agent -->`; or a count of unresolved threads that differs from its Open column.
    - **Continue**: a stage `reviewing` or `resolving`, and the comment's last edit is over two hours old. That run died.
    - **Skip**: anything else.
 3. **Dispatch** each PR to start or continue.
