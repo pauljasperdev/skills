@@ -42,7 +42,7 @@ Every lens receives the same brief:
 
 ## 3. Run the lenses
 
-Lenses named in the invocation (`review design`) limit the run to those. Otherwise every applicable lens runs.
+Lenses named in the invocation (`review design`) limit the run to those. Otherwise every applicable lens runs. Skills named after `with` (`review design with effect-design`) go to every sub-agent: it reads their `SKILL.md` before its lens file, and its result names them as loaded.
 
 Start one fresh read-only sub-agent per lens, all in parallel. Each prompt carries the surface, the brief, the finding format, and the absolute path of its lens file to read first. Sub-agents run no edits, tests, setup, or installs.
 
@@ -70,7 +70,7 @@ Start one fresh sub-agent with the surface, all findings labelled by lens, and t
 
 ## 5. Report
 
-- **First line**: base ref, merge-base short SHA, commit count, whether uncommitted work was included, and the repository, issue, and milestone reviewed against.
+- **First line**: base ref, merge-base short SHA, commit count, whether uncommitted work was included, the repository, issue, and milestone reviewed against, and the `with` skills every sub-agent loaded.
 - **`## Blocking`**: every `CONFIRMED` or `PLAUSIBLE` blocking finding, tagged with its lens.
 - **`## <Lens>`** per lens that ran: its findings in returned order with their verdicts, refuted findings dropped. Name each skipped lens and why.
 - A failed or incomplete sub-agent is reported as incomplete, never as "no findings".
