@@ -51,7 +51,7 @@ Updated 2026-11-13 14:02 UTC · head `1a2b3c4d`
 - **Status**: `waiting`, `reviewing`, `resolving`, `passed`, or `needs human`.
 - **Reviewed**: the commit the stage last reviewed.
 - **Blast radius**: the latest risk report, under the table.
-- **Needs you**: one linked line per open thread, naming the decision; `your review` once every stage passed. When the head is past a passed stage's Reviewed commit, add: `<n> commits since the last review. Comment /review to review them.`
+- **Needs you**: one linked line per open thread, naming the decision, and one line per other decision the run found that is not a thread. `your review` once every stage passed. When the head is past a passed stage's Reviewed commit, add: `<n> commits since the last review. Comment /review to review them.`
 
 ## Steps
 
