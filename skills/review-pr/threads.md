@@ -16,4 +16,4 @@ Post with `gh api graphql`, building every variables payload with a JSON seriali
 2. `addPullRequestReviewThread(input: {pullRequestReviewId, path, body, subjectType, line, side, startLine, startSide})` once per finding. When a `LINE` thread is rejected, retry it as a `FILE` thread on the same path.
 3. `submitPullRequestReview(input: {pullRequestReviewId, event: COMMENT})` with an empty body.
 
-A finding that cannot be anchored goes under **Next for you** in the status comment and keeps the stage at `needs human`.
+A finding with no place in the diff is a `FILE` thread on the changed file closest to it.
