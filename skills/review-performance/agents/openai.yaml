@@ -1,0 +1,7 @@
+interface:
+  display_name: "Performance Review"
+  short_description: "Work, data, and cost that grow with load"
+  default_prompt: "Use $review-performance to review this change."
+
+policy:
+  allow_implicit_invocation: false
