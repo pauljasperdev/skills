@@ -9,9 +9,8 @@ const configFor = (selection) => ({
     instanceId: selection.instanceId, driver: selection.instanceId, status: "ready",
     models: [{
       slug: selection.model,
-      capabilities: { optionDescriptors: selection.options.map(({ id, value }) => ({
-        id, options: [{ id: value }],
-      })) },
+      capabilities: { optionDescriptors: selection.options.map(({ id, value }) =>
+        typeof value === "boolean" ? { id, type: "boolean" } : { id, options: [{ id: value }] }) },
     }],
   }],
 });
@@ -22,13 +21,13 @@ test("profile must be explicit and known", () => {
   }
 });
 
-for (const [name, instanceId, model, optionId] of [
-  ["claude", "claudeAgent", "claude-fable-5-1", "effort"],
-  ["codex", "codex", "gpt-6-astra", "reasoningEffort"],
+for (const [name, instanceId, model, options] of [
+  ["claude", "claudeAgent", "claude-opus-5-5", [{ id: "effort", value: "high" }, { id: "fastMode", value: true }]],
+  ["codex", "codex", "gpt-6-astra", [{ id: "reasoningEffort", value: "high" }]],
 ]) {
-  test(name + " requires its own provider, model, and high option", () => {
+  test(name + " requires its own provider, model, and default options", () => {
     const profile = resolveProfile(name);
-    const expected = { instanceId, model, options: [{ id: optionId, value: "high" }] };
+    const expected = { instanceId, model, options };
     assert.deepEqual(profile.modelSelection, expected);
     const config = configFor(expected);
     assert.equal(resolveModelSelection(config, profile.modelSelection).model, model);

@@ -4,8 +4,11 @@ const profiles = Object.freeze({
     name: "claude",
     modelSelection: Object.freeze({
       instanceId: "claudeAgent",
-      model: "claude-fable-5-1",
-      options: Object.freeze([Object.freeze({ id: "effort", value: "high" })]),
+      model: "claude-opus-5-5",
+      options: Object.freeze([
+        Object.freeze({ id: "effort", value: "high" }),
+        Object.freeze({ id: "fastMode", value: true }),
+      ]),
     }),
   }),
   codex: Object.freeze({

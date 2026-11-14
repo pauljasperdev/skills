@@ -13,8 +13,8 @@ export function validateModelSelection(selection) {
   const options = selection.options ?? [];
   if (!Array.isArray(options) || options.some((option) =>
     typeof option?.id !== "string" || !option.id.trim() ||
-    typeof option?.value !== "string" || !option.value.trim())) {
-    fail("OPTIONS_INVALID", "Model options must contain non-empty id and value strings.");
+    (typeof option?.value !== "boolean" && (typeof option?.value !== "string" || !option.value.trim())))) {
+    fail("OPTIONS_INVALID", "Model options must contain a non-empty id and a non-empty string or boolean value.");
   }
   if (new Set(options.map(({ id }) => id)).size !== options.length) {
     fail("OPTIONS_INVALID", "Each model option must have one value.");
@@ -41,13 +41,17 @@ export function resolveModelSelection(config, requested) {
   }
   const model = provider.models?.find((candidate) => candidate.slug === selection.model);
   if (!model) fail("T3_MODEL_UNAVAILABLE", "T3 does not expose " + selection.model + " on " + provider.instanceId + ".");
-  for (const { id, value } of selection.options) {
+  const options = selection.options.map(({ id, value }) => {
     const descriptor = model.capabilities?.optionDescriptors?.find((candidate) => candidate.id === id);
-    if (!descriptor?.options?.some((option) => option.id === value)) {
-      fail("T3_OPTIONS_UNAVAILABLE", selection.model + " does not expose " + id + ": " + value + ".");
+    if (descriptor?.type === "boolean") {
+      if (value === true || value === "true") return { id, value: true };
+      if (value === false || value === "false") return { id, value: false };
+    } else if (descriptor?.options?.some((option) => option.id === value)) {
+      return { id, value };
     }
-  }
-  return { ...selection, instanceId: provider.instanceId };
+    fail("T3_OPTIONS_UNAVAILABLE", selection.model + " does not expose " + id + ": " + value + ".");
+  });
+  return { ...selection, instanceId: provider.instanceId, options };
 }
 
 export function modelMatches(actual, expected) {

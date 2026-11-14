@@ -1,6 +1,6 @@
 ---
 name: issue2claude
-description: Open or preview GitHub issue examinations in Claude T3 worktree threads, using a requested model or the Claude Fable/high default. Use when dispatching issues to Claude.
+description: Open or preview GitHub issue examinations in Claude T3 worktree threads, using a requested model or the Claude Opus 5.5/high/fast default. Use when dispatching issues to Claude.
 ---
 
 # Issue to Claude

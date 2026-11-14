@@ -5,6 +5,7 @@ import { validateModelSelection, resolveModelSelection, modelMatches } from "./m
 const provider = (instanceId, status = "ready") => ({ instanceId, status,
   models: [{ slug: "example-model", capabilities: { optionDescriptors: [
     { id: "effort", options: [{ id: "medium" }] },
+    { id: "fastMode", type: "boolean" },
   ] } }],
 });
 
@@ -17,6 +18,22 @@ test("arbitrary selections preserve supplied options without adding defaults", (
   assert.equal(modelMatches(requested, requested), true);
   assert.equal(modelMatches(selected, requested), false);
   assert.equal(modelMatches({ ...requested, instanceId: "other-provider" }, requested), false);
+});
+
+test("boolean options accept true/false and normalize to booleans", () => {
+  const config = { providers: [provider("my-provider")] };
+  for (const value of [true, "true"]) {
+    assert.deepEqual(resolveModelSelection(config, { model: "example-model", options: [{ id: "fastMode", value }] }).options,
+      [{ id: "fastMode", value: true }]);
+  }
+  assert.deepEqual(resolveModelSelection(config, { model: "example-model", options: [{ id: "fastMode", value: "false" }] }).options,
+    [{ id: "fastMode", value: false }]);
+  for (const value of ["yes", "medium"]) {
+    assert.throws(() => resolveModelSelection(config, { model: "example-model", options: [{ id: "fastMode", value }] }),
+      { code: "T3_OPTIONS_UNAVAILABLE" });
+  }
+  assert.throws(() => resolveModelSelection(config, { model: "example-model", options: [{ id: "effort", value: true }] }),
+    { code: "T3_OPTIONS_UNAVAILABLE" });
 });
 
 test("missing model and ambiguous provider require user input", () => {
