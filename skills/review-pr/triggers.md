@@ -31,6 +31,7 @@ Find the PRs whose review can start or continue. It catches what the webhooks mi
    - **Start**: it has none.
    - **Continue**: a stage `needs human` or every stage `passed`, and the PR changed since the comment's last edit: another head commit; a newer review comment or reply from an owner, member, or collaborator without `<!-- agent -->`; or a count of unresolved threads that differs from its Open column.
    - **Continue**: a stage `reviewing` or `resolving`, and the comment's last edit is over two hours old. That run died.
+   - **Continue**: a stage `failed`, and the comment's last edit is over an hour old.
    - **Skip**: anything else.
 3. **Dispatch** each PR to start or continue.
 4. With none, reply `nothing to do`.
