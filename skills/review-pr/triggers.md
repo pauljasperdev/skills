@@ -26,11 +26,12 @@ A human asks for a rerun with a PR comment: `/review`, or `/review <stage>`.
 
 Find the PRs whose review can start or continue. It catches what the webhooks missed, and a human's replies on threads.
 
-1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid`. Drop those Dispatch would reject.
+1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`. Drop those Dispatch would reject.
 2. **Decide** for each, from its status comment (the PR comment ending in `<!-- review-pr -->`) and that comment's `updated_at`:
    - **Start**: it has none.
    - **Continue**: a stage `needs human` or every stage `passed`, and the PR changed since the comment's last edit: another head commit; a newer review comment or reply from an owner, member, or collaborator without `<!-- agent -->`; or a count of unresolved threads that differs from its Open column.
-   - **Continue**: a stage `reviewing` or `resolving`, and the comment's last edit is over two hours old. That run died.
+   - **Continue**: a stage `reviewing` or `resolving`, and the comment's last edit is over two hours old. That run died or hangs: stop the PR thread's run, if one is still going, before dispatching.
+   - **Continue**: every stage `passed`, and the PR no longer merges cleanly with its base or a check on its head failed.
    - **Continue**: a stage `failed`, and the comment's last edit is over an hour old.
    - **Skip**: anything else.
 3. **Dispatch** each PR to start or continue.
