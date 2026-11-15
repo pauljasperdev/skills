@@ -17,3 +17,7 @@ Post with `gh api graphql`, building every variables payload with a JSON seriali
 3. `submitPullRequestReview(input: {pullRequestReviewId, event: COMMENT})` with an empty body.
 
 A finding with no place in the diff is a `FILE` thread on the changed file closest to it.
+
+## Threads for the human
+
+A thread waiting on the human ends with a reply that brings them into the decision without opening the code: a concise, well-structured report of the problem, the current wiring (an ASCII diagram when it helps), the options with their trade-offs, and the decision to be made. Put it in a reply, so the finding above stays as the reviewer wrote it.
