@@ -40,6 +40,7 @@ In the Look in column, `.ts` files are under `packages/effect/src/` and numbered
 | `try`/`catch`, `throw`, an error turned into a boolean, `null`, counter, or status object | Failure stays in the error channel (`Schema.TaggedError` or `Data.TaggedError`); one boundary handles it with `catchTag`/`catchTags` | `01_effect/04_errors`, `Effect.ts` |
 | Catch-and-continue in a loop, failures pushed to an array | `Effect.partition`, `Effect.validate`, `Effect.all` with `mode: "result"` | `Effect.ts` |
 | `catch`/`orElseSucceed`/`ignore` over a whole error union | Recover only the tags the fallback is true for; `orDie` only for impossible states and startup config | `01_effect/04_errors`, `Effect.ts` |
+| `Effect.orDie` around a database or HTTP call | The adapter fails with its own tagged error for an outage; the domain service retries it or translates it with `catchTag`, and only a broken invariant dies. `SqlError.isRetryable` classifies, but `packages/sql/pg` leaves a restarting Postgres (SQLSTATE `57P0*`, `53*`) in `UnknownError` | `01_effect/04_errors`, `sql/SqlError.ts` |
 | Route guard reading an atom with `orElseSucceed` (defects still crash the page) | `Effect.catchCause` → redirect | `Effect.ts`, `reactivity/Atom.ts` |
 | Attempt counter, `while` + `sleep`, backoff arithmetic | `Effect.retry`/`Effect.repeat` with a `Schedule` | `06_schedule`, `Schedule.ts` |
 | Polling loop, interval timer, time-of-day check | `Effect.repeat` with `Schedule.spaced`/`fixed`/`cron` | `06_schedule`, `Schedule.ts`, `Cron.ts` |
