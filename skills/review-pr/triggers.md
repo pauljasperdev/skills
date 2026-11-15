@@ -7,7 +7,7 @@ Five T3 scheduled tasks per repository start the agents in `~/.config/review-pr.
 Every trigger but PR merged ends here, with one PR URL and sometimes `rerun` or `rerun <stage>`.
 
 1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
-2. Send the PR's T3 thread "Review PR #<number>" exactly this message and nothing else: `/<orchestrator skill> <PR URL>`, then `rerun` or `rerun <stage>` and `comment <id>` only when the Review comment trigger gave them. Queue it on that thread, or launch the thread in the project root on the orchestrator's model and effort and link the PR to it.
+2. Send a T3 thread "Review PR #<number>" exactly this message and nothing else: `/<orchestrator skill> <PR URL>`, then `rerun` or `rerun <stage>` and `comment <id>` only when the Review comment trigger gave them. Start each run in a new thread, so it works from the PR as it is now, not from an earlier run's memory: launch it in the project root on the orchestrator's model and effort and link the PR to it. While an earlier run on the PR is still going, queue the message on that run's thread instead.
 3. Reply with one line: the PR, the thread, and what you sent.
 
 ## PR opened

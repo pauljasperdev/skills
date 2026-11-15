@@ -16,7 +16,7 @@ Every thread ends in one of three ways, always with your reply, which ends with 
 
 - **Fixed**: reply with the fix's SHA, then resolve it.
 - **Declined**: reply with a one-line reason, then resolve it.
-- **Left open**: only for a decision no agent can make; settle everything else yourself. Reply with a concise, well-structured report that brings the user into the decision without opening the code: the problem, the current wiring (an ASCII diagram when it helps), the options with their trade-offs, and the decision to be made. A later reply without the marker, from an owner, member, or collaborator, is the user's decision: carry it out. While none has come, leave the thread as it is.
+- **Left open**: only when you cannot go on without the user. Decide everything else yourself, and say in your reply what you decided and why. Reply with a concise, well-structured report that brings the user into the decision without opening the code: the problem, the current wiring (an ASCII diagram when it helps), the options with their trade-offs, and the decision to be made. A later reply without the marker, from an owner, member, or collaborator, is the user's decision: carry it out. While none has come, leave the thread as it is.
 
 Reply and resolve via `gh api graphql` (`addPullRequestReviewThreadReply`, `resolveReviewThread`).
 
