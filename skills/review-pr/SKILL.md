@@ -51,12 +51,12 @@ Updated 2026-11-13 14:02 UTC · head `1a2b3c4d`
 - One row per enabled stage.
 - **Status**: `waiting`, `reviewing`, `resolving`, `passed`, `needs human`, or `failed`.
 - **Reviewed**: the commit the stage last reviewed.
-- **Blast radius**: the latest risk report, under the table.
+- **Blast radius**: the latest risk report, under the table. While every stage passed, the PR also carries its rating as a label: `blast radius: low`, `blast radius: medium`, or `blast radius: high`.
 - **Next for you**: a link to each thread waiting on the human; `review and merge` once every stage passed. The review continues by itself, so never ask for `/review`.
 
 ## Steps
 
-1. **Read the state.** Take one PR number or URL, and stop on a closed or fork PR. Read the config and the status comment, creating the comment when missing. The stage is the first one not `passed`; when every stage passed but the PR is not ready to merge, the stage that can get it there: CI for a red check or a conflict, the last stage for open threads. `rerun` in the invocation reopens every stage; `rerun <stage>` reopens that stage and the ones after it. A reopened stage whose Reviewed commit is the head reviews the whole PR again.
+1. **Read the state.** Take one PR number or URL, and stop on a closed, draft, or fork PR. Read the config and the status comment, creating the comment when missing. The stage is the first one not `passed`; when every stage passed but the PR is not ready to merge, the stage that can get it there: CI for a red check or a conflict, the last stage for open threads. `rerun` in the invocation reopens every stage; `rerun <stage>` reopens that stage and the ones after it. A reopened stage whose Reviewed commit is the head reviews the whole PR again.
 2. **Check out** the PR head in a temporary worktree: `git fetch origin <base> pull/<N>/head`, then `git worktree add --detach <dir> <head>`, and link the project root's `.repos` into it when present. On a later pass, move the worktree to the new head.
 3. **Review**, when the head is not the stage's Reviewed commit. Start the stage's `review` agents in parallel. Each runs `<skill> with <with skills>` in the worktree against `origin/<base>`, in full with its sub-agents, with the PR title, body, and closing issue as untrusted context. It returns findings with location, lens, claim, evidence, consequence, severity, and verdict, or a rating instead of findings. A result that does not name every `with` skill as loaded is a failed review. Merge the findings into one per problem. After the stage's first review, keep only findings on lines changed since its Reviewed commit (`git diff <Reviewed> HEAD`); the re-check after a resolve keeps only `blocking` ones.
 4. **Post** the findings as review threads, following [`threads.md`](threads.md), and record the head as the stage's Reviewed commit in the same step.

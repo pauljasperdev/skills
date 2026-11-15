@@ -6,13 +6,13 @@ Five T3 scheduled tasks per repository start the agents in `~/.config/review-pr.
 
 Every trigger but PR merged ends here, with one PR URL and sometimes `rerun` or `rerun <stage>`.
 
-1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
+1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
 2. Send the PR's T3 thread "Review PR #<number>" exactly this message and nothing else: `/<orchestrator skill> <PR URL>`, then `rerun` or `rerun <stage>` and `comment <id>` only when the Review comment trigger gave them. Queue it on that thread, or launch the thread in the project root on the orchestrator's model and effort and link the PR to it.
 3. Reply with one line: the PR, the thread, and what you sent.
 
 ## PR opened
 
-Dispatch the PR URL.
+Dispatch the PR URL. It fires when a PR is opened or marked ready for review.
 
 ## Review comment
 
@@ -59,7 +59,7 @@ All five tasks are bound to one T3 thread, with `freshSession`. Each prompt name
 
 Webhook filters, all on `body.repository.full_name` equals `<owner>/<repo>`:
 
-- **PR opened**: `headers.x-github-event` equals `pull_request`; `body.action` equals `opened`; `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`, so fork code never reaches an agent with write access.
+- **PR opened**: `headers.x-github-event` equals `pull_request`; `body.action` in `opened`, `ready_for_review`; `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`, so fork code never reaches an agent with write access.
 - **Review comment**: `headers.x-github-event` equals `issue_comment`; `body.action` equals `created`; `body.issue.pull_request` exists; `body.comment.body` starts with `/review`; `body.comment.author_association` in `OWNER`, `MEMBER`, `COLLABORATOR`.
 - **Review thread**: `headers.x-github-event` equals `pull_request_review_comment`; `body.action` equals `created`; `body.comment.author_association` in `OWNER`, `MEMBER`, `COLLABORATOR`; `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`.
 - **PR merged**: `headers.x-github-event` equals `pull_request`; `body.action` equals `closed`; `body.pull_request.merged` equals `true`; `body.pull_request.head.repo.full_name` equals `<owner>/<repo>`.
