@@ -38,7 +38,7 @@ Find the PRs whose review can start or continue. It catches what the webhooks mi
    - **Start**: it has none.
    - **Continue**: no run is working on it, and an agent could move it forward: something changed since the comment's last edit, a step failed or its run died, or the branch no longer merges or a check is red.
    - **Skip**: anything else, such as a PR waiting only on the human.
-3. **Dispatch** each PR to start or continue.
+3. **Dispatch** each PR to start or continue, without a rerun.
 4. With none, reply `nothing to do`.
 
 ## PR merged
