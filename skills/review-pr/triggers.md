@@ -26,14 +26,11 @@ A human asks for a rerun with a PR comment: `/review`, or `/review <stage>`.
 
 Find the PRs whose review can start or continue. It catches what the webhooks missed, and a human's replies on threads.
 
-1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`. Drop those Dispatch would reject.
+1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`. Drop those Dispatch would reject; drafts stay in the list.
 2. **Decide** for each, from its status comment (the PR comment ending in `<!-- review-pr -->`) and that comment's `updated_at`:
    - **Start**: it has none.
-   - **Continue**: a stage `needs human` or every stage `passed`, and the PR changed since the comment's last edit: another head commit; a newer review comment or reply from an owner, member, or collaborator without `<!-- agent -->`; or a count of unresolved threads that differs from its Open column.
-   - **Continue**: a stage `reviewing` or `resolving`, and the comment's last edit is over two hours old. That run died or hangs: stop the PR thread's run, if one is still going, before dispatching.
-   - **Continue**: every stage `passed`, and the PR no longer merges cleanly with its base or a check on its head failed.
-   - **Continue**: a stage `failed`, and the comment's last edit is over an hour old.
-   - **Skip**: anything else.
+   - **Continue**: no run is working on it, and an agent could move it forward: something changed since the comment's last edit, a step failed or its run died, or the branch no longer merges or a check is red.
+   - **Skip**: anything else, such as a PR waiting only on the human.
 3. **Dispatch** each PR to start or continue.
 4. With none, reply `nothing to do`.
 
@@ -43,7 +40,7 @@ Start a thread in the project root on the config's `merged` agent with exactly `
 
 ## Setup
 
-All four tasks are bound to one T3 thread on a small model, with `freshSession`. Each prompt names this file, its trigger, the repository, and the values below.
+All four tasks are bound to one T3 thread, with `freshSession`. Each prompt names this file, its trigger, the repository, and the values below.
 
 | Task | Schedule | Values in the prompt |
 | --- | --- | --- |
