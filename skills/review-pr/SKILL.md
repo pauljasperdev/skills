@@ -64,4 +64,4 @@ Updated 2026-11-13 14:02 UTC · head `1a2b3c4d`
 6. **Close the stage.** No unresolved thread: `passed`. Otherwise `needs human`, each open thread ending in a report that brings the human into the decision ([`threads.md`](threads.md#threads-for-the-human)). Either way the next stage starts at step 3, so the human gets all of the PR's decisions at once. A step that fails gets done another way. When only waiting helps, such as a usage limit, the stage is `failed` and the scan retries it later.
 7. **Finish.** Report the PR, each stage's status, and what needs the human. When the invocation names a comment, replace your 👀 reaction on it with 🚀.
 
-The PR carries one label for where its review stands: `review: running`, `review: needs human`, `review: failed`, or `review: passed`. Swap it whenever that changes, and create a missing label.
+The PR carries one label for where its review stands: `agent review: running`, `agent review: needs human`, `agent review: failed`, or `agent review: passed`. Swap it whenever that changes, and create a missing label.
