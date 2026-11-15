@@ -6,7 +6,7 @@ Five T3 scheduled tasks per repository start the agents in `~/.config/review-pr.
 
 Every trigger but PR merged ends here, with one PR URL and sometimes `rerun` or `rerun <stage>`.
 
-1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. Without a rerun, it must also be created after `since` in the config, when that is set.
+1. Go on only if the URL is exactly `https://github.com/<owner>/<repo>/pull/<number>` for the task's repository, and the PR is open, not a draft, not from a fork, and not by a bot. A PR without a status comment must also be created after `since` in the config, when that is set.
 2. Send a T3 thread "Review PR #<number>" exactly this message and nothing else: `/<orchestrator skill> <PR URL>`, then `rerun` or `rerun <stage>` and `comment <id>` only when the Review comment trigger gave them. Start each run in a new thread, so it works from the PR as it is now, not from an earlier run's memory: launch it in the project root on the orchestrator's model and effort and link the PR to it. While an earlier run on the PR is still going, queue the message on that run's thread instead.
 3. Reply with one line: the PR, the thread, and what you sent.
 
@@ -36,7 +36,7 @@ Find the PRs whose review can start or continue. It catches what the webhooks mi
 1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`. Drop those Dispatch would reject.
 2. **Decide** for each, from its status comment (the PR comment ending in `<!-- review-pr -->`) and that comment's `updated_at`:
    - **Start**: it has none.
-   - **Continue**: no run is working on it, and an agent could move it forward: something changed since the comment's last edit, a step failed or its run died, or the branch no longer merges or a check is red.
+   - **Continue**: no run is working on it, and the PR no longer matches its status comment: its head, threads, replies, checks, or mergeability differ from what the comment says, or a step failed or its run died.
    - **Skip**: anything else, such as a PR waiting only on the human.
 3. **Dispatch** each PR to start or continue, without a rerun.
 4. With none, reply `nothing to do`.
