@@ -33,7 +33,7 @@ A human's comment on a review thread, new or a reply, starts the review at once 
 
 Find the PRs whose review can start or continue. It catches what the webhooks missed, and a human's replies on threads.
 
-1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`. Drop those Dispatch would reject.
+1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`, and each one's review threads with their resolved state and latest comment (`gh api graphql`, `reviewThreads`). Drop those Dispatch would reject.
 2. **Decide** for each, from its status comment (the PR comment ending in `<!-- review-pr -->`) and that comment's `updated_at`:
    - **Start**: it has none.
    - **Continue**: no run is working on it, and the PR no longer matches its status comment: its head, threads, replies, checks, or mergeability differ from what the comment says, or a step failed or its run died.
