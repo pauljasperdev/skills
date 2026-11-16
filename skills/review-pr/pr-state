@@ -1,0 +1,364 @@
+#!/usr/bin/env python3
+"""Decide what the review of a pull request needs next, from GitHub and T3 state.
+
+Usage (all print one JSON line per PR: {"pr", "action", "row", "reason", ...}):
+  pr-state scan    --repo O/R --project ID [--apply]
+  pr-state event   --repo O/R --project ID --pr URL --event E --action A [--apply]
+  pr-state comment --repo O/R --project ID --pr URL --comment-id ID [--apply]
+  pr-state check   --repo O/R --project ID --pr URL [--self THREAD_ID] [--starting] [--apply]
+  pr-state same-diff --base REF OLD NEW     exit 0 when OLD and NEW change the base identically
+
+Actions: skip, wait, dispatch, queue, merged, finalize, fix-labels, stop, error.
+--apply performs the actions that need no model: finalize, fix-labels, and the 👀 reaction.
+The rows are the table in triggers.md; first match wins.
+"""
+import argparse, json, os, re, subprocess, sys
+from datetime import datetime
+
+CONFIG = os.path.expanduser(os.environ.get("REVIEW_PR_CONFIG", "~/.config/review-pr.json"))
+T3 = os.path.expanduser("~/.t3/bin/t3")
+DONE = {"completed", "failed", "interrupted", "cancelled"}
+STATUSES = {"waiting", "reviewing", "resolving", "passed", "needs human", "failed"}
+LABEL = "agent review: "
+BLAST = "blast radius: "
+HUMANS = {"OWNER", "MEMBER", "COLLABORATOR"}
+EVENTS = {"pull_request", "pull_request_review", "pull_request_review_comment", "pull_request_review_thread"}
+
+QUERY = """
+query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){%s}}}
+"""
+LIST = """
+query($owner:String!,$name:String!){repository(owner:$owner,name:$name){pullRequests(states:OPEN,first:50,orderBy:{field:UPDATED_AT,direction:DESC}){nodes{%s}}}}
+"""
+FIELDS = """number url state merged isDraft isCrossRepository createdAt headRefOid mergeable
+author{__typename login} labels(first:30){nodes{name}} autoMergeRequest{enabledAt}
+commits(last:1){nodes{commit{oid statusCheckRollup{state}}}}
+reviewThreads(first:100){nodes{isResolved comments(last:1){nodes{author{__typename login} body}}}}
+reviews(last:30){nodes{author{login} state commit{oid}}}
+comments(last:60){nodes{databaseId author{__typename login} authorAssociation body createdAt updatedAt}}"""
+
+
+def gh(*args, input=None):
+    r = subprocess.run(["gh", *args], capture_output=True, text=True, input=input)
+    if r.returncode:
+        raise RuntimeError(f"gh {' '.join(args[:3])}: {r.stderr.strip()[:300]}")
+    return r.stdout
+
+
+def graphql(query, **v):
+    args = ["api", "graphql", "-f", f"query={query}"]
+    for k, val in v.items():
+        args += ["-F" if isinstance(val, int) else "-f", f"{k}={val}"]
+    return json.loads(gh(*args))["data"]["repository"]
+
+
+def ts(s):
+    return datetime.fromisoformat(s.replace("Z", "+00:00"))
+
+
+def pr_number(url, repo):
+    m = re.fullmatch(rf"https://github\.com/{re.escape(repo)}/pull/(\d+)", url or "", re.I)
+    return int(m.group(1)) if m else None
+
+
+def t3_threads(project):
+    if project == "none":
+        return []
+    out = subprocess.run([T3, "thread", "list", "--project", project, "--json"], capture_output=True, text=True)
+    if out.returncode:
+        raise RuntimeError(f"t3 thread list: {out.stderr.strip()[:300]}")
+    return json.loads(out.stdout)
+
+
+def active_runs(threads, n, self_id=None):
+    title = f"Review PR #{n}"
+    return [t for t in threads if t.get("title") == title and t.get("status") not in DONE and t.get("threadId") != self_id]
+
+
+def parse_status(pr, cfg):
+    """The newest status comment: its stages, head, blast radius, and update time."""
+    sc = None
+    for c in pr["comments"]["nodes"]:
+        if "<!-- review-pr -->" in (c.get("body") or ""):
+            sc = c
+    if not sc:
+        return None
+    body = sc["body"]
+    stages = {}
+    for name, status in re.findall(r"^\|\s*([\w-]+)\s*\|\s*([a-z ]+?)\s*\|", body, re.M):
+        if status in STATUSES:
+            stages[name] = status
+    opens = sum(int(x) for x in re.findall(r"^\|\s*[\w-]+\s*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|\s*(\d+)\s*\|\s*$", body, re.M))
+    head = re.search(r"head `([0-9a-f]{7,40})`\s*\n\s*<!-- review-pr -->", body)
+    blast = re.search(r"\*\*Blast radius:\s*(low|medium|high)\*\*", body, re.I)
+    names = [s["name"] for s in cfg["stages"] if s.get("enabled", True)]
+    return {
+        "id": sc["databaseId"], "updated": sc["updatedAt"],
+        "stages": {k: stages.get(k, "waiting") for k in names},
+        "open": opens, "head": head.group(1) if head else None,
+        "blast": blast.group(1).lower() if blast else None,
+    }
+
+
+def is_agent(author, body):
+    return (author or {}).get("__typename") == "Bot" or "<!-- agent -->" in (body or "") or "<!-- review-pr -->" in (body or "")
+
+
+def facts(pr, cfg, threads, self_id=None):
+    sc = parse_status(pr, cfg)
+    runs = active_runs(threads, pr["number"], self_id)
+    rollup = ((pr["commits"]["nodes"] or [{}])[0].get("commit") or {}).get("statusCheckRollup") or {}
+    unresolved = [t for t in pr["reviewThreads"]["nodes"] if not t["isResolved"]]
+    waiting_on_agent = [t for t in unresolved if t["comments"]["nodes"] and not is_agent(t["comments"]["nodes"][-1]["author"], t["comments"]["nodes"][-1]["body"])]
+    human_comments = []
+    if sc:
+        for c in pr["comments"]["nodes"]:
+            if (c["authorAssociation"] in HUMANS and not is_agent(c["author"], c["body"])
+                    and not (c["body"] or "").lstrip().startswith("/review")
+                    and ts(c["createdAt"]) > ts(sc["updated"])):
+                human_comments.append(c["databaseId"])
+    bot = cfg.get("bot")
+    approved = any(r["state"] == "APPROVED" and r["commit"] and r["commit"]["oid"] == pr["headRefOid"]
+                   and (not bot or r["author"]["login"] in (bot, bot.removesuffix("[bot]")))
+                   for r in pr["reviews"]["nodes"])
+    return {
+        "sc": sc, "runs": runs, "rollup": rollup.get("state") or "NONE", "open": len(unresolved),
+        "waiting_on_agent": len(waiting_on_agent), "human_comments": human_comments, "approved": approved,
+        "labels": {l["name"] for l in pr["labels"]["nodes"]},
+    }
+
+
+def wanted_labels(f):
+    """The agent-review label and blast-radius label the PR should carry, or None to leave it alone."""
+    sc = f["sc"]
+    if f.get("starting"):
+        return LABEL + "running", None
+    if not sc:
+        return None
+    st = set(sc["stages"].values())
+    if f["runs"]:
+        review = "running"
+    elif "failed" in st:
+        review = "failed"
+    elif "needs human" in st:
+        review = "needs human"
+    elif st == {"passed"}:
+        review = "passed"
+    else:
+        return None
+    blast = sc["blast"] if review == "passed" else None
+    return LABEL + review, (BLAST + blast) if blast else None
+
+
+def label_diff(f):
+    w = wanted_labels(f)
+    if not w:
+        return None
+    want = {x for x in w if x}
+    have = {l for l in f["labels"] if l.startswith(LABEL) or l.startswith(BLAST)}
+    if want == have:
+        return None
+    return {"add": sorted(want - have), "remove": sorted(have - want)}
+
+
+def decide(pr, cfg, f, since):
+    """The state table. Returns (row, action, reason)."""
+    sc, n = f["sc"], pr["number"]
+    if pr["state"] != "OPEN":
+        return "S1", "skip", "not open"
+    if pr["isDraft"]:
+        return "S2", "skip", "draft"
+    if pr["isCrossRepository"]:
+        return "S3", "skip", "fork"
+    if (pr["author"] or {}).get("__typename") == "Bot":
+        return "S4", "skip", "opened by a bot"
+    if not sc and ts(pr["createdAt"]) < since:
+        return "S5", "skip", "older than since, never reviewed"
+    if f["runs"]:
+        return "S6", "skip", f"a run is working on it: {f['runs'][0]['threadId']}"
+    if not sc:
+        return "S7", "dispatch", "no status comment"
+    if not sc["head"] or not pr["headRefOid"].startswith(sc["head"]):
+        return "S8", "dispatch", f"new head {pr['headRefOid'][:8]}, status comment has {sc['head']}"
+    st = sc["stages"]
+    if any(s in ("reviewing", "resolving") for s in st.values()):
+        return "S9", "dispatch", "a stage was left reviewing or resolving: its run died"
+    if f["waiting_on_agent"]:
+        return "S10", "dispatch", f"{f['waiting_on_agent']} open thread(s) end with a human reply"
+    if f["human_comments"]:
+        return "S11", "dispatch", f"human PR comment(s) after the status comment: {f['human_comments']}"
+    if f["open"] != sc["open"]:
+        return "S12", "dispatch", f"{f['open']} open thread(s), status comment says {sc['open']}"
+    ci = cfg["stages"][0]["name"]
+    if (pr["mergeable"] == "CONFLICTING" or f["rollup"] in ("FAILURE", "ERROR")) and st.get(ci) != "needs human":
+        return "S13", "dispatch", f"mergeable {pr['mergeable']}, checks {f['rollup']}"
+    if f["rollup"] in ("PENDING", "EXPECTED") or pr["mergeable"] == "UNKNOWN":
+        return "S14", "wait", f"checks {f['rollup']}, mergeable {pr['mergeable']}"
+    if "waiting" in st.values():
+        return "S15", "dispatch", "a stage is waiting and the checks have finished"
+    if "failed" in st.values():
+        return "S16", "dispatch", "a stage failed; retrying"
+    if "needs human" in st.values() and f["open"] == 0:
+        return "S17", "dispatch", "a stage waits on the human but no thread is open"
+    if (set(st.values()) == {"passed"} and f["open"] == 0 and f["rollup"] in ("SUCCESS", "NONE")
+            and pr["mergeable"] == "MERGEABLE" and not f["approved"]):
+        return "S18", "finalize", f"every stage passed on {pr['headRefOid'][:8]}; approve"
+    if label_diff(f):
+        return "S19", "fix-labels", f"labels {label_diff(f)}"
+    return "S20", "skip", "nothing to do"
+
+
+def apply_labels(repo, n, f):
+    d = label_diff(f)
+    if not d:
+        return
+    for name in d["add"]:
+        gh("label", "create", name, "-R", repo, "--force", "--color", "ededed")
+    args = ["pr", "edit", str(n), "-R", repo]
+    for name in d["add"]:
+        args += ["--add-label", name]
+    for name in d["remove"]:
+        args += ["--remove-label", name]
+    gh(*args)
+
+
+def finalize(repo, pr, cfg, f):
+    """Approve exactly the head the stages vouch for; enable auto-merge when the blast radius allows it."""
+    n, head = pr["number"], pr["headRefOid"]
+    sc = f["sc"]
+    body = f"Every review stage passed on `{head[:8]}`. Blast radius: {sc['blast'] or 'unrated'}.\n\n<!-- agent -->"
+    gh("api", "-X", "POST", f"repos/{repo}/pulls/{n}/reviews", "-f", "event=APPROVE", "-f", f"commit_id={head}", "-f", f"body={body}")
+    now = json.loads(gh("pr", "view", str(n), "-R", repo, "--json", "headRefOid"))["headRefOid"]
+    if now != head:
+        return "head moved after approving; the push dismisses the approval"
+    am = cfg.get("autoMerge") or {}
+    if sc["blast"] in am.get("blastRadius", []) and not pr["autoMergeRequest"]:
+        gh("pr", "merge", str(n), "-R", repo, "--auto", f"--{am.get('method', 'squash')}")
+        return "approved; auto-merge enabled"
+    return "approved"
+
+
+def dispatch_args(cfg, url, n, extra=""):
+    o = cfg["orchestrator"]
+    return {"title": f"Review PR #{n}", "message": f"/{o['skill']} {url}{extra}", "provider": o.get("provider", "claudeAgent"),
+            "model": o["model"], "effort": o.get("effort")}
+
+
+def load_pr(repo, n):
+    owner, name = repo.split("/")
+    return graphql(QUERY % FIELDS, owner=owner, name=name, number=n)["pullRequest"]
+
+
+def emit(d):
+    print(json.dumps(d, ensure_ascii=False))
+
+
+def run_state(args, cfg, pr, threads, self_id=None):
+    since = ts(cfg["since"])
+    f = facts(pr, cfg, threads, self_id)
+    row, action, reason = decide(pr, cfg, f, since)
+    out = {"pr": pr["number"], "action": action, "row": row, "reason": reason}
+    if action == "dispatch":
+        out["launch"] = dispatch_args(cfg, pr["url"], pr["number"])
+    if args.apply and action == "finalize":
+        out["result"] = finalize(args.repo, pr, cfg, f)
+        f["approved"] = True
+    if args.apply and action in ("finalize", "fix-labels"):
+        apply_labels(args.repo, pr["number"], f)
+        out.setdefault("result", "labels fixed")
+    if args.apply and args.cmd == "check" and self_id and args.starting and action == "dispatch":
+        f["starting"] = True
+        apply_labels(args.repo, pr["number"], f)
+        out["result"] = "label set to running"
+    return out
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("cmd", choices=["scan", "event", "comment", "check", "same-diff"])
+    p.add_argument("rest", nargs="*")
+    p.add_argument("--repo"); p.add_argument("--project", default="."); p.add_argument("--pr")
+    p.add_argument("--event"); p.add_argument("--action"); p.add_argument("--comment-id")
+    p.add_argument("--self"); p.add_argument("--base"); p.add_argument("--apply", action="store_true")
+    p.add_argument("--starting", action="store_true")
+    a = p.parse_args()
+
+    if a.cmd == "same-diff":
+        old, new = a.rest
+        def pid(ref):
+            mb = subprocess.run(["git", "merge-base", a.base, ref], capture_output=True, text=True, check=True).stdout.strip()
+            diff = subprocess.run(["git", "diff", mb, ref], capture_output=True, text=True, check=True).stdout
+            return subprocess.run(["git", "patch-id", "--stable"], input=diff, capture_output=True, text=True).stdout.split(" ")[0]
+        sys.exit(0 if pid(old) == pid(new) else 1)
+
+    cfg = json.load(open(CONFIG))
+    if not a.repo or not re.fullmatch(r"[\w.-]+/[\w.-]+", a.repo):
+        sys.exit("--repo owner/name required")
+    try:
+        threads = t3_threads(a.project)
+        if a.cmd == "scan":
+            owner, name = a.repo.split("/")
+            for pr in graphql(LIST % FIELDS, owner=owner, name=name)["pullRequests"]["nodes"]:
+                emit(run_state(a, cfg, pr, threads))
+            return
+        n = pr_number(a.pr, a.repo)
+        if not n:
+            return emit({"pr": None, "action": "skip", "row": "V1", "reason": "not a PR URL of this repository"})
+        url = f"https://github.com/{a.repo}/pull/{n}"
+
+        if a.cmd == "event":
+            if a.event not in EVENTS:
+                return emit({"pr": n, "action": "skip", "row": "E0", "reason": f"event {a.event} not handled"})
+            if a.event == "pull_request" and a.action == "closed":
+                merged = json.loads(gh("pr", "view", str(n), "-R", a.repo, "--json", "mergedAt"))["mergedAt"]
+                title = f"Merged PR #{n}"
+                if not merged:
+                    return emit({"pr": n, "action": "skip", "row": "E2", "reason": "closed without merging"})
+                if any(t.get("title") == title for t in threads):
+                    return emit({"pr": n, "action": "skip", "row": "E1", "reason": "merged follow-up already started"})
+                m = cfg["merged"]
+                return emit({"pr": n, "action": "merged", "row": "E1", "reason": "merged",
+                             "launch": {"title": title, "message": f"/{m['skill']} {url}", "provider": m.get("provider", "claudeAgent"),
+                                        "model": m["model"], "effort": m.get("effort")}})
+            return emit(run_state(a, cfg, load_pr(a.repo, n), threads))
+
+        if a.cmd == "comment":
+            if not (a.comment_id or "").isdigit():
+                return emit({"pr": n, "action": "skip", "row": "C0", "reason": "no comment id"})
+            c = json.loads(gh("api", f"repos/{a.repo}/issues/comments/{a.comment_id}"))
+            body = (c.get("body") or "").strip()
+            if c["user"]["type"] == "Bot" or "<!-- agent" in body or "<!-- review-pr -->" in body:
+                return emit({"pr": n, "action": "skip", "row": "C1", "reason": "the agents' own comment"})
+            m = re.fullmatch(r"/review(?:\s+([\w-]+))?", body.splitlines()[0].strip()) if body else None
+            stages = [s["name"] for s in cfg["stages"]]
+            if m and c["author_association"] in HUMANS and (not m.group(1) or m.group(1) in stages):
+                pr = load_pr(a.repo, n)
+                f = facts(pr, cfg, threads)
+                row, action, reason = decide(pr, cfg, f, ts(cfg["since"]))
+                if row in ("S1", "S2", "S3", "S4"):
+                    return emit({"pr": n, "action": "skip", "row": "C2", "reason": f"/review on a PR the review ignores: {reason}"})
+                extra = " rerun" + (f" {m.group(1)}" if m.group(1) else "") + f" comment {a.comment_id}"
+                if a.apply:
+                    gh("api", f"repos/{a.repo}/issues/comments/{a.comment_id}/reactions", "-f", "content=eyes")
+                if f["runs"]:
+                    return emit({"pr": n, "action": "queue", "row": "C3", "reason": "/review while a run works",
+                                 "thread": f["runs"][0]["threadId"], "message": dispatch_args(cfg, url, n, extra)["message"]})
+                return emit({"pr": n, "action": "dispatch", "row": "C4", "reason": "/review", "launch": dispatch_args(cfg, url, n, extra)})
+            return emit(run_state(a, cfg, load_pr(a.repo, n), threads))
+
+        if a.cmd == "check":
+            pr = load_pr(a.repo, n)
+            if a.self:
+                mine = [t for t in threads if t.get("threadId") == a.self]
+                older = [t for t in active_runs(threads, n, a.self) if mine and t["createdAt"] < mine[0]["createdAt"]]
+                if older:
+                    return emit({"pr": n, "action": "stop", "row": "R0", "reason": f"an earlier run works on it: {older[0]['threadId']}"})
+                threads = [t for t in threads if t.get("title") != f"Review PR #{n}"]
+            return emit(run_state(a, cfg, pr, threads, a.self))
+    except (RuntimeError, KeyError, ValueError, subprocess.CalledProcessError) as e:
+        emit({"pr": a.pr, "action": "error", "row": "X", "reason": str(e)[:400]})
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
