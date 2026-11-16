@@ -65,3 +65,5 @@ Updated 2026-11-13 14:02 UTC · head `1a2b3c4d`
 7. **Finish.** Report the PR, each stage's status, and what needs the human. When the invocation names a comment, replace your 👀 reaction on it with 🚀.
 
 The PR carries one label for where its review stands: `agent review: running`, `agent review: needs human`, `agent review: failed`, or `agent review: passed`. Swap it whenever that changes, and create a missing label.
+
+When every stage passed and the PR is ready to merge, approve it (`gh pr review --approve`), naming in the review the head commit the stages vouch for. A push drops the approval, so approve again whenever a new head passes.

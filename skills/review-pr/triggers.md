@@ -14,8 +14,8 @@ Every trigger ends here, except for a merged PR, with one PR URL and sometimes `
 
 GitHub reports what happens on a PR: pushes, reviews, review comments, resolved threads, edits, and the PR opening, closing, or turning ready.
 
-1. A closed PR: when it was merged (`gh pr view <N> --json mergedAt`), start a thread in the project root on the config's `merged` agent with exactly `/issue-comments <PR URL>`. Nothing else for a closed PR.
-2. Otherwise dispatch the PR URL, unless a run is already working on the PR: that run sees its own changes, and the scan catches the rest.
+1. A closed PR: when this event is the merge itself (action `closed` and the PR has `mergedAt`, from `gh pr view <N> --json mergedAt`), start a thread in the project root on the config's `merged` agent with exactly `/issue-comments <PR URL>`. Nothing else for a closed PR.
+2. Otherwise dispatch the PR URL when the scan's Continue rule holds for it: a run that is going sees its own changes, and the scan catches the rest.
 
 ## PR comment
 
@@ -49,6 +49,7 @@ Webhook filters, all on `body.repository.full_name` equals `<owner>/<repo>`:
 
 - **PR event**: `headers.x-github-event` in `pull_request`, `pull_request_review`, `pull_request_review_comment`, `pull_request_review_thread`; `body.action` in `opened`, `reopened`, `ready_for_review`, `synchronize`, `edited`, `closed`, `submitted`, `created`, `resolved`, `unresolved`.
 - **PR comment**: `headers.x-github-event` equals `issue_comment`; `body.action` equals `created`; `body.issue.pull_request` exists.
+- **Both**: `body.sender.login` not equal to the agents' GitHub App bot, such as `vontobot[bot]`, so the agents' own actions start nothing.
 
 Each webhook task needs T3 Connect for its public URL, and its own GitHub webhook (content type `application/json`, the task's events, the task's `webhookUrl`, and a shared secret). Signature: header `x-hub-signature-256`, encoding `hex`, prefix `sha256=`. Dedupe: replay key `{{headers.x-github-delivery}}`; PR event and PR comment also coalesce per PR for 120 seconds, so a burst is one run.
 
