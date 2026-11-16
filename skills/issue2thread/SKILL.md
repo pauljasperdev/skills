@@ -59,7 +59,7 @@ Input: `{"cwd":"<absolute-invoking-checkout>","repo":"<owner>/<repo>","issue":<N
 
 For `$issue2codex 6.1 sol high #12`, use `--profile codex --model gpt-6.1-sol --option reasoningEffort=high` on both `doctor` and `prepare`.
 
-The adapter builds the title `#<N> — <title>`, the branch `t3code/<N>-<title-slug>` (suffixed only on collision), the cross-profile duplicate key `#<N> — `, and the prompt `$examine-issue <N>` (`/examine-issue <N>` for Claude), then prepares the launch through `to-worktree-thread`. Pass its `launch` object to `t3_thread_launch` and verify the thread under `to-worktree-thread`'s launch, verification, and receipt contract; the preview in step 2 stops before contacting T3.
+The adapter builds the title `#<N> — <title>`, the branch `<prefix>/<N>-<title-slug>` with T3's branch name prefix (suffixed only on collision), the cross-profile duplicate key `#<N> — `, and the prompt `$examine-issue <N>` (`/examine-issue <N>` for Claude), then prepares the launch through `to-worktree-thread`. Pass its `launch` object to `t3_thread_launch` and verify the thread under `to-worktree-thread`'s launch, verification, and receipt contract; the preview in step 2 stops before contacting T3.
 
 An `existing` result or an issue-specific failure leaves that issue unchanged and allows the next clear issue; an authentication, provider, launcher, or protocol failure affecting the batch leaves all remaining issues unattempted.
 

@@ -501,7 +501,14 @@ function branchFragment(label) {
   return normalized.slice(0, 64).replace(/[._-]+$/g, "") || "task";
 }
 
-async function resolveWorktreeBranch(cwd, label) {
+// T3's "branch name prefix" setting; unset or blank falls back to T3's default prefix.
+export function branchNamePrefix(config) {
+  const configured = config?.settings?.branchNamePrefix;
+  const prefix = typeof configured === "string" ? configured.trim().replace(/^\/+|\/+$/g, "") : "";
+  return prefix || "t3code";
+}
+
+async function resolveWorktreeBranch(cwd, label, prefix) {
   const fragment = branchFragment(label);
   const existing = new Set(
     (await runGit(
@@ -513,7 +520,7 @@ async function resolveWorktreeBranch(cwd, label) {
       .split("\n")
       .filter(Boolean),
   );
-  const build = (suffix = "") => `t3code/${fragment.slice(0, 64 - suffix.length)}${suffix}`;
+  const build = (suffix = "") => `${prefix}/${fragment.slice(0, 64 - suffix.length)}${suffix}`;
   let candidate = build();
   let sequence = 2;
   while (existing.has(candidate)) {
@@ -616,7 +623,7 @@ async function doctor(cwd, t3Home, requestedModel) {
     const rpcState = await withRpc(runtime, token, async (rpc) => {
       const config = await rpc.call("server.getConfig", {});
       const modelSelection = requestedModel === undefined ? undefined : resolveModelSelection(config, requestedModel);
-      return { modelSelection, providers: (config.providers ?? []).map((provider) => ({
+      return { modelSelection, branchPrefix: branchNamePrefix(config), providers: (config.providers ?? []).map((provider) => ({
         instanceId: provider.instanceId,
         driver: provider.driver,
         status: provider.status,
@@ -640,7 +647,7 @@ async function doctor(cwd, t3Home, requestedModel) {
       project: summarizeProject(project, modelSelection),
       worktreeDefaults: {
         baseBranch,
-        branchPattern: "t3code/<branch-label-or-title-slug>",
+        branchPattern: `${rpcState.branchPrefix}/<branch-label-or-title-slug>`,
       },
       providers: rpcState.providers,
       launcher: "t3_thread_launch",
@@ -675,10 +682,11 @@ async function prepareLaunch(input, t3Home, requestedModel, newWorktree) {
     if (existing && spec.allowDuplicate !== true) return existingReceipt(project, existing);
 
     const baseBranch = await resolveBaseBranch(newWorktree ? projectCwd : cwd, newWorktree ? spec.baseBranch : undefined);
-    await withRpc(runtime, token, async (rpc) => {
-      modelSelection = resolveModelSelection(await rpc.call("server.getConfig", {}), modelSelection);
-    });
-    const worktreeBranch = newWorktree ? await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title) : baseBranch;
+    const config = await withRpc(runtime, token, async (rpc) => await rpc.call("server.getConfig", {}));
+    modelSelection = resolveModelSelection(config, modelSelection);
+    const worktreeBranch = newWorktree
+      ? await resolveWorktreeBranch(projectCwd, spec.branchLabel ?? title, branchNamePrefix(config))
+      : baseBranch;
     const { launch, expected } = makeLaunchRequest({
       modelSelection,
       project,

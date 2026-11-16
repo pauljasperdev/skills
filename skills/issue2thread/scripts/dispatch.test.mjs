@@ -25,6 +25,7 @@ test("standalone and issue preparation use the shared runtime path and never dis
   }));
   const project = { id: "project-1", title: "Project", workspaceRoot: root, scripts: [] };
   let threads = [];
+  let settings;
   let revoked = 0;
   const rpcTags = [];
   childProcess.execFile = () => assert.fail("Expected a promisified subprocess");
@@ -60,7 +61,7 @@ test("standalone and issue preparation use the shared runtime path and never dis
       else if (tag === "server.getConfig") value = { providers: [{
         instanceId: "codex", status: "ready", models: [{ slug: "gpt-6-astra",
           capabilities: { optionDescriptors: [{ id: "reasoningEffort", options: [{ id: "high" }] }] } }],
-      }, { instanceId: "custom-provider", status: "ready", models: [{ slug: "custom-model" }] }] };
+      }, { instanceId: "custom-provider", status: "ready", models: [{ slug: "custom-model" }] }], settings };
       else assert.fail(`Unexpected RPC: ${tag}`);
       queueMicrotask(() => this.dispatchEvent(new MessageEvent("message", {
         data: JSON.stringify({ _tag: "Exit", requestId: id, exit: { _tag: "Success", value } }),
@@ -111,6 +112,15 @@ test("standalone and issue preparation use the shared runtime path and never dis
     { ...existing, projectId: "other" }, { ...existing, title: "Task with more text" }];
   assert.equal((await prepareWorktreeThread(spec, root, selection)).action, "launch");
 
+  // T3's configured branch name prefix replaces the default t3code prefix.
+  settings = { branchNamePrefix: " team/ " };
+  const prefixed = await prepareWorktreeThread(spec, root, selection);
+  assert.equal(prefixed.launch.workspaceStrategy.branch, "team/task");
+  assert.equal(prefixed.expected.worktreeName, "team-task");
+  settings = { branchNamePrefix: "" };
+  assert.equal((await prepareWorktreeThread(spec, root, selection)).launch.workspaceStrategy.branch, "t3code/task-2");
+  settings = undefined;
+
   project.scripts = [{ id: "setup", name: "Setup", command: "setup", runOnWorktreeCreate: true }];
   threads = [];
   assert.equal((await prepareWorktreeThread(spec, root, selection)).expected.setup, "started");
@@ -123,7 +133,7 @@ test("standalone and issue preparation use the shared runtime path and never dis
   assert.deepEqual(review.launch.modelSelection, selection);
   assert.deepEqual(review.expected, { title: "Task · review", branch: "main", worktreePath: root,
     modelSelection: selection, setup: "not-run" });
-  assert.equal(revoked, 9, "every temporary session is revoked");
+  assert.equal(revoked, 11, "every temporary session is revoked");
   assert.ok(rpcTags.every((tag) => ["server.probe", "server.getConfig"].includes(tag)),
     "the adapter only reads T3 state");
 });

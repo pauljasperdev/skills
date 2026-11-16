@@ -10,7 +10,7 @@ Build exactly what was asked. Minimal code, verified. Every line is a liability.
 ## 1. Contract
 
 - Read: request, repo instructions, affected code, callers, tests, worktree changes
-- Issue (referenced, or `<N>` in `t3code/<N>-<slug>`): `gh issue view <N> -R <owner>/<repo> --json title,body,comments,milestone`; milestone = context, not scope
+- Issue (referenced, or `<N>` in `<prefix>/<N>-<slug>`): `gh issue view <N> -R <owner>/<repo> --json title,body,comments,milestone`; milestone = context, not scope
 - Pin: outcome, acceptance behavior, what stays unchanged
 - Handoffs and agent suggestions ≠ requirements
 - Conflict with user decisions or verified source → explain, ask

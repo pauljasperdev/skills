@@ -56,4 +56,4 @@ Issue tracking is GitHub Issues in each repository's `origin`, used through `gh`
 - Status runs Triage, Backlog, Todo, In Progress, In Review, Done, Canceled. Triage is the inbox: an issue an agent files goes in with Status Triage, an issue with no Status counts as Triage, and only Paul moves an issue out of it.
 - Starting work sets Status to In Progress. The dispatch queue is open issues with Status Todo, ordered by priority (Urgent, High, Medium, Low, none), then age.
 - An issue is blocked while any of its blocked-by issues is open.
-- The milestone is the repository milestone; branches are `t3code/<N>-<slug>`.
+- The milestone is the repository milestone; branches are `<prefix>/<N>-<slug>`, using T3's branch name prefix setting (`t3code` when unset).

@@ -5,7 +5,7 @@ description: Share implementation decisions with related GitHub issues and updat
 
 # Issue Comments
 
-Use after implementation decisions may have changed the plan recorded in GitHub issues. Identify the implemented issue from the conversation, the issue a merged PR closes, or the branch `t3code/<N>-<slug>`; ask if it is ambiguous.
+Use after implementation decisions may have changed the plan recorded in GitHub issues. Identify the implemented issue from the conversation, the issue a merged PR closes, or the branch `<prefix>/<N>-<slug>`; ask if it is ambiguous.
 
 Issues live in the repository's GitHub `origin`. Use `gh` 2.94 or newer and pass `-R <owner>/<repo>`, resolved from `origin`, on every issue command.
 

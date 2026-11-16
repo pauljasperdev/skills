@@ -36,7 +36,7 @@ Optional fields:
 | Field | Meaning |
 | --- | --- |
 | `baseBranch` | Explicit existing local base branch; otherwise use the saved project's checked-out branch. |
-| `branchLabel` | Text to slug into `t3code/<slug>`; defaults to the title. Numeric suffixes resolve branch collisions. |
+| `branchLabel` | Text to slug into `<prefix>/<slug>`, where `<prefix>` is T3's branch name prefix setting (`t3code` when unset); defaults to the title. Numeric suffixes resolve branch collisions. |
 | `dedupeKey` | Literal substring matched against active titles within the saved project, across providers. Otherwise match the complete title. |
 | `allowDuplicate` | Set `true` only for an explicit fresh/duplicate request. |
 
