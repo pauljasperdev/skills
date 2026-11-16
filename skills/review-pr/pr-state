@@ -90,7 +90,7 @@ def parse_status(pr, cfg):
             stages[name] = status
     opens = sum(int(x) for x in re.findall(r"^\|\s*[\w-]+\s*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|\s*(\d+)\s*\|\s*$", body, re.M))
     head = re.search(r"head `([0-9a-f]{7,40})`\s*\n\s*<!-- review-pr -->", body)
-    blast = re.search(r"\*\*Blast radius:\s*(low|medium|high)\*\*", body, re.I)
+    blast = re.search(r"\*\*Blast radius:\s*(low|medium|high)\b", body, re.I)
     names = [s["name"] for s in cfg["stages"] if s.get("enabled", True)]
     return {
         "id": sc["databaseId"], "updated": sc["updatedAt"],
