@@ -30,7 +30,7 @@ Find the PRs whose review can start or continue. It catches what the webhooks mi
 1. **List** the open PRs: `gh pr list -R <owner>/<repo> --json number,url,isDraft,isCrossRepository,author,createdAt,headRefOid,mergeable,statusCheckRollup`, and each one's review threads with their resolved state and latest comment (`gh api graphql`, `reviewThreads`). Drop those Dispatch would reject.
 2. **Decide** for each, from its status comment (the PR comment ending in `<!-- review-pr -->`) and that comment's `updated_at`:
    - **Start**: it has none.
-   - **Continue**: no run is working on it, and the PR no longer matches its status comment, for example a new head, a human reply, a stage waiting on the human with no open thread left, a red check, or a conflict; or a step failed or its run died.
+   - **Continue**: no run is working on it, and the PR no longer matches its status comment, for example a new head, a human reply, a stage waiting on the human with no open thread left, a red check, a conflict, or a passed PR without its approval or label; or a step failed or its run died.
    - **Skip**: anything else, such as a PR waiting only on the human.
 3. **Dispatch** each PR to start or continue, without a rerun.
 4. With none, reply `nothing to do`.
