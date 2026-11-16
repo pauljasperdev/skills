@@ -43,13 +43,13 @@ All three tasks run on a small model, bound to one T3 thread, with `freshSession
 | --- | --- | --- |
 | PR event | webhook | `{{headers.x-github-event}}`, `{{body.action}}`, `{{body.pull_request.html_url}}` |
 | PR comment | webhook | `{{body.issue.html_url}}`, `{{body.comment.id}}`, `{{body.comment.body}}`, `{{body.comment.author_association}}` |
-| Scan | every 15 minutes | none |
+| Scan | every 60 minutes | none |
 
 Webhook filters, all on `body.repository.full_name` equals `<owner>/<repo>`:
 
 - **PR event**: `headers.x-github-event` in `pull_request`, `pull_request_review`, `pull_request_review_comment`, `pull_request_review_thread`; `body.action` in `opened`, `reopened`, `ready_for_review`, `synchronize`, `edited`, `closed`, `submitted`, `created`, `resolved`, `unresolved`.
 - **PR comment**: `headers.x-github-event` equals `issue_comment`; `body.action` equals `created`; `body.issue.pull_request` exists.
 
-Each webhook task needs T3 Connect for its public URL, and its own GitHub webhook (content type `application/json`, the task's events, the task's `webhookUrl`, and a shared secret). Signature: header `x-hub-signature-256`, encoding `hex`, prefix `sha256=`. Dedupe: replay key `{{headers.x-github-delivery}}`.
+Each webhook task needs T3 Connect for its public URL, and its own GitHub webhook (content type `application/json`, the task's events, the task's `webhookUrl`, and a shared secret). Signature: header `x-hub-signature-256`, encoding `hex`, prefix `sha256=`. Dedupe: replay key `{{headers.x-github-delivery}}`; PR event and PR comment also coalesce per PR for 120 seconds, so a burst is one run.
 
 A `schedule_task` update whose `schedule` leaves out `signature` removes the signature check, so pass `signature` with the secret in every `schedule` update.
