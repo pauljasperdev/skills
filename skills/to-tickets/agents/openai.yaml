@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Tickets"
+  short_description: "Intent-only tickets from a conversation or plan"
+  default_prompt: "Use $to-tickets to turn this conversation into tickets in this repo's tracker, each led by its user story, with an observable outcome and only the decisions I made; show me the full bodies before publishing."

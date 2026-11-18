@@ -1,22 +1,46 @@
 ---
 name: issue-comments
-description: Share implementation decisions with related GitHub issues and update confirmed blocked-by relations when needed.
+description: After implementation or a merged PR, tell related tickets what was decided or changed that affects them, and fix the blocked-by edges those decisions changed.
 ---
 
 # Issue Comments
 
-Use after implementation decisions may have changed the plan recorded in GitHub issues. Identify the implemented issue from the conversation, the issue a merged PR closes, or the branch `<prefix>/<N>-<slug>`; ask if it is ambiguous.
+Tell other tickets what this work decided or changed that their implementers need to know. Nothing else.
 
-Issues live in the repository's GitHub `origin`. Use `gh` 2.94 or newer and pass `-R <owner>/<repo>`, resolved from `origin`, on every issue command.
+## 1. Find the work
 
-Read the issue with `gh issue view <N> --json title,body,state,milestone,blockedBy,blocking,comments`. When it has a milestone, list the milestone's other issues with `gh issue list --milestone <number> --state all --limit 1000`, prioritizing direct dependencies, especially issues the implemented issue blocks. Compare their plans, comments, and open PRs with the decisions made during implementation, or in a merged PR's threads and commits.
+- Source: a PR URL, the conversation, or the branch `<prefix>/<N>-<slug>`; ambiguous → ask
+- Read: its ticket; the PR's threads and commits; decisions made during implementation
+- Tracker: the one the repo uses, as in `$to-tickets`
+- Done: every decision and change listed with its source (PR, thread, commit)
 
-Preserve issue and milestone descriptions as the record of the original plan. Record what changed and why in a decision comment (`gh issue comment`), linking the PR or source issue when available. If acceptance criteria conflict with the decision, name the specific criteria that are superseded or deferred, say which still apply, and state what implementation should do instead. Agents should read the description and comments; the decision overrides only the criteria it explicitly addresses.
+## 2. Find who is affected
 
-Also compare existing blocked-by relations with the confirmed plan. An issue is blocked while any of its blocked-by issues is open. Add or remove a relation with `gh issue edit <N> --add-blocked-by <M>` or `--remove-blocked-by <M>` only when a decision clearly changes whether one issue must wait for another; preserve direction and leave ambiguous relations unchanged.
+- Related, in order: tickets this work blocks, its blockers, milestone or parent siblings
+- Read their bodies, comments, open PRs
+- Affected = a decision changes its assumption, constraint, interface, order, or next step
+- Done: every related ticket marked affected or not, with the reason
 
-Comment only when a confirmed decision changes an issue's assumptions, constraints, sequence, interface, or next action. Check existing comments first and avoid duplicates, speculation, or general status updates. Leave issues unchanged when no useful update is needed.
+## 3. Comment
 
-When a decision calls for new work, file it with `gh issue create`, then put it in the owner's Project `Issues` with Status Triage: resolve the project number and ID, the Status field ID, and the Triage option ID by name with `gh project list --owner <owner>` and `gh project field-list <number> --owner <owner>`, get the item from `gh project item-add <number> --owner <owner> --url <issue-url> --format json`, and set it with `gh project item-edit --project-id <id> --id <item-id> --field-id <field-id> --single-select-option-id <option-id>`. Triage is the user's inbox; leave every other Status change to the user.
+- One comment per affected ticket; read existing comments first, no duplicates
+- Content:
+  - **Changed:** the decision, why, link
+  - **For this ticket:** which Outcome or Decided lines it supersedes, which still hold, what to do instead
+- Ticket bodies stay as written: the record of the original plan
+- Worth a comment only if it changes what that ticket's implementer does; status updates, speculation, and what the code shows anyway stay out
 
-Report the issues reviewed, comments added, issues filed, and blocked-by relations changed; explain relevant decisions that needed no update.
+## 4. Blocked-by
+
+- Add or remove an edge only when a decision clearly changes whether one ticket must wait for another
+- Ambiguous → leave it
+
+## 5. New work
+
+- A decision calls for work no ticket covers → a short ticket per `$to-tickets` Write: the user story and the decision that calls for it, with links
+- File it in the tracker's inbox; the user shapes it from there
+
+## 6. Report
+
+- Tickets read; comments added; edges changed; tickets filed
+- Decisions that needed no comment, one line each
