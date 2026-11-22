@@ -16,6 +16,8 @@ Ticket = **intent**: user story, outcome, the user's decisions. The implementer 
   - what you learned from the code
   - mechanisms, data models, libraries, endpoints, paths, commands, numbers, limits, UI specifics, unless the user chose them
 - "Yes" to a summary approves the summary only
+- "Ok" to your proposal or explanation → record the user's goal behind it, not your design; binds the implementer only if the user says so when asked, else `<topic>: implementer's call`
+- Links: only to material the user wrote or chose; your blueprints, design docs, and artifacts stay unlinked
 - Same rules when editing a ticket, milestone, or parent, including edits after a review
 
 ## 1. Gather
@@ -72,11 +74,12 @@ for them, one concrete case from the conversation>
 - Outcome = what a user, caller, or operator sees; would the line change with the implementation? → method, cut it
 - Domain language; no paths, code, module names, step lists
 - Empty section → left out; empty Decided is normal
-- Costly external fact (vendor limit, probe result) → final `## Context`: fact + source, never a step
+- Costly external fact (vendor limit, probe result) → final `## Context`: fact + source only; the implementer draws the conclusion
 - One screen per ticket; shared context → milestone or parent, same rules
 
 ## 5. Provenance check
 
+- Every draft and every edit, even one line
 - Fresh subagent gets the user's messages, each with the message it answers, + drafts; not your reasoning
 - It returns every line it cannot trace to the user
 - Cut each line, or ask the user

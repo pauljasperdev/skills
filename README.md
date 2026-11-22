@@ -44,7 +44,7 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `issue2thread` uses `to-worktree-thread` with issue selection, blocker gating, examination prompts, and Status updates. `issue2claude` and `issue2codex` select default profiles owned by `issue2thread`; an explicit user model, provider, or option overrides those defaults through the adapter CLI. Install both dispatch skills alongside the issue skills.
 
-`issue-comments` compares implementation decisions with related GitHub issues, reads milestone siblings and dependencies, and updates comments or blocked-by relations when needed.
+`issue-comments` gives related tickets a short heads-up when finished work made a big decision that is new or breaks their plan. Usually it comments nothing. Scope, order, blocked-by changes, and new work go to the user as questions.
 
 `examine-work` investigates prompts or supplied briefs read-only without requiring a tracker. Its report is a discussion basis: the problem, proposed solution and decisions to discuss, the technical approach with key code and an ASCII or HTML diagram for architecture and infrastructure changes, testing and review, and a short plain-language summary. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 

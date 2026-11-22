@@ -1,4 +1,4 @@
 interface:
   display_name: "Issue Comments"
-  short_description: "Tell related tickets what implementation decided"
-  default_prompt: "Use $issue-comments to tell related tickets what this work decided or changed that affects them, and fix blocked-by edges those decisions changed."
+  short_description: "Heads-up to related tickets on big decisions"
+  default_prompt: "Use $issue-comments to give related tickets a heads-up on big decisions this work made that are new or break their plan; often there is nothing to say."
