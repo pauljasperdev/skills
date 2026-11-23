@@ -1,6 +1,6 @@
 ---
 name: examine-work
-description: Investigate proposed work read-only and present the core technical approach, diagrams, verification, and a plain-language summary as a discussion basis before implementation.
+description: Investigate proposed work read-only and report decisions, a plain-language summary, and the technical approach in code and diagrams, as a discussion basis before implementation.
 ---
 
 # Examine Work
@@ -31,41 +31,76 @@ Investigate read-only, propose a design, report it for discussion before anythin
 
 ## 2. Report
 
-- Keep the wrapper's title and metadata; include the repo path
-- ≤500 words of prose, not counting diagrams and code
-- Bullets, tables for comparisons and file → responsibility maps, focused snippets
-- No narrating the investigation
+### The reader
 
-### 1. Proposal
+- Reads **bottom up**: decisions first, then the TL;DR, then In simple words. Reads up into the code only where the bottom raises a question.
+- Wants to reach the decision fast, with enough context to make it without digging.
+- Wants **depth without filler**: the real interfaces and wiring, and every line earning its place.
+  - Short and dumbed down misses the point. So does long and padded.
+- Reads code faster than prose about code.
 
-- Problem and desired outcome
-- Proposed solution and why it solves it
-- Decisions to discuss: options + recommendation
-- Scope, constraints, blockers where relevant
+So the most detailed sections go at the top and the decisions go last.
 
-### 2. Technical approach
+### Shape
 
-- Architecture or infra change → diagram first:
-  - current vs proposed, new, changed, removed marked
-  - ASCII by default
-  - too big for ASCII (~12+ boxes, several environments, crossing flows) → one self-contained HTML file in the temp dir, linked by absolute path, plus an ASCII overview
-- Smaller flows: compact ASCII when it reads faster than prose
-- What changes where: files, modules, responsibilities, interfaces, data flow, failure handling
-- Key snippets: interfaces, schemas, core logic, labelled existing vs proposed
-- Core design, not a step-by-step plan
+```
+# <wrapper's title>
+<repo> · <path> · <wrapper metadata> · Ready | Incomplete: <n> unverified · <disclosure>
 
-### 3. Testing
+## Not verified        evidence gaps
+## Tests               scenario → expected; commands
+## Changes             path → change
+## Proposed            diagram if architectural, then code
+## Today               diagram if architectural, then current code
+## In simple words     illustration + plain explanation
+## TL;DR               before/after + the gist
+## Decisions           what the user must decide, then your defaults
+```
 
-- Scenario → expected result table, including failure cases
-- Existing coverage, tests to add, manual checks
-- Commands only when verified from repo config
-- **Ready** (only listed decisions remain) or **Incomplete** (with gaps); Ready ≠ permission to implement
-- Disclose: verification proposed, not run; no repo changes; HTML diagram written, if any; the caller's change disclosure
+- **Scale to the work.** Sections are slots, not quotas.
+  - A one-file fix: a `// Now` / `// After` pair, a 2-row test table, no diagram, and "No decisions".
+  - A new subsystem: diagrams, several interfaces, several decisions.
+  - Leave out a section that has nothing to say, except TL;DR, In simple words and Decisions, which are always there.
+- **Optional detail sections**, placed above Proposed:
+  - **Bug**: found on the way, with its code.
+  - **Cost**: performance, payload, migration.
+  - **Out of scope**: what a reader would expect to see covered, ≤3 bullets.
+- **Header**:
+  - **Ready**: only the listed decisions remain. **Incomplete**: gaps are listed under Not verified.
+  - Ready ≠ permission to implement.
+  - Disclosure: "Nothing run, repo unchanged", the HTML diagram path if one was written, and the caller's change disclosure.
 
-### 4. In plain language
+### Sections
 
-Three short bullets, no code vocabulary:
+- **Decisions**: one `###` per open choice, phrased as a question.
+  - Under it: what happens today, what breaks or changes (with a concrete case), the options with trade-offs, and your recommendation in bold.
+  - Quote the code that sets the constraint when there is one.
+  - Close with **Defaults I'm taking (say if not)**: one line per choice with an obvious answer, plus its reason.
+  - The work sets the count. Zero is a valid answer.
+- **TL;DR**: a `before:` / `after:` code block, then **Problem**, **Proposal**, **Next step**, and **Bug found** when there is one. Technical terms are fine.
+- **In simple words**: the fallback when the rest is too dense. It stands alone, with no code vocabulary, but is complete enough to follow.
+  - An ASCII illustration of before and after. Pick whatever form fits: flow, boxes, timeline, icons.
+  - **What this is about**, **Today**, **After**, **What you'll notice**: 1–4 bullets each. Use an analogy where it helps.
+- **Today / Proposed**:
+  - Architecture or infra change: a diagram first, with `[new]` and `[removed]` marked. Use ASCII.
+    - Too big for ASCII (~12+ boxes, several environments, crossing flows): one self-contained HTML file in the temp dir, linked by absolute path, plus an ASCII overview.
+  - Then code. Today quotes the current code that matters. Proposed shows new interfaces, schemas and core logic.
+  - Show the core design, not a step-by-step plan.
+- **Changes**: a table with a few words per cell.
+- **Tests**: a scenario → expected table that includes failure cases. Commands only when verified from repo config.
+- **Not verified**: one bullet per gap, saying what is unknown and why.
 
-- **Problem:** what's wrong or missing today
-- **Solution:** what we want to achieve
-- **How:** what we'll change to get there
+### Writing
+
+- Bullets, one fact each, about 15 words at most. Put the consequence or example in a sub-bullet.
+- Code carries the design. Changed code is a `// Now` / `// After` pair, trimmed to the lines that matter, with `...` for the rest.
+- `path:line` goes in a comment on the code block's first line or in the Changes table.
+- Name things by what they are. The reader has never seen your rule numbers or labels (`S18`, `D1`, `P1`).
+- Write about the next step only.
+- Report findings, not the investigation.
+
+### Examples
+
+Read [report-examples.md](report-examples.md) before writing. It holds sample sections from unrelated projects in different sizes. Match their quality and density; your content, section sizes and count of decisions come from the work in front of you.
+
+Done: someone who reads only Decisions, TL;DR and In simple words can decide, and every code claim above them is backed by source.

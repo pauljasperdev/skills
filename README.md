@@ -46,7 +46,7 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `issue-comments` gives related tickets a short heads-up when finished work made a big decision that is new or breaks their plan. Usually it comments nothing. Scope, order, blocked-by changes, and new work go to the user as questions.
 
-`examine-work` investigates prompts or supplied briefs read-only without requiring a tracker. Its report is a discussion basis: the problem, proposed solution and decisions to discuss, the technical approach with key code and an ASCII or HTML diagram for architecture and infrastructure changes, testing and review, and a short plain-language summary. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
+`examine-work` investigates prompts or supplied briefs read-only without requiring a tracker. Its report is a discussion basis written to be read bottom up: the decisions last, above them a TL;DR and a plain-language summary, above those the current and proposed design in code and ASCII or HTML diagrams, then changes, tests, and evidence gaps. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 
 `examine-issue` wraps `examine-work` with issue retrieval, milestone context, and a Status change to In Progress before repository investigation. Install both together (`--skill examine-issue examine-work`), including when using the issue dispatchers. Explicit read-only invocations skip the change; dispatched examinations leave Status changes to the dispatcher.
 
