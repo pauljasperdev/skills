@@ -250,7 +250,7 @@ No decisions. The fix has one correct form.
 Medium, with one real choice:
 
 ```
-### Where is the limit counted?
+### 1. Where is the limit counted?
 
 - Today there is no limit.
 - The API runs on 3 instances behind a load balancer.
@@ -270,7 +270,7 @@ Medium, with one real choice:
 Large, two decisions, one of them anchored in code:
 
 ````
-### What happens when resizing fails?
+### 1. What happens when resizing fails?
 
 ```ts
 // src/upload/handler.ts:42
@@ -285,7 +285,7 @@ await resize(file, 2048); // throws → the upload fails with 500
 - **B:** retry forever and alert on a stuck queue.
   - No UI work. Broken photos stay grey until someone cleans them up by hand.
 
-### May thumbnails appear after the upload returns?
+### 2. May thumbnails appear after the upload returns?
 
 - Today the thumbnail exists when the upload request returns.
 - With the queue, it appears 1–5 s later.

@@ -72,8 +72,8 @@ So the most detailed sections go at the top and the decisions go last.
 
 ### Sections
 
-- **Decisions**: one `###` per open choice, phrased as a question.
-  - Under it: what happens today, what breaks or changes (with a concrete case), the options with trade-offs, and your recommendation in bold.
+- **Decisions**: one numbered `### 1. <question>` per open choice, so the user can answer "1A, 2B".
+  - Under it: what happens today, what breaks or changes (with a concrete case), the options lettered **A**, **B**, … with trade-offs, and your recommendation in bold.
   - Quote the code that sets the constraint when there is one.
   - Close with **Defaults I'm taking (say if not)**: one line per choice with an obvious answer, plus its reason.
   - The work sets the count. Zero is a valid answer.
