@@ -1,32 +1,40 @@
 ---
 name: to-tickets
-description: Turn a conversation, plan, or milestone brainstorm into tickets in the repo's issue tracker that carry the user story, the outcome, and only the user's own decisions. Use whenever drafting, filing, or editing tickets or issues.
+description: Turn a conversation, plan, or milestone brainstorm into tickets in the repo's issue tracker that show what to build through the user story, the outcome, the user's own decisions, and sourced context. Use whenever drafting, filing, or editing tickets or issues.
 ---
 
 # To Tickets
 
-Ticket = **intent**: user story, outcome, the user's decisions. The implementer owns the how and reads every line as a requirement.
+Ticket = **intent**: what to build, seen from the user's side, plus the facts that shape it. The implementer owns the how and reads every line as a requirement unless it is marked as context.
 
 ## Provenance
 
-- In a ticket: only what the user said or explicitly approved
-- Each decision carries its source: the user's words or the approving message
-- Outside the ticket, as questions to the user:
-  - your proposals; findings from reviewers, researchers, probes, subagents
-  - what you learned from the code
-  - mechanisms, data models, libraries, endpoints, paths, commands, numbers, limits, UI specifics, unless the user chose them
+Sort every line by kind:
+
+| Kind | Who supplies it | In the ticket | Check |
+|---|---|---|---|
+| **Decision** | the user only | Decided, Outcome, Out of scope; binding | traced to the user |
+| **Fact** | anyone, with a source | Context; not binding | sourced, phrased as fact, no "should" |
+| **Proposal** | you, reviewers, researchers, subagents | out, unless the user approves it | — |
+
+- Decisions carry their source: the user and the date; a short quote only where the wording matters
+- Mechanisms, data models, libraries, endpoints, paths, commands, numbers, limits, UI specifics → Decided only when the user chose them, Context only as verified fact
 - "Yes" to a summary approves the summary only
 - "Ok" to your proposal or explanation → record the user's goal behind it, not your design; binds the implementer only if the user says so when asked, else `<topic>: implementer's call`
-- Links: only to material the user wrote or chose; your blueprints, design docs, and artifacts stay unlinked
+- Unverified claims stay out, even as context
 - Same rules when editing a ticket, milestone, or parent, including edits after a review
 
 ## 1. Gather
 
 - Read: conversation, referenced tickets, specs, milestones, with comments
-- Collect: user stories (who, what they want, why), outcomes, decisions + sources, exclusions, open questions
-- Code: vocabulary and natural slices only
+- Collect:
+  - user stories: who, what they want, why, the cases and pictures the user described
+  - outcomes, decisions + sources, exclusions, open questions
+  - resources the user gave: links, docs, threads, screenshots, images, Miro or Figma boards
+  - facts found along the way, with their sources: today's state, external limits, costs, accounts and credentials needed, related tickets and PRs
+- Code: vocabulary, natural slices, and today's state
 - Port or rewrite: Decided holds the user's scope rule ("port all of it"), not an inventory of the old behavior
-- Done: every decision sourced, every other idea marked as yours
+- Done: every decision and fact sourced, every other idea marked as yours
 
 ## 2. Slice
 
@@ -41,10 +49,11 @@ Ticket = **intent**: user story, outcome, the user's decisions. The implementer 
   - user story: who, what they want, why, one concrete case
   - outcome: what is observably true when done
   - your open questions and proposals
-- The how stays out of the grilling unless the user raised it
+- Ask only what the conversation leaves unclear; all questions in one round
+- The how stays out, including where work starts and how branches merge, unless the user raised it
 - Answer → a decision with its source
 - "Implementer decides" → a decision too: `<topic>: implementer's call`
-- Done: every story has who, what, why, and a case; no open questions left
+- Done: every story shows who, what, why, and a case; no open questions left
 
 ## 4. Write
 
@@ -53,8 +62,9 @@ Ticket = **intent**: user story, outcome, the user's decisions. The implementer 
 
 As <who>, I want <what>, so that <why>.
 
-<a few sentences in the user's terms: their situation today, what changes
-for them, one concrete case from the conversation>
+<as long as it takes for a stranger to picture the result, from the user's side:
+today vs. after, a walkthrough of the cases from the conversation, and a picture
+when it shows faster>
 
 ## Outcome
 
@@ -62,28 +72,36 @@ for them, one concrete case from the conversation>
 
 ## Decided
 
-- <decision>: <source>
+- <decision>: <user, date>
 
 ## Out of scope
 
 - <only what the user excluded>
+
+## Context
+
+- Resources: <link>: <what it is for>
+- Today: <the state the story starts from>
+- <limit, cost, account, credential, or other force that shapes the build>: <source>
+- Related: <ticket or PR>: <what it touches>
 ```
 
-- The user story is the heart: who, what, why, written out so a stranger gets it; works for a feature and a fix alike
-- Readable first: bullets for lists, short prose for the story, a table, ASCII sketch, or HTML element when it reads faster; a sketch shows what the user sees or decided, under Provenance
+- The user story is the heart: the headline says who, what, why; the body shows what gets built, at any length; "so that" may go when it's obvious
+- Pictures: images, screenshots, ASCII flows, breadboards, before/after tables, states, HTML, Miro or Figma boards; embed or link the user's own
+- The story shows what the user sees and does; what the user didn't decide stays rough: name it ("a list of letters"), don't design it
 - Outcome = what a user, caller, or operator sees; would the line change with the implementation? → method, cut it
-- Domain language; no paths, code, module names, step lists
+- Context states facts; the implementer draws the conclusions; long context goes in a `<details>` block
+- Domain language; no file paths, code, or step lists
 - Empty section → left out; empty Decided is normal
-- Costly external fact (vendor limit, probe result) → final `## Context`: fact + source only; the implementer draws the conclusion
-- One screen per ticket; shared context → milestone or parent, same rules
+- Outcome and Decided fit one screen; shared context → milestone or parent, same rules
 
 ## 5. Provenance check
 
-- Every draft and every edit, even one line
-- Fresh subagent gets the user's messages, each with the message it answers, + drafts; not your reasoning
-- It returns every line it cannot trace to the user
+- On the full drafts, and again on the lines changed after each revision
+- Fresh subagent gets the user's messages, each with the message it answers, the sources behind Context, and the drafts; not your reasoning
+- It returns every Decision line it cannot trace to the user, and every Context line without a source or phrased as advice
 - Cut each line, or ask the user
-- Done: every line traced
+- Done: every line traced or sourced
 
 ## 6. Show
 
