@@ -19,6 +19,7 @@ Investigate read-only, propose a design, report it for discussion before anythin
 - Trace: affected behavior, owners, callers, similar code, runtime wiring, tests
 - Verify claims against source and installed versions
 - Requirement or design choice? Label each
+- Existing codebase pattern first: search how the repo already solves this problem, propose following it with `path:line`; new pattern only when none fits, with the reason
 - Each proposed mechanism cites its library construct (`$effect` lookup for Effect)
 - "Library can't do X" needs `path:line`; otherwise unverified → evidence gaps
 - Proposed design:

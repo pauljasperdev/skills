@@ -22,6 +22,7 @@ Build exactly what was asked. Minimal code, verified. Every line is a liability.
 - `$codebase-design`: ownership, interfaces, seams
 - `$effect`: look up each mechanism as you write it; no new Effect unless asked
 - `$vercel-react-best-practices`: React, Next.js
+- Existing codebase pattern first: search how the repo already solves this problem, follow it; new pattern only when none fits, with the reason
 - Library construct before hand-rolled mechanism (flag, counter, retry, polling, wait, cache, lock, state machine); hand-rolled only with the `path:line` where the construct fails
 - Local code sets naming and wiring; library docs and source set idiom; contradiction → follow docs, name it
 - Skill unavailable → say so, use verified source
