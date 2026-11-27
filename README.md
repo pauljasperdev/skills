@@ -42,13 +42,13 @@ The `gemhog-*` skills are the Gemhog content pipeline; Notion holds the content 
 
 `to-worktree-thread` opens a new native T3 thread with a new branch-backed worktree and automatic setup. It uses the shared T3 adapter from `to-thread`. Both accept a supplied model and optional provider/options, and ask when no model is supplied.
 
-`issue2thread` uses `to-worktree-thread` with issue selection, blocker gating, examination prompts, and Status updates. `issue2claude` and `issue2codex` select default profiles owned by `issue2thread`; an explicit user model, provider, or option overrides those defaults through the adapter CLI. Install both dispatch skills alongside the issue skills.
+`issue2thread` uses `to-worktree-thread` with issue selection, blocker gating, examination prompts, Status updates, and issue links on the new threads. `issue2claude` and `issue2codex` select default profiles owned by `issue2thread`; an explicit user model, provider, or option overrides those defaults through the adapter CLI. Install both dispatch skills alongside the issue skills.
 
 `issue-comments` gives related tickets a short heads-up when finished work made a big decision that is new or breaks their plan. Usually it comments nothing. Scope, order, blocked-by changes, and new work go to the user as questions.
 
 `examine-work` investigates prompts or supplied briefs read-only without requiring a tracker. Its report is a discussion basis written to be read bottom up: the decisions last, above them a TL;DR and a plain-language summary, above those the current and proposed design in code and ASCII or HTML diagrams, then changes, tests, and evidence gaps. Use it standalone, for example: `$examine-work investigate adding CSV export to the current dashboard`.
 
-`examine-issue` wraps `examine-work` with issue retrieval, milestone context, and a Status change to In Progress before repository investigation. Install both together (`--skill examine-issue examine-work`), including when using the issue dispatchers. Explicit read-only invocations skip the change; dispatched examinations leave Status changes to the dispatcher.
+`examine-issue` wraps `examine-work` with issue retrieval, milestone context, a Status change to In Progress, and a link from the issue to its T3 thread before repository investigation. Install both together (`--skill examine-issue examine-work`), including when using the issue dispatchers. Explicit read-only invocations skip the change; dispatched examinations leave Status changes to the dispatcher.
 
 Issue tracking is GitHub Issues in each repository's `origin`, used through `gh` 2.94 or newer:
 
